@@ -294,7 +294,7 @@ class OpenHaxApp {
       el<HTMLSelectElement>('select-lang'),
       (val) => LANG_TO_FLAG[val as Lang] || 'TR',
       false,
-      false
+      true
     );
     this.syncCountrySelectUi = this.enhanceFlagSelect(
       this.authCountry,
@@ -1434,10 +1434,10 @@ class OpenHaxApp {
       tdFlag.append(createFlagEl(roomCountry), ' ' + roomCountry);
 
       const tdName = document.createElement('td');
-      tdName.textContent = r.name;
+      tdName.textContent = censorText(r.name);
 
       const tdHost = document.createElement('td');
-      tdHost.textContent = r.hostName;
+      tdHost.textContent = censorText(r.hostName);
 
       const tdSt = document.createElement('td');
       tdSt.textContent = stadiumLabel;
@@ -1487,7 +1487,8 @@ class OpenHaxApp {
 
   private createAndEnterRoom(): void {
     const kind = this.createType.value as 'public' | 'private' | 'offline' | 'local2p';
-    const roomName = this.createName.value.trim() || (this.settings.nickname + "'nun Odasi");
+    const rawRoomName = this.createName.value.trim() || (this.settings.nickname + "'nun Odasi");
+    const roomName = censorText(rawRoomName);
     const stadiumId = this.createStadium.value as StadiumId;
     const maxPlayers = Number(this.createMax.value) || 8;
     const botPreset = this.createBots.value;
@@ -2155,6 +2156,11 @@ class OpenHaxApp {
     setText('#btn-toggle-roombars', 'roomBarBtn');
     setText('#view-auth h1', 'authTitle');
     setText('#view-auth .subtitle', 'authSub');
+    const authFieldSpans = document.querySelectorAll('#view-auth .auth-card label.field > span');
+    if (authFieldSpans[0]) authFieldSpans[0].textContent = t(l, 'nickLabel');
+    if (authFieldSpans[1]) authFieldSpans[1].textContent = t(l, 'avatarLabel');
+    if (authFieldSpans[2]) authFieldSpans[2].textContent = t(l, 'countryLabel');
+    if (authFieldSpans[3]) authFieldSpans[3].textContent = t(l, 'passLabel');
     setText('#btn-guest-enter', 'enterGuest');
     setText('.auth-leaders-card h2', 'leadersTitle');
     setText('.auth-chat-card h2', 'globalChatTitle');

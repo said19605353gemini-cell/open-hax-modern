@@ -4,18 +4,9 @@ import { Lang } from '../i18n';
 const STORAGE_KEY = 'openhax_modern_settings_v2';
 
 export const LANG_TO_FLAG: Record<Lang, string> = {
-  tr: 'TR',
-  en: 'GB',
-  az: 'AZ',
-  de: 'DE',
-  fr: 'FR',
-  es: 'ES',
-  pt: 'BR',
-  it: 'IT',
-  nl: 'NL',
-  pl: 'PL',
-  ru: 'RU',
-  ar: 'SA'
+  tr: 'TR', en: 'GB', az: 'AZ', de: 'DE', fr: 'FR', es: 'ES', pt: 'BR', it: 'IT', nl: 'NL', pl: 'PL', ru: 'RU', ar: 'SA',
+  uk: 'UA', ro: 'RO', el: 'GR', cs: 'CZ', hu: 'HU', sv: 'SE', no: 'NO', da: 'DK', fi: 'FI', bg: 'BG', sr: 'RS', hr: 'HR',
+  ka: 'GE', kk: 'KZ', uz: 'UZ', fa: 'IR', he: 'IL', hi: 'IN', id: 'ID', vi: 'VN', th: 'TH', ja: 'JP', ko: 'KR', zh: 'CN'
 };
 
 export const ALL_COUNTRY_CODES: string[] = [
@@ -116,7 +107,7 @@ export function detectDefaultCountry(): string {
 export function detectDefaultLang(): Lang {
   try {
     const raw = (navigator.language || 'tr').toLowerCase().split('-')[0];
-    const supported: Lang[] = ['tr', 'en', 'az', 'de', 'fr', 'es', 'pt', 'it', 'nl', 'pl', 'ru', 'ar'];
+    const supported = Object.keys(LANG_TO_FLAG) as Lang[];
     if (supported.includes(raw as Lang)) return raw as Lang;
   } catch { /* ignore */ }
   return 'tr';
