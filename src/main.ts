@@ -396,6 +396,77 @@ class OpenHaxApp {
     this.settingsModal.addEventListener('click', (e) => {
       if (e.target === this.settingsModal) this.settingsModal.classList.add('hidden');
     });
+
+    const teamsModal = el<HTMLDivElement>('teams-modal');
+    let teamsLocked = false;
+    const renderTeamsModal = () => {
+      const lists: Record<Team, HTMLDivElement> = {
+        red: el<HTMLDivElement>('teams-list-red'),
+        spec: el<HTMLDivElement>('teams-list-spec'),
+        blue: el<HTMLDivElement>('teams-list-blue')
+      };
+      lists.red.innerHTML = '';
+      lists.spec.innerHTML = '';
+      lists.blue.innerHTML = '';
+      const isAdm = this.isMeAdmin();
+      el<HTMLDivElement>('teams-admin-actions').classList.toggle('hidden', !isAdm);
+      el<HTMLButtonElement>('btn-teams-lock').textContent = teamsLocked ? '🔒 Kilitli' : '🔓 Kilitle';
+      for (const p of this.players) {
+        const row = document.createElement('div');
+        row.className = 'team-player-row';
+        row.innerHTML = `<span>${p.isAdmin ? '★ ' : ''}${p.avatar} ${p.name}${p.isBot ? ' [BOT]' : ''}</span>`;
+        row.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          if (isAdm) this.openPlayerContextMenu(ev.clientX, ev.clientY, p);
+        });
+        lists[p.team].appendChild(row);
+      }
+    };
+    el<HTMLButtonElement>('btn-teams-modal').addEventListener('click', () => {
+      renderTeamsModal();
+      teamsModal.classList.toggle('hidden');
+    });
+    el<HTMLButtonElement>('btn-teams-close').addEventListener('click', () => teamsModal.classList.add('hidden'));
+    el<HTMLButtonElement>('btn-teams-start').addEventListener('click', () => {
+      teamsModal.classList.add('hidden');
+      if (this.paused && this.isMeAdmin()) this.togglePause();
+    });
+    teamsModal.addEventListener('click', (e) => {
+      if (e.target === teamsModal) teamsModal.classList.add('hidden');
+    });
+    const joinCol = (team: Team) => {
+      if (teamsLocked && !this.isMeAdmin()) return;
+      (this.viewRoom.querySelector(`[data-team="${team}"]`) as HTMLButtonElement | null)?.click();
+      setTimeout(renderTeamsModal, 60);
+    };
+    el<HTMLButtonElement>('btn-join-red').addEventListener('click', () => joinCol('red'));
+    el<HTMLButtonElement>('btn-join-spec').addEventListener('click', () => joinCol('spec'));
+    el<HTMLButtonElement>('btn-join-blue').addEventListener('click', () => joinCol('blue'));
+    el<HTMLButtonElement>('btn-teams-lock').addEventListener('click', () => {
+      if (!this.isMeAdmin()) return;
+      teamsLocked = !teamsLocked;
+      renderTeamsModal();
+    });
+    el<HTMLButtonElement>('btn-teams-reset').addEventListener('click', () => {
+      if (!this.isMeAdmin()) return;
+      for (const p of this.players) this.dispatchAdminAction(p.id, 'set_team', 'spec');
+      setTimeout(renderTeamsModal, 60);
+    });
+    el<HTMLButtonElement>('btn-teams-auto').addEventListener('click', () => {
+      if (!this.isMeAdmin()) return;
+      this.players.forEach((p, idx) => {
+        this.dispatchAdminAction(p.id, 'set_team', idx % 2 === 0 ? 'red' : 'blue');
+      });
+      setTimeout(renderTeamsModal, 60);
+    });
+    el<HTMLButtonElement>('btn-teams-rand').addEventListener('click', () => {
+      if (!this.isMeAdmin()) return;
+      const shuffled = [...this.players].sort(() => Math.random() - 0.5);
+      shuffled.forEach((p, idx) => {
+        this.dispatchAdminAction(p.id, 'set_team', idx % 2 === 0 ? 'red' : 'blue');
+      });
+      setTimeout(renderTeamsModal, 60);
+    });
     document.addEventListener('click', () => {
       this.ctxMenu.classList.add('hidden');
     });

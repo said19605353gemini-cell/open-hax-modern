@@ -257,6 +257,7 @@
         <button type="button" data-team="red" class="btn team-btn red">Kırmızı</button>
         <button type="button" data-team="blue" class="btn team-btn blue">Mavi</button>
         <button type="button" data-team="spec" class="btn team-btn">İzleyici</button>
+        <button type="button" id="btn-teams-modal" class="btn primary">Takımlar / Liste</button>
       </div>
     </section>
 
@@ -468,6 +469,41 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Teams / Room List Modal (HaxBall style) -->
+  <div id="teams-modal" class="modal-backdrop hidden">
+    <div class="modal-card teams-modal-card">
+      <div class="modal-head">
+        <h2 id="teams-modal-title">Oda &amp; Takım Listesi</h2>
+        <button type="button" id="btn-teams-close" class="btn">Kapat</button>
+      </div>
+      <div class="teams-board">
+        <div class="teams-side-actions" id="teams-admin-actions">
+          <button type="button" id="btn-teams-auto" class="btn">Auto</button>
+          <button type="button" id="btn-teams-rand" class="btn">Rand</button>
+          <button type="button" id="btn-teams-lock" class="btn">🔓 Kilitle</button>
+          <button type="button" id="btn-teams-reset" class="btn">Reset</button>
+        </div>
+        <div class="teams-columns">
+          <div class="team-col">
+            <button type="button" id="btn-join-red" class="btn team-btn red team-col-head">Kırmızı (Red)</button>
+            <div id="teams-list-red" class="team-col-list"></div>
+          </div>
+          <div class="team-col">
+            <button type="button" id="btn-join-spec" class="btn team-col-head">İzleyiciler (Spectators)</button>
+            <div id="teams-list-spec" class="team-col-list"></div>
+          </div>
+          <div class="team-col">
+            <button type="button" id="btn-join-blue" class="btn team-btn blue team-col-head">Mavi (Blue)</button>
+            <div id="teams-list-blue" class="team-col-list"></div>
+          </div>
+        </div>
+      </div>
+      <div class="teams-modal-foot">
+        <button type="button" id="btn-teams-start" class="btn primary">▶ Oyunu Başlat / Devam Et</button>
       </div>
     </div>
   </div>

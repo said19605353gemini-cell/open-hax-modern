@@ -784,3 +784,63 @@ body {
 .debug-line.WARN {
   color: #fde68a;
 }
+
+/* HaxBall-style Teams Modal */
+.teams-modal-card {
+  width: min(760px, 95vw);
+}
+.teams-board {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+.teams-side-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 96px;
+}
+.teams-columns {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.team-col {
+  display: flex;
+  flex-direction: column;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 8px;
+  min-height: 220px;
+}
+.team-col-head {
+  width: 100%;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+.team-col-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+.team-player-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 13px;
+  cursor: pointer;
+}
+.team-player-row:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+.teams-modal-foot {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
