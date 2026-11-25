@@ -59,6 +59,7 @@ class OpenHaxApp {
   private currentRoomName = 'OpenHax Oda';
   private roomMaxPlayers = 8;
   private roomScoreLimit = 5;
+  private roomTimeLimit = 180;
   private roomHasPassword = false;
   private customTuningActive = false;
   private matchEnded = false;
@@ -138,6 +139,7 @@ class OpenHaxApp {
   private createBotDiff = el<HTMLSelectElement>('create-botdiff');
   private createPhysics = el<HTMLSelectElement>('create-physics');
   private createScoreLimit = el<HTMLSelectElement>('create-scorelimit');
+  private createTimeLimit = el<HTMLSelectElement>('create-timelimit');
 
   // Room refs
   private roomTitleLabel = el<HTMLElement>('room-title-label');
@@ -160,6 +162,8 @@ class OpenHaxApp {
   private settingsModal = el<HTMLDivElement>('settings-modal');
   private debugModal = el<HTMLDivElement>('debug-modal');
   private debugLogBox = el<HTMLDivElement>('debug-log-box');
+  private ctxMenu = el<HTMLDivElement>('player-ctx-menu');
+  private physicsAdminNote = el<HTMLDivElement>('physics-admin-note');
 
   constructor() {
     this.installErrorTraps();
@@ -192,7 +196,8 @@ class OpenHaxApp {
       onSnapshot: (snap) => this.applyGuestSnapshot(snap),
       onPingUpdate: (ping) => {
         this.pingMs = ping;
-      }
+      },
+      onAdminCmd: (fromPeerId, cmd, targetId, value) => this.handleRemoteAdminCmd(fromPeerId, cmd, targetId, value)
     });
 
     this.loop = new GameLoop(
@@ -391,6 +396,9 @@ class OpenHaxApp {
     this.settingsModal.addEventListener('click', (e) => {
       if (e.target === this.settingsModal) this.settingsModal.classList.add('hidden');
     });
+    document.addEventListener('click', () => {
+      this.ctxMenu.classList.add('hidden');
+    });
 
     this.btnDebug.addEventListener('click', () => {
       this.debugModal.classList.toggle('hidden');
@@ -550,6 +558,9 @@ class OpenHaxApp {
       el<HTMLSpanElement>('vol-label').textContent = Math.round(vol * 100) + '%';
       this.updateSettings({ soundVolume: vol });
     });
+    el<HTMLInputElement>('set-goalgif').addEventListener('change', (e) => {
+      this.updateSettings({ goalGifUrl: (e.target as HTMLInputElement).value.trim() });
+    });
 
     const bindRange = (id: string, lblId: string, fmt: (v: number) => string, apply: (v: number) => void) => {
       el<HTMLInputElement>(id).addEventListener('input', (e) => {
@@ -675,12 +686,14 @@ class OpenHaxApp {
     const botDiff = this.createBotDiff.value as BotDifficulty;
     const physProfile = this.createPhysics.value as PhysicsProfile;
     const scoreLimit = Number(this.createScoreLimit.value) || 0;
+    const timeLimit = Number(this.createTimeLimit.value) || 0;
     const password = this.createPass.value.trim();
 
     this.roomKind = kind;
     this.currentRoomName = roomName;
     this.roomMaxPlayers = maxPlayers;
     this.roomScoreLimit = scoreLimit;
+    this.roomTimeLimit = timeLimit;
     this.roomHasPassword = Boolean(password);
     this.customTuningActive = false;
     this.matchEnded = false;
@@ -694,7 +707,7 @@ class OpenHaxApp {
 
     this.myPlayerId = 'host';
     this.players = [
-      this.createPlayer('host', this.settings.nickname, this.settings.avatar, 'red', false)
+      this.createPlayer('host', this.settings.nickname, this.settings.avatar, 'red', false, true)
     ];
 
     if (kind === 'local2p') {
@@ -815,11 +828,23 @@ class OpenHaxApp {
   }
 
   private updateRoomUI(): void {
-    const role = this.peerMgr.getRole();
-    const isGuest = role === 'guest';
-    this.hostBotBar.classList.toggle('hidden', isGuest || this.roomKind === 'local2p');
-    this.btnPause.classList.toggle('hidden', this.activeScreen !== 'room' || isGuest);
-    this.btnReset.classList.toggle('hidden', this.activeScreen !== 'room' || isGuest);
+    const isAdmin = this.isMeAdmin();
+    this.hostBotBar.classList.toggle('hidden', this.roomKind === 'local2p');
+    this.hostBotBar.querySelectorAll<HTMLButtonElement | HTMLSelectElement>('button, select').forEach((node) => {
+      node.disabled = !isAdmin;
+    });
+    this.btnPause.classList.toggle('hidden', this.activeScreen !== 'room' || !isAdmin);
+    this.btnReset.classList.toggle('hidden', this.activeScreen !== 'room' || !isAdmin);
+
+    // Lock physics controls for non-admin users while keeping graphics/FPS/sound unlocked
+    const lockIds = ['set-physics', 'set-ballctrl', 'set-balldamp', 'set-kickpwr', 'set-pspd', 'set-wallb'];
+    for (const id of lockIds) {
+      const node = document.getElementById(id) as HTMLInputElement | HTMLSelectElement | null;
+      if (node) node.disabled = !isAdmin;
+    }
+    const proBtn = this.settingsModal.querySelector<HTMLButtonElement>('[data-preset="proControl"]');
+    if (proBtn) proBtn.disabled = !isAdmin;
+    this.physicsAdminNote.classList.toggle('hidden', isAdmin);
 
     if (this.roomKind === 'local2p') {
       this.controlsHintEl.textContent = '2 Kişilik Yerel: Kırmızı W A S D + Boşluk | Mavi Ok Tuşları + X';
@@ -831,9 +856,95 @@ class OpenHaxApp {
     for (let i = 0; i < this.players.length; i++) {
       const p = this.players[i];
       const chip = document.createElement('span');
-      chip.className = 'roster-chip ' + p.team;
-      chip.textContent = (p.isBot ? '[BOT] ' : '') + p.name;
+      chip.className = 'roster-chip ' + p.team + (p.isAdmin ? ' admin' : '');
+      chip.textContent = (p.isAdmin ? '★ ' : '') + (p.isBot ? '[BOT] ' : '') + p.name;
+      if (isAdmin && p.id !== 'host') {
+        chip.title = 'Sağ tıkla: Admin / Takım / At';
+        chip.style.cursor = 'context-menu';
+        chip.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.openPlayerContextMenu(e.clientX, e.clientY, p);
+        });
+      }
       this.rosterStrip.appendChild(chip);
+    }
+  }
+
+  private isMeAdmin(): boolean {
+    if (this.peerMgr.getRole() !== 'guest') return true;
+    const me = this.players.find((p) => p.id === this.myPlayerId);
+    return Boolean(me?.isAdmin);
+  }
+
+  private openPlayerContextMenu(x: number, y: number, target: PlayerEntity): void {
+    this.ctxMenu.innerHTML = '';
+    const addItem = (label: string, onClick: () => void) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = label;
+      btn.addEventListener('click', () => {
+        this.ctxMenu.classList.add('hidden');
+        onClick();
+      });
+      this.ctxMenu.appendChild(btn);
+    };
+
+    if (!target.isBot) {
+      addItem(target.isAdmin ? 'Adminliği Al' : '★ Admin Yap', () => {
+        this.dispatchAdminAction('toggle_admin', target.id);
+      });
+    }
+    addItem('Kırmızı Takıma Al', () => this.dispatchAdminAction('set_team', target.id, 'red'));
+    addItem('Mavi Takıma Al', () => this.dispatchAdminAction('set_team', target.id, 'blue'));
+    addItem('İzleyiciye Al', () => this.dispatchAdminAction('set_team', target.id, 'spec'));
+    if (target.id !== this.myPlayerId) {
+      addItem('Odadan At (Kick)', () => this.dispatchAdminAction('kick', target.id));
+    }
+
+    this.ctxMenu.style.left = Math.min(window.innerWidth - 190, x) + 'px';
+    this.ctxMenu.style.top = Math.min(window.innerHeight - 180, y) + 'px';
+    this.ctxMenu.classList.remove('hidden');
+  }
+
+  private dispatchAdminAction(cmd: string, targetId?: string, value?: string | number | boolean): void {
+    if (this.peerMgr.getRole() === 'guest') {
+      if (this.isMeAdmin()) {
+        this.peerMgr.sendAdminCmd(cmd, targetId, value);
+      }
+      return;
+    }
+    this.executeAdminCmd(cmd, targetId, value);
+  }
+
+  private handleRemoteAdminCmd(fromPeerId: string, cmd: string, targetId?: string, value?: string | number | boolean): void {
+    const sender = this.players.find((p) => p.id === fromPeerId);
+    if (!sender || !sender.isAdmin) return;
+    this.executeAdminCmd(cmd, targetId, value);
+  }
+
+  private executeAdminCmd(cmd: string, targetId?: string, value?: string | number | boolean): void {
+    if (cmd === 'toggle_admin' && targetId) {
+      const target = this.players.find((p) => p.id === targetId);
+      if (target && !target.isBot && target.id !== 'host') {
+        target.isAdmin = !target.isAdmin;
+        this.addChat('Sistem', target.name + (target.isAdmin ? ' artık oda admini.' : ' adminlikten çıkarıldı.'), true);
+        this.peerMgr.broadcastChat('Sistem', target.name + (target.isAdmin ? ' artık oda admini.' : ' adminlikten çıkarıldı.'), undefined);
+        this.updateRoomUI();
+      }
+    } else if (cmd === 'set_team' && targetId && typeof value === 'string') {
+      this.handlePeerTeam(targetId, value as Team);
+    } else if (cmd === 'kick' && targetId && targetId !== 'host') {
+      const idx = this.players.findIndex((p) => p.id === targetId);
+      if (idx !== -1) {
+        const removed = this.players[idx];
+        if (removed.isBot) {
+          this.players.splice(idx, 1);
+          this.updateRoomUI();
+        } else {
+          this.peerMgr.kickPeer(targetId, 'Oda admini tarafından odadan çıkarıldınız.');
+        }
+      }
     }
   }
 
@@ -871,6 +982,7 @@ class OpenHaxApp {
     el<HTMLInputElement>('set-sound').checked = s.masterSound;
     el<HTMLInputElement>('set-volume').value = String(s.soundVolume);
     el<HTMLSpanElement>('vol-label').textContent = Math.round(s.soundVolume * 100) + '%';
+    el<HTMLInputElement>('set-goalgif').value = s.goalGifUrl || '';
     el<HTMLInputElement>('set-ballctrl').value = String(s.ballControl);
     el<HTMLSpanElement>('lbl-ballctrl').textContent = s.ballControl + '%';
     el<HTMLInputElement>('set-balldamp').value = String(s.ballDamping);
@@ -915,13 +1027,14 @@ class OpenHaxApp {
     this.btnPause.textContent = this.paused ? t(l, 'resume') : t(l, 'pause');
   }
 
-  private createPlayer(id: string, name: string, avatar: string, team: Team, isBot: boolean): PlayerEntity {
+  private createPlayer(id: string, name: string, avatar: string, team: Team, isBot: boolean, isAdmin = false): PlayerEntity {
     return {
       id,
       name,
       avatar,
       team,
       isBot,
+      isAdmin,
       x: 0,
       y: 0,
       prevX: 0,
@@ -1097,6 +1210,18 @@ class OpenHaxApp {
       if (this.tickInSecond >= 60) {
         this.tickInSecond = 0;
         this.matchSeconds++;
+        if (this.roomTimeLimit > 0 && this.matchSeconds >= this.roomTimeLimit && !this.matchEnded) {
+          this.matchEnded = true;
+          this.goalPending = true;
+          this.goalResetTicks = 210;
+          this.goalBannerTeam = this.scoreRed >= this.scoreBlue ? 'red' : 'blue';
+          this.audio.play('end');
+          const msg =
+            this.scoreRed === this.scoreBlue
+              ? 'Sure doldu! Mac berabere bitti (' + this.scoreRed + '-' + this.scoreBlue + ')'
+              : 'Sure doldu! ' + (this.scoreRed > this.scoreBlue ? 'Kirmizi' : 'Mavi') + ' takim kazandi!';
+          this.addChat('Sistem', msg, true);
+        }
         this.syncScoreboardUI();
       }
     }
@@ -1173,6 +1298,7 @@ class OpenHaxApp {
       pf: this.settings.physicsProfile,
       sc: [this.scoreRed, this.scoreBlue],
       sl: this.roomScoreLimit,
+      tl: this.roomTimeLimit,
       sec: this.matchSeconds,
       p: this.paused,
       gt: this.goalBannerTeam,
@@ -1188,6 +1314,7 @@ class OpenHaxApp {
         avatar: p.avatar,
         team: p.team,
         isBot: p.isBot,
+        adm: Boolean(p.isAdmin),
         x: Math.round(p.x * 10) / 10,
         y: Math.round(p.y * 10) / 10,
         vx: Math.round(p.vx * 100) / 100,
@@ -1209,6 +1336,9 @@ class OpenHaxApp {
     }
     if (typeof snap.sl === 'number') {
       this.roomScoreLimit = snap.sl;
+    }
+    if (typeof snap.tl === 'number') {
+      this.roomTimeLimit = snap.tl;
     }
     if (snap.rn && snap.rn !== this.currentRoomName) {
       this.currentRoomName = snap.rn;
@@ -1243,7 +1373,7 @@ class OpenHaxApp {
       const sp = snap.pl[i];
       const cur = existingMap.get(sp.id);
       if (cur) {
-        if (cur.team !== sp.team || cur.name !== sp.name) rosterChanged = true;
+        if (cur.team !== sp.team || cur.name !== sp.name || Boolean(cur.isAdmin) !== Boolean(sp.adm)) rosterChanged = true;
         cur.prevX = cur.x;
         cur.prevY = cur.y;
         cur.x = sp.x;
@@ -1254,11 +1384,12 @@ class OpenHaxApp {
         cur.avatar = sp.avatar;
         cur.team = sp.team;
         cur.isBot = sp.isBot;
+        cur.isAdmin = Boolean(sp.adm);
         cur.kickFlashTicks = sp.kf;
         updated.push(cur);
       } else {
         rosterChanged = true;
-        const fresh = this.createPlayer(sp.id, sp.name, sp.avatar, sp.team, sp.isBot);
+        const fresh = this.createPlayer(sp.id, sp.name, sp.avatar, sp.team, sp.isBot, Boolean(sp.adm));
         fresh.x = sp.x;
         fresh.y = sp.y;
         fresh.prevX = sp.x;
@@ -1295,9 +1426,15 @@ class OpenHaxApp {
     this.pauseBannerEl.classList.toggle('hidden', !this.paused);
 
     if (this.goalBannerTeam) {
+      const l = this.settings.lang || 'tr';
       this.goalBannerEl.className = 'overlay-banner ' + this.goalBannerTeam;
+      const gifHtml = this.settings.goalGifUrl
+        ? '<img src="' + this.settings.goalGifUrl.replace(/"/g, '&quot;') + '" alt="goal" style="max-height:110px;border-radius:6px;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto;" />'
+        : '';
       this.goalBannerEl.innerHTML =
-        '<span>' + (this.goalBannerTeam === 'red' ? 'GOL! KIRMIZI TAKIM!' : 'GOL! MAVI TAKIM!') + '</span>';
+        '<div style="text-align:center;">' +
+        gifHtml +
+        '<span>' + (this.goalBannerTeam === 'red' ? t(l, 'goalRed') : t(l, 'goalBlue')) + '</span></div>';
     } else {
       this.goalBannerEl.className = 'overlay-banner hidden';
       this.goalBannerEl.innerHTML = '';

@@ -12,7 +12,8 @@ export type NetPacket =
   | { type: 'chat'; author: string; text: string; team?: Team }
   | { type: 'snap'; data: MatchSnapshot }
   | { type: 'ping'; ts: number }
-  | { type: 'pong'; ts: number };
+  | { type: 'pong'; ts: number }
+  | { type: 'admin_cmd'; cmd: string; targetId?: string; value?: string | number | boolean };
 
 export interface PeerCallbacks {
   onStatus: (role: PeerRole, stateText: string, roomCode: string) => void;
@@ -26,6 +27,7 @@ export interface PeerCallbacks {
   onAuthError: (reason: string) => void;
   onSnapshot: (snap: MatchSnapshot) => void;
   onPingUpdate: (pingMs: number | null) => void;
+  onAdminCmd?: (fromPeerId: string, cmd: string, targetId?: string, value?: string | number | boolean) => void;
 }
 
 const PEER_PREFIX = 'openhax2026-';
@@ -143,6 +145,8 @@ export class PeerManager {
           this.broadcast(pkt, conn.peer);
         } else if (pkt.type === 'ping') {
           conn.send({ type: 'pong', ts: pkt.ts } satisfies NetPacket);
+        } else if (pkt.type === 'admin_cmd') {
+          this.cb.onAdminCmd?.(conn.peer, pkt.cmd, pkt.targetId, pkt.value);
         }
       });
 
@@ -268,6 +272,24 @@ export class PeerManager {
   sendTeamRequest(team: Team): void {
     if (this.role === 'guest' && this.hostConn?.open) {
       this.hostConn.send({ type: 'team', team } satisfies NetPacket);
+    }
+  }
+
+  sendAdminCmd(cmd: string, targetId?: string, value?: string | number | boolean): void {
+    if (this.role === 'guest' && this.hostConn?.open) {
+      this.hostConn.send({ type: 'admin_cmd', cmd, targetId, value } satisfies NetPacket);
+    }
+  }
+
+  kickPeer(peerId: string, reason: string): void {
+    const conn = this.clientConns.get(peerId);
+    if (conn) {
+      try {
+        conn.send({ type: 'auth_error', reason } satisfies NetPacket);
+      } catch {}
+      setTimeout(() => {
+        try { conn.close(); } catch {}
+      }, 120);
     }
   }
 

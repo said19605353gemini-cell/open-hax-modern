@@ -88,7 +88,7 @@ if ($action === 'upsert') {
     $name = trim(mb_substr((string)($body['name'] ?? 'OpenHax Oda'), 0, 32));
     $hostName = trim(mb_substr((string)($body['hostName'] ?? 'Kurucu'), 0, 20));
     $stadium = (string)($body['stadium'] ?? 'classic');
-    if (!in_array($stadium, ['classic', 'big', 'futsal'], true)) {
+    if (!in_array($stadium, ['classic', 'big', 'huge', 'futsal', 'tiny', 'long'], true)) {
         $stadium = 'classic';
     }
     $players = max(1, min(20, (int)($body['players'] ?? 1)));

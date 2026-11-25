@@ -26,7 +26,8 @@ export const DEFAULT_SETTINGS: GameSettings = {
   soundVolume: 0.6,
   nickname: '',
   avatar: ':)',
-  lang: 'tr'
+  lang: 'tr',
+  goalGifUrl: ''
 };
 
 export const PERFORMANCE_PRESETS: Record<string, Partial<GameSettings>> = {

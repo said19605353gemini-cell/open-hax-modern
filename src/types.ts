@@ -1,7 +1,7 @@
 import { Lang } from './i18n';
 
 export type Team = 'red' | 'blue' | 'spec';
-export type StadiumId = 'classic' | 'big' | 'futsal';
+export type StadiumId = 'classic' | 'big' | 'huge' | 'futsal' | 'tiny' | 'long';
 export type BotDifficulty = 'easy' | 'medium' | 'hard';
 export type PhysicsProfile = 'openhax' | 'classic_hax' | 'pro_control' | 'futsal' | 'big_arena' | 'turbo' | 'low_gravity';
 export type GrassDetail = 'standard' | 'hd_stadium' | 'night_neon' | 'flat';
@@ -38,6 +38,7 @@ export interface GameSettings {
   nickname: string;
   avatar: string;
   lang: Lang;
+  goalGifUrl: string;
 }
 
 export interface PlayerEntity {
@@ -46,6 +47,7 @@ export interface PlayerEntity {
   avatar: string;
   team: Team;
   isBot: boolean;
+  isAdmin?: boolean;
   x: number;
   y: number;
   prevX: number;
@@ -123,6 +125,7 @@ export interface SnapshotPlayer {
   avatar: string;
   team: Team;
   isBot: boolean;
+  adm?: boolean;
   x: number;
   y: number;
   vx: number;
@@ -137,6 +140,7 @@ export interface MatchSnapshot {
   pf: PhysicsProfile;
   sc: [number, number];
   sl: number; // scoreLimit (0 = unlimited)
+  tl: number; // timeLimitSeconds (0 = unlimited)
   sec: number;
   p: boolean;
   gt: Team | null;

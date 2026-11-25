@@ -146,7 +146,10 @@
             <select id="create-stadium">
               <option value="classic">OpenHax Klasik (860x460)</option>
               <option value="big">Büyük Saha (1040x540)</option>
+              <option value="huge">Dev Stadyum 4v4 (1160x600)</option>
               <option value="futsal">Futsal (760x400)</option>
+              <option value="tiny">Mini 1v1 (660x350)</option>
+              <option value="long">Uzun Koridor (1080x420)</option>
             </select>
           </label>
 
@@ -206,6 +209,17 @@
               <option value="10">10 Gol</option>
             </select>
           </label>
+          <label class="field">
+            <span>Süre Limiti</span>
+            <select id="create-timelimit">
+              <option value="0">Limitsiz</option>
+              <option value="120">2 Dakika</option>
+              <option value="180" selected>3 Dakika</option>
+              <option value="300">5 Dakika</option>
+              <option value="420">7 Dakika</option>
+              <option value="600">10 Dakika</option>
+            </select>
+          </label>
         </div>
 
         <button type="button" id="btn-create-room" class="btn primary lg full">Oda Oluştur ve Oyuna Gir</button>
@@ -246,7 +260,10 @@
         <select id="room-stadium" title="Saha Boyutu">
           <option value="classic">OpenHax Klasik</option>
           <option value="big">Büyük Saha</option>
+          <option value="huge">Dev Stadyum 4v4</option>
           <option value="futsal">Futsal</option>
+          <option value="tiny">Mini 1v1</option>
+          <option value="long">Uzun Koridor</option>
         </select>
         <select id="room-physics" title="Oda Fizik Profili">
           <option value="openhax">Fizik: OpenHax</option>
@@ -347,8 +364,9 @@
             <label class="row"><span>Arka Planda Duraklat</span><input type="checkbox" id="set-blurpause" /></label>
           </div>
 
-          <div class="settings-col">
+          <div class="settings-col" id="settings-physics-col">
             <h3>Fizik, Top Kontrolü ve Ses</h3>
+            <div id="physics-admin-note" class="admin-only-note hidden">Fizik ayarlarını sadece Oda Admini değiştirebilir.</div>
             <label class="row">
               <span>Fizik Profili</span>
               <select id="set-physics">
@@ -393,6 +411,10 @@
             <label class="row">
               <span>Ses Seviyesi (<span id="vol-label">60%</span>)</span>
               <input type="range" id="set-volume" min="0" max="1" step="0.05" />
+            </label>
+            <label class="row">
+              <span>Gol Animasyonu (.gif URL)</span>
+              <input type="text" id="set-goalgif" placeholder="https://.../gol.gif" style="width:170px;background:#1f1916;color:#fff;border:1px solid rgba(255,255,255,0.22);border-radius:4px;padding:3px 6px;font-size:12px;" />
             </label>
             <div class="help-box">
               <strong>Kontroller:</strong><br />
