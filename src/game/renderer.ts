@@ -1,8 +1,10 @@
 import {
   BallEntity,
+  FieldPowerup,
   GameSettings,
   GoalParticle,
   PlayerEntity,
+  PowerupType,
   StadiumConfig
 } from '../types';
 
@@ -282,7 +284,9 @@ export class CanvasRenderer {
     particles: GoalParticle[],
     localPlayerIds: Set<string>,
     settings: GameSettings,
-    alpha: number
+    alpha: number,
+    fieldPowerup?: FieldPowerup | null,
+    ballFire?: PowerupType | null
   ): void {
     this.ensureConfig(stadium, settings);
 
@@ -308,6 +312,26 @@ export class CanvasRenderer {
       ctx.globalAlpha = 1;
     }
 
+    // 2.5 Render Field Powerup Orb (Hawk / Fire)
+    if (fieldPowerup) {
+      const pulse = 1 + Math.sin(performance.now() * 0.008) * 0.14;
+      ctx.save();
+      ctx.fillStyle = fieldPowerup.type === 'hawk' ? 'rgba(250, 204, 21, 0.28)' : 'rgba(249, 115, 22, 0.32)';
+      ctx.beginPath();
+      ctx.arc(fieldPowerup.x, fieldPowerup.y, 20 * pulse, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = fieldPowerup.type === 'hawk' ? '#facc15' : '#f97316';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(fieldPowerup.x, fieldPowerup.y, 14, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.font = '16px "Segoe UI Emoji", Arial, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(fieldPowerup.type === 'hawk' ? '🦅' : '🔥', fieldPowerup.x, fieldPowerup.y + 1);
+      ctx.restore();
+    }
+
     // 3. Render players
     for (let i = 0; i < players.length; i++) {
       const p = players[i];
@@ -323,6 +347,16 @@ export class CanvasRenderer {
         ctx.beginPath();
         ctx.arc(rx + 2, ry + 3, p.radius, 0, Math.PI * 2);
         ctx.fill();
+      }
+
+      if (p.powerup) {
+        ctx.save();
+        ctx.strokeStyle = p.powerup === 'hawk' ? '#facc15' : '#f97316';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.arc(rx, ry, p.radius + 5, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
       }
 
       if (isLocal) {
@@ -391,6 +425,15 @@ export class CanvasRenderer {
       ctx.beginPath();
       ctx.arc(bx + 2, by + 3, ball.radius, 0, Math.PI * 2);
       ctx.fill();
+    }
+
+    if (ballFire) {
+      ctx.save();
+      ctx.fillStyle = ballFire === 'hawk' ? 'rgba(250, 204, 21, 0.42)' : 'rgba(239, 68, 68, 0.45)';
+      ctx.beginPath();
+      ctx.arc(bx, by, ball.radius + 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
     }
 
     if (settings.ballStyle === 'soccer') {

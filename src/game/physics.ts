@@ -9,6 +9,7 @@ import {
   INPUT_UP,
   PhysicsProfile,
   PlayerEntity,
+  PowerupType,
   StadiumConfig,
   StadiumSegment,
   Team
@@ -20,6 +21,7 @@ export interface StepResult {
   goalTeam: Team | null;
   touchedById?: string;
   savedById?: string;
+  powerKickType?: PowerupType | null;
 }
 
 interface PhysicsParams {
@@ -510,6 +512,7 @@ export function stepPhysicsTick(
   }
 
   let kicked = false;
+  let powerKickType: PowerupType | null = null;
   let touchedById: string | undefined;
   let savedById: string | undefined;
   const prevBallVx = ball.vx;
@@ -583,8 +586,10 @@ export function stepPhysicsTick(
         const nx = dist > 1e-5 ? kdx / dist : p.team === 'red' ? 1 : -1;
         const ny = dist > 1e-5 ? kdy / dist : 0;
 
-        ball.vx += nx * cfg.kickImpulse;
-        ball.vy += ny * cfg.kickImpulse;
+        const powerMul = p.powerup === 'hawk' ? 1.95 : p.powerup === 'fire' ? 1.55 : 1.0;
+        ball.vx += nx * cfg.kickImpulse * powerMul;
+        ball.vy += ny * cfg.kickImpulse * powerMul;
+        if (p.powerup) powerKickType = p.powerup;
         p.kickArmed = false;
         p.nextKickTick = currentTick + Math.max(4, Math.round(8 / dtScale));
         p.kickFlashTicks = Math.max(4, Math.round(8 / dtScale));
@@ -608,9 +613,10 @@ export function stepPhysicsTick(
     }
   }
 
+  const ballMax = powerKickType ? cfg.maxBallSpeed * 1.65 : cfg.maxBallSpeed;
   const ballSpdSq = ball.vx * ball.vx + ball.vy * ball.vy;
-  if (ballSpdSq > cfg.maxBallSpeed * cfg.maxBallSpeed) {
-    const scale = cfg.maxBallSpeed / Math.sqrt(ballSpdSq);
+  if (ballSpdSq > ballMax * ballMax) {
+    const scale = ballMax / Math.sqrt(ballSpdSq);
     ball.vx *= scale;
     ball.vy *= scale;
   }
@@ -713,7 +719,7 @@ export function stepPhysicsTick(
     }
   }
 
-  return { kicked, goalTeam, touchedById, savedById };
+  return { kicked, goalTeam, touchedById, savedById, powerKickType };
 }
 
 export function resetPositionsForKickoff(

@@ -2,12 +2,15 @@ import './styles.css';
 import {
   BallEntity,
   BotDifficulty,
+  FieldPowerup,
   GameSettings,
   GoalParticle,
   MatchSnapshot,
   PerfTelemetry,
   PhysicsProfile,
   PlayerEntity,
+  PowerupMode,
+  PowerupType,
   StadiumConfig,
   StadiumId,
   Team
@@ -109,6 +112,11 @@ class OpenHaxApp {
   private assistTouchId = '';
   private lastTouchTick = 0;
   private saveCooldownTick = 0;
+  private powerupMode: PowerupMode = 'none';
+  private fieldPowerup: FieldPowerup | null = null;
+  private nextPowerupSpawnTick = 0;
+  private ballFireType: PowerupType | null = null;
+  private ballFireUntilTick = 0;
   private profileSvc = new ProfileService();
   private myProfile: PlayerProfile | null = null;
   private currentRoomPassword = '';
@@ -1026,6 +1034,7 @@ class OpenHaxApp {
     addTile(String(profile.assists || 0), 'Asist');
     addTile(String(profile.wins || 0), 'Galibiyet');
     addTile(formatPlayTime(profile.playSeconds || 0), 'Oyunda Süre');
+    addTile(topSt ? formatStadiumName(topSt.key).split(' ')[0] : '—', 'Favori Harita');
     box.appendChild(grid);
 
     const favs = document.createElement('div');
@@ -1213,6 +1222,8 @@ class OpenHaxApp {
     const botPreset = this.createBots.value;
     const botDiff = this.createBotDiff.value as BotDifficulty;
     const physProfile = this.createPhysics.value as PhysicsProfile;
+    const physHz = Math.max(60, Math.min(500, Number(el<HTMLSelectElement>('create-physicshz').value) || 60));
+    const powerupMode = (el<HTMLSelectElement>('create-powerup').value as PowerupMode) || 'none';
     const scoreLimit = Number(this.createScoreLimit.value) || 0;
     const timeLimit = Number(this.createTimeLimit.value) || 0;
     const password = this.createPass.value.trim();
@@ -1225,11 +1236,15 @@ class OpenHaxApp {
     this.currentRoomPassword = password;
     this.roomHasPassword = Boolean(password);
     this.customTuningActive = false;
+    this.powerupMode = powerupMode;
+    this.fieldPowerup = null;
+    this.ballFireType = null;
+    this.nextPowerupSpawnTick = Math.round(4 * physHz);
     this.matchEnded = false;
     this.botCounter = 1;
     this.chatBox.innerHTML = '';
 
-    this.updateSettings({ stadium: stadiumId, botDifficulty: botDiff, physicsProfile: physProfile });
+    this.updateSettings({ stadium: stadiumId, botDifficulty: botDiff, physicsProfile: physProfile, physicsHz: physHz });
     this.roomBotDiff.value = botDiff;
     this.roomStadium.value = stadiumId;
     this.roomPhysics.value = physProfile;
@@ -1987,6 +2002,49 @@ class OpenHaxApp {
       this.pendingNetEvents |= 1;
     }
 
+    if (res.powerKickType) {
+      this.ballFireType = res.powerKickType;
+      this.ballFireUntilTick = this.tick + Math.round(2.5 * physicsHz);
+    }
+    if (this.ballFireType && this.tick >= this.ballFireUntilTick) {
+      this.ballFireType = null;
+    }
+
+    if (this.powerupMode !== 'none' && !this.goalPending) {
+      if (!this.fieldPowerup && this.tick >= this.nextPowerupSpawnTick) {
+        const margin = 70;
+        const px = this.stadium.pitchX + margin + Math.random() * Math.max(40, this.stadium.pitchWidth - margin * 2);
+        const py = this.stadium.pitchY + margin + Math.random() * Math.max(40, this.stadium.pitchHeight - margin * 2);
+        const pType: PowerupType =
+          this.powerupMode === 'hawk' ? 'hawk' : this.powerupMode === 'fire' ? 'fire' : Math.random() < 0.5 ? 'hawk' : 'fire';
+        this.fieldPowerup = { x: Math.round(px), y: Math.round(py), type: pType };
+      } else if (this.fieldPowerup) {
+        for (const pl of this.players) {
+          if (pl.team === 'spec') continue;
+          const dx = pl.x - this.fieldPowerup.x;
+          const dy = pl.y - this.fieldPowerup.y;
+          if (dx * dx + dy * dy <= (pl.radius + 16) * (pl.radius + 16)) {
+            pl.powerup = this.fieldPowerup.type;
+            pl.powerupUntilTick = this.tick + Math.round(8 * physicsHz);
+            const msg =
+              this.fieldPowerup.type === 'hawk'
+                ? `🦅 ${pl.name} Şahin Vuruşu aldı! (8sn)`
+                : `🔥 ${pl.name} Alevli Şut aldı! (8sn)`;
+            this.addChat('Sistem', msg, true);
+            this.peerMgr.broadcastChat('Sistem', msg, undefined);
+            this.fieldPowerup = null;
+            this.nextPowerupSpawnTick = this.tick + Math.round(9 * physicsHz);
+            break;
+          }
+        }
+      }
+      for (const pl of this.players) {
+        if (pl.powerup && this.tick >= (pl.powerupUntilTick || 0)) {
+          pl.powerup = null;
+        }
+      }
+    }
+
     if (res.goalTeam && !this.goalPending) {
       this.goalPending = true;
       this.goalBannerTeam = res.goalTeam;
@@ -2070,6 +2128,8 @@ class OpenHaxApp {
       p: this.paused,
       lk: this.teamsLocked,
       gt: this.goalBannerTeam,
+      pu: this.fieldPowerup,
+      bf: this.ballFireType,
       b: [
         Math.round(this.ball.x * 10) / 10,
         Math.round(this.ball.y * 10) / 10,
@@ -2085,6 +2145,7 @@ class OpenHaxApp {
         adm: Boolean(p.isAdmin),
         ct: p.country,
         pg: p.ping,
+        pw: p.powerup || null,
         x: Math.round(p.x * 10) / 10,
         y: Math.round(p.y * 10) / 10,
         vx: Math.round(p.vx * 100) / 100,
@@ -2132,6 +2193,8 @@ class OpenHaxApp {
     this.paused = snap.p;
     this.teamsLocked = Boolean(snap.lk);
     this.goalBannerTeam = snap.gt;
+    this.fieldPowerup = snap.pu || null;
+    this.ballFireType = snap.bf || null;
 
     this.ball.prevX = this.ball.x;
     this.ball.prevY = this.ball.y;
@@ -2162,6 +2225,7 @@ class OpenHaxApp {
         cur.isAdmin = Boolean(sp.adm);
         cur.country = sp.ct;
         cur.ping = sp.pg;
+        cur.powerup = sp.pw || null;
         cur.kickFlashTicks = sp.kf;
         updated.push(cur);
       } else {
@@ -2296,7 +2360,9 @@ class OpenHaxApp {
       this.particles,
       localIds,
       this.settings,
-      alpha
+      alpha,
+      this.fieldPowerup,
+      this.ballFireType
     );
   }
 

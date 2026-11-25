@@ -6,6 +6,14 @@ export type BotDifficulty = 'easy' | 'medium' | 'hard';
 export type PhysicsProfile = 'openhax' | 'classic_hax' | 'classic_hax_v2' | 'pro_control' | 'pro_control_v2' | 'pro_control_v3' | 'futsal' | 'big_arena' | 'turbo' | 'turbo_v2' | 'low_gravity' | 'real_soccer' | 'real_soccer_v2' | 'ice_hockey' | 'pinball' | 'heavy_tank';
 export type GrassDetail = 'standard' | 'hd_stadium' | 'night_neon' | 'flat';
 export type BallStyle = 'classic' | 'soccer';
+export type PowerupMode = 'none' | 'hawk' | 'fire' | 'all';
+export type PowerupType = 'hawk' | 'fire';
+
+export interface FieldPowerup {
+  x: number;
+  y: number;
+  type: PowerupType;
+}
 
 export const INPUT_UP = 1;
 export const INPUT_DOWN = 2;
@@ -62,6 +70,8 @@ export interface PlayerEntity {
   isAdmin?: boolean;
   country?: string;
   ping?: number;
+  powerup?: PowerupType | null;
+  powerupUntilTick?: number;
   x: number;
   y: number;
   prevX: number;
@@ -142,6 +152,7 @@ export interface SnapshotPlayer {
   adm?: boolean;
   ct?: string;
   pg?: number;
+  pw?: PowerupType | null;
   x: number;
   y: number;
   vx: number;
@@ -162,6 +173,8 @@ export interface MatchSnapshot {
   p: boolean;
   lk?: boolean;
   gt: Team | null;
+  pu?: FieldPowerup | null;
+  bf?: PowerupType | null;
   b: [number, number, number, number];
   pl: SnapshotPlayer[];
   ev: number; // 1=kick, 2=goal, 4=start
