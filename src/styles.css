@@ -62,21 +62,24 @@ body {
   top: 0;
   left: 0;
   width: 100%;
-  height: 46px;
+  min-height: 42px;
+  height: auto;
   background: #3c312b;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   z-index: 20;
 }
 
 .topbar-inner {
-  max-width: 1340px;
+  max-width: 100%;
   margin: 0 auto;
-  height: 46px;
-  padding: 0 12px;
+  min-height: 42px;
+  height: auto;
+  padding: 4px 10px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 6px;
 }
 
 .brand-or-score {
@@ -157,10 +160,16 @@ body {
 .topbar-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: nowrap;
-  white-space: nowrap;
-  flex-shrink: 0;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.topbar-actions .btn,
+.topbar-actions select {
+  padding: 4px 7px;
+  font-size: 12px;
 }
 
 .screen {
@@ -1129,9 +1138,9 @@ body.in-room #game-canvas {
   height: auto;
 }
 body.in-room.vp-full #game-canvas {
-  width: min(98vw, calc((100vh - 54px) * var(--canvas-ar, 1.87)));
+  width: min(98vw, calc((100vh - 68px) * var(--canvas-ar, 1.87)));
   height: auto;
-  max-height: calc(100vh - 54px);
+  max-height: calc(100vh - 68px);
 }
 body.in-room.vp-restricted #game-canvas {
   width: min(720px, calc(720px * var(--canvas-scale, 1)), 94vw);
