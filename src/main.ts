@@ -503,6 +503,19 @@ class OpenHaxApp {
         this.renderDebugLogs();
       }
     });
+    window.addEventListener('openhax:debug', (ev) => {
+      const detail = (ev as CustomEvent<string>).detail;
+      if (detail) {
+        this.debugLogs.push({
+          ts: new Date().toLocaleTimeString(),
+          level: detail.includes('[ERR]') ? 'ERROR' : 'INFO',
+          source: 'NET',
+          message: detail
+        });
+        if (this.debugLogs.length > 150) this.debugLogs.shift();
+        if (!this.debugModal.classList.contains('hidden')) this.renderDebugLogs();
+      }
+    });
     el<HTMLButtonElement>('btn-debug-close').addEventListener('click', () => {
       this.debugModal.classList.add('hidden');
     });
