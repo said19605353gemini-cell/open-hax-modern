@@ -356,6 +356,25 @@ body {
   min-width: 90px;
 }
 
+.lobby-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.lobby-filter-bar select {
+  flex: 1;
+  min-width: 140px;
+  background: #211a17;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 12px;
+}
+
 .rooms-table-wrap {
   background: rgba(0, 0, 0, 0.22);
   border: 1px solid rgba(255, 255, 255, 0.08);

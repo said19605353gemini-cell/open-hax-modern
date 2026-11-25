@@ -27,7 +27,7 @@ import {
   saveSettings
 } from './game/settings';
 import { censorText } from './game/profanity';
-import { getStadium } from './game/stadiums';
+import { getStadium, STADIUMS } from './game/stadiums';
 import { resetPositionsForKickoff, stepPhysicsTick } from './game/physics';
 import { InputController } from './game/input';
 import { CanvasRenderer } from './game/renderer';
@@ -150,6 +150,7 @@ class OpenHaxApp {
   private topbarScore = el<HTMLDivElement>('topbar-score');
   private userPill = el<HTMLSpanElement>('user-pill');
   private btnChangeName = el<HTMLButtonElement>('btn-change-name');
+  private btnLogoutHome = el<HTMLButtonElement>('btn-logout-home');
   private btnPause = el<HTMLButtonElement>('btn-pause');
   private btnReset = el<HTMLButtonElement>('btn-reset');
   private btnMute = el<HTMLButtonElement>('btn-mute');
@@ -176,6 +177,10 @@ class OpenHaxApp {
   // Lobby refs
   private dirModeBadge = el<HTMLSpanElement>('dir-mode-badge');
   private lobbySearch = el<HTMLInputElement>('lobby-search');
+  private lobbySort = el<HTMLSelectElement>('lobby-sort');
+  private lobbyFilterAccess = el<HTMLSelectElement>('lobby-filter-access');
+  private lobbyFilterStadium = el<HTMLSelectElement>('lobby-filter-stadium');
+  private lobbyRoomCount = el<HTMLSpanElement>('lobby-room-count');
   private joinCodeInput = el<HTMLInputElement>('join-code-input');
   private joinPassInput = el<HTMLInputElement>('join-pass-input');
   private lobbyError = el<HTMLDivElement>('lobby-error');
@@ -516,6 +521,7 @@ class OpenHaxApp {
     this.userPill.classList.toggle('hidden', !hasNick || inRoom);
     this.userPill.textContent = badge.icon + ' ' + this.settings.nickname + ' (' + this.settings.avatar + ')';
     this.btnChangeName.classList.toggle('hidden', screen !== 'lobby');
+    this.btnLogoutHome.classList.toggle('hidden', screen !== 'lobby');
     this.btnProfile.classList.toggle('hidden', screen === 'auth' || !hasNick);
 
     if (screen === 'lobby') {
@@ -600,6 +606,13 @@ class OpenHaxApp {
 
     // Topbar & Profile modal
     this.btnChangeName.addEventListener('click', () => {
+      this.switchScreen('auth');
+      this.authNick.focus();
+    });
+    this.btnLogoutHome.addEventListener('click', () => {
+      this.myProfile = null;
+      this.profileSvc.logoutLocal();
+      this.authPass.value = '';
       this.switchScreen('auth');
       this.authNick.focus();
     });
@@ -1032,6 +1045,15 @@ class OpenHaxApp {
       void this.refreshRoomList();
     });
     this.lobbySearch.addEventListener('input', () => this.renderRoomsTable());
+    for (const st of Object.values(STADIUMS)) {
+      const opt = document.createElement('option');
+      opt.value = st.id;
+      opt.textContent = 'Saha: ' + st.label.split(' ')[0];
+      this.lobbyFilterStadium.appendChild(opt);
+    }
+    this.lobbySort.addEventListener('change', () => this.renderRoomsTable());
+    this.lobbyFilterAccess.addEventListener('change', () => this.renderRoomsTable());
+    this.lobbyFilterStadium.addEventListener('change', () => this.renderRoomsTable());
     el<HTMLButtonElement>('btn-join-code').addEventListener('click', () => {
       const code = extractRoomCode(this.joinCodeInput.value);
       if (!code) {
@@ -1610,9 +1632,27 @@ class OpenHaxApp {
     }
   }
 
+  private estimateRoomPing(r: PublicRoomInfo): number {
+    if (r.source === 'local') return 1;
+    const roomCountry = (r.country || 'TR').toUpperCase();
+    const myCountry = (this.settings.country || 'TR').toUpperCase();
+    return roomCountry === myCountry
+      ? Math.min(85, Math.max(8, this.lastDirPingMs || 18))
+      : Math.max(35, (this.lastDirPingMs || 45) + 30);
+  }
+
   private renderRoomsTable(): void {
     const q = this.lobbySearch.value.trim().toLowerCase();
+    const accessFilter = this.lobbyFilterAccess.value;
+    const stadiumFilter = this.lobbyFilterStadium.value;
+    const sortMode = this.lobbySort.value;
+
     const filtered = this.roomsCache.filter((r) => {
+      if (accessFilter === 'open' && r.hasPassword) return false;
+      if (accessFilter === 'locked' && !r.hasPassword) return false;
+      if (accessFilter === 'has_players' && r.players <= 0) return false;
+      if (accessFilter === 'not_full' && r.players >= r.maxPlayers) return false;
+      if (stadiumFilter !== 'all' && r.stadium !== stadiumFilter) return false;
       if (!q) return true;
       return (
         r.name.toLowerCase().includes(q) ||
@@ -1621,6 +1661,26 @@ class OpenHaxApp {
       );
     });
 
+    filtered.sort((a, b) => {
+      switch (sortMode) {
+        case 'most_players':
+          return (b.players - a.players) || (b.bots - a.bots) || a.name.localeCompare(b.name);
+        case 'least_players':
+          return (a.players - b.players) || (a.bots - b.bots) || a.name.localeCompare(b.name);
+        case 'available_slots':
+          return ((b.maxPlayers - b.players) - (a.maxPlayers - a.players)) || (b.players - a.players);
+        case 'best_ping':
+          return (this.estimateRoomPing(a) - this.estimateRoomPing(b)) || (b.players - a.players);
+        case 'newest':
+          return (b.updatedAt || 0) - (a.updatedAt || 0);
+        case 'name_az':
+          return a.name.localeCompare(b.name);
+        default:
+          return 0;
+      }
+    });
+
+    this.lobbyRoomCount.textContent = filtered.length + ' / ' + this.roomsCache.length + ' oda';
     this.roomsTbody.innerHTML = '';
     this.roomsEmpty.classList.toggle('hidden', filtered.length > 0);
 
@@ -1649,9 +1709,7 @@ class OpenHaxApp {
       if (r.source === 'local') {
         tdPing.textContent = '🟢 1 ms';
       } else {
-        const myCountry = (this.settings.country || 'TR').toUpperCase();
-        const sameRegion = roomCountry === myCountry;
-        const pingVal = sameRegion ? Math.min(85, Math.max(8, this.lastDirPingMs || 18)) : Math.max(35, (this.lastDirPingMs || 45) + 30);
+        const pingVal = this.estimateRoomPing(r);
         const dot = pingVal < 60 ? '🟢' : pingVal < 130 ? '🟡' : '🔴';
         tdPing.textContent = dot + ' ~' + pingVal + ' ms';
       }

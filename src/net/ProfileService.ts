@@ -218,6 +218,16 @@ export class ProfileService {
     }
   }
 
+  logoutLocal(): void {
+    try {
+      window.localStorage.removeItem(LOCAL_PROFILE_KEY);
+    } catch { /* ignore */ }
+    try {
+      const g = (window as unknown as { google?: { accounts?: { id?: { disableAutoSelect?: () => void } } } }).google;
+      g?.accounts?.id?.disableAutoSelect?.();
+    } catch { /* ignore */ }
+  }
+
   async saveProfile(profile: PlayerProfile): Promise<void> {
     profile.updatedAt = Date.now();
     try {

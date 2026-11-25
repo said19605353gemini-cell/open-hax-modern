@@ -35,6 +35,7 @@
 
       <div class="topbar-actions">
         <button type="button" id="btn-change-name" class="btn hidden">Ad Değiştir</button>
+        <button type="button" id="btn-logout-home" class="btn danger hidden" title="Ana Sayfaya Git / Hesaptan Çık">🏠 Ana Sayfa / Çıkış</button>
         <button type="button" id="btn-profile" class="btn hidden">👤 Profil</button>
         <button type="button" id="btn-pause" class="btn hidden">Duraklat (P)</button>
         <button type="button" id="btn-reset" class="btn hidden">Sıfırla (R)</button>
@@ -282,6 +283,28 @@
           <input type="text" id="join-code-input" placeholder="Oda kodu veya davet linki..." />
           <input type="password" id="join-pass-input" placeholder="Şifre (varsa)" class="short-pass" />
           <button type="button" id="btn-join-code" class="btn primary">Katıl</button>
+        </div>
+
+        <div class="lobby-filter-bar">
+          <select id="lobby-sort" title="Oda Sıralaması">
+            <option value="most_players" selected>Sırala: En Çok Oyuncu</option>
+            <option value="least_players">Sırala: En Az Oyuncu</option>
+            <option value="available_slots">Sırala: En Çok Boş Yer</option>
+            <option value="best_ping">Sırala: En Düşük Ping</option>
+            <option value="newest">Sırala: En Yeni</option>
+            <option value="name_az">Sırala: Oda Adı (A-Z)</option>
+          </select>
+          <select id="lobby-filter-access" title="Oda Erişim Filtresi">
+            <option value="all" selected>Filtre: Tüm Odalar</option>
+            <option value="open">Sadece Şifresiz (Açık)</option>
+            <option value="locked">Sadece Şifreli</option>
+            <option value="has_players">Oyuncusu Olanlar (1+)</option>
+            <option value="not_full">Dolu Olmayanlar</option>
+          </select>
+          <select id="lobby-filter-stadium" title="Saha Filtresi">
+            <option value="all" selected>Saha: Tümü</option>
+          </select>
+          <span id="lobby-room-count" class="badge">0 oda</span>
         </div>
 
         <div id="lobby-error" class="error-text hidden"></div>
