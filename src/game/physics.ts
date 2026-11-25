@@ -628,12 +628,17 @@ export function stepPhysicsTick(
     }
   }
 
-  const ballMax = powerKickType ? cfg.maxBallSpeed * 1.65 : cfg.maxBallSpeed;
+  const hardMaxBall = cfg.maxBallSpeed * 1.65;
   const ballSpdSq = ball.vx * ball.vx + ball.vy * ball.vy;
-  if (ballSpdSq > ballMax * ballMax) {
-    const scale = ballMax / Math.sqrt(ballSpdSq);
+  if (ballSpdSq > hardMaxBall * hardMaxBall) {
+    const scale = hardMaxBall / Math.sqrt(ballSpdSq);
     ball.vx *= scale;
     ball.vy *= scale;
+  } else if (!powerKickType && ballSpdSq > cfg.maxBallSpeed * cfg.maxBallSpeed) {
+    // Allow power-shot velocity to decay smoothly instead of snapping down on the next tick.
+    const decay = Math.pow(0.95, dtScale);
+    ball.vx *= decay;
+    ball.vy *= decay;
   }
 
   const SUBSTEPS = 2;
