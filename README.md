@@ -1,17 +1,25 @@
-# OpenHax Modern
+# OpenHaxModern
 
-Modern **Vite + TypeScript + PeerJS (WebRTC) + HTML5 Canvas** Haxball clone built for static web hosting (`dist/`).
+Modern, tarayıcı tabanlı çok oyunculu 2D futbol (HaxBall tarzı) oyunu.
 
-## Features
-- Deterministic 60Hz 2D circle & segment physics (7 room physics profiles + live ball control sliders)
-- Unlimited / 500 / 240 / 144 / 120 / 75 / 60 / 30 FPS options
-- HD Stadium, Neon Night, Classic Grass & Ultra-Fast Flat graphics modes
-- Username creation, Room Browser (`public/api/rooms.php` for PHP hosting + PeerJS P2P rooms), AI Bots (`+ Red Bot` / `+ Blue Bot`)
-- Multi-language UI (`TR` / `EN`)
+## Özellikler
+- **Oda Kurma & Lobi Sistemi**: Oyuncu adı/avatarı oluşturma, oda listesi, şifreli/özel odalar ve davet linki ile katılım.
+- **Oda Admin Yetkileri**: Üstteki oyuncu listesinde sağ tık ile **Admin Yap / Adminliği Al**, **Takım Değiştir** ve **Odadan At**; admin-özel fizik/saha/bot ayarları ile kullanıcıya özel grafik/FPS/ses ayarlarının ayrımı.
+- **Gelişmiş Fizik Profilleri & Top Kontrolü**: Birden fazla fizik profili, top tutuşu/sürtünme/sekme/şut ince ayarları.
+- **Sahalar & Süre Sınırı**: Farklı saha boyutları ve maç süresi sınırı.
+- **Grafik, FPS & Animasyon**: Seçilebilir FPS limitleri (75, 120, 144, 240, 500, sınırsız), kalite seçenekleri ve `.gif` animasyon desteği.
+- **Çoklu Dil Desteği**: Türkçe ve İngilizce arayüz.
 
-## Build & Run
+## Canlı Oyna (GitHub Pages)
+https://said19605353gemini-cell.github.io/open-hax-modern/
+
+## Yerel Geliştirme
 ```bash
 npm install
+npm run dev
+```
+
+## Production Build
+```bash
 npm run build
 ```
-Upload `dist/` to any web hosting (`public_html`).
