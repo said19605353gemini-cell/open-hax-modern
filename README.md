@@ -7,7 +7,8 @@
 [![Built with Gemini Antigravity](https://img.shields.io/badge/Built%20with-Gemini%20Antigravity-8E75B2?style=for-the-badge&logo=googlegemini)](https://deepmind.google/)
 
 > [🇹🇷 Türkçe Açıklama](#-türkçe) · [🇬🇧 English Description](#-english)  
-> ✨ **Google Gemini Antigravity** ile geliştirilmiştir / Built with **Google Gemini Antigravity**.
+> ✨ **Google Gemini Antigravity** ile geliştirilmiştir / Built with **Google Gemini Antigravity**.  
+> 🔗 Temel Kaynak / Based on: **[erasmo-marin/open-hax](https://github.com/erasmo-marin/open-hax)** (üzerine modern özellikler geliştirilmiştir).
 
 ## 🎮 Play Online / Canlı Oyna
 👉 **https://said19605353gemini-cell.github.io/open-hax-modern/**
@@ -16,7 +17,7 @@
 
 ## 🇹🇷 Türkçe
 
-Modern, tarayıcı tabanlı çok oyunculu 2D futbol (**HaxBall** tarzı) oyunu. **Google Gemini Antigravity** ile geliştirilmiştir.  
+Modern, tarayıcı tabanlı çok oyunculu 2D futbol (**HaxBall** tarzı) oyunu. **[erasmo-marin/open-hax](https://github.com/erasmo-marin/open-hax)** açık kaynak projesi temel alınarak **Google Gemini Antigravity** ile geliştirilmiştir.  
 Hem doğrudan **GitHub Pages** üzerinde Firebase desteğiyle, hem de **PHP web hosting** üzerinde sunucu oda listesiyle çalışır.
 
 ### ✨ Öne Çıkan Özellikler
@@ -51,7 +52,7 @@ Hem doğrudan **GitHub Pages** üzerinde Firebase desteğiyle, hem de **PHP web 
 
 ## 🇬🇧 English
 
-**OpenHaxModern** is a modern, browser-based multiplayer 2D physics soccer game (**HaxBall-inspired**), built with **Google Gemini Antigravity**, TypeScript, HTML5 Canvas, PeerJS (WebRTC P2P), and Firebase / PHP room directory support.
+**OpenHaxModern** is a modern, browser-based multiplayer 2D physics soccer game (**HaxBall-inspired**), built on top of **[erasmo-marin/open-hax](https://github.com/erasmo-marin/open-hax)** with **Google Gemini Antigravity**, TypeScript, HTML5 Canvas, PeerJS (WebRTC P2P), and Firebase / PHP room directory support.
 
 ### ✨ Key Features
 - **36 Languages & 195+ Country SVG Flags:** Auto-detects browser language and country on first visit, with searchable dropdowns and crisp vector SVG flags (`flag-icons`) across leaderboards, chat, rooms, and player rosters.
