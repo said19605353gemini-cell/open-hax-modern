@@ -103,6 +103,29 @@ export function createEmptyProfile(username: string, avatar: string, country: st
 }
 
 export class ProfileService {
+  private isGuestSession = false;
+
+  setGuestMode(guest: boolean): void {
+    this.isGuestSession = guest;
+  }
+
+  isGuest(): boolean {
+    return this.isGuestSession;
+  }
+
+  async checkMemberLocked(username: string): Promise<boolean> {
+    const key = normalizeUsernameKey(username);
+    if (!key) return false;
+    try {
+      const res = await fetch(`${FIREBASE_DB_URL}/profiles/${encodeURIComponent(key)}.json`, { cache: 'no-store' });
+      if (res.ok) {
+        const data = (await res.json()) as PlayerProfile | null;
+        return Boolean(data && data.passHash);
+      }
+    } catch { /* ignore */ }
+    return false;
+  }
+
   async loginOrRegister(
     username: string,
     avatar: string,
@@ -180,6 +203,10 @@ export class ProfileService {
     try {
       window.localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(profile));
     } catch { /* ignore */ }
+    if (this.isGuestSession && !profile.passHash) {
+      // Remember guest profile & stats locally without cluttering or overwriting registered members on Firebase
+      return;
+    }
     try {
       await fetch(`${FIREBASE_DB_URL}/profiles/${encodeURIComponent(profile.key)}.json`, {
         method: 'PUT',

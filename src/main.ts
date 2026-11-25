@@ -408,12 +408,16 @@ class OpenHaxApp {
       });
     });
     this.authNick.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') void this.submitAuth();
+      if (e.key === 'Enter') {
+        if (this.authPass.value.trim()) void this.submitAuth();
+        else void this.submitGuestAuth();
+      }
     });
     this.authPass.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') void this.submitAuth();
     });
     this.btnAuthEnter.addEventListener('click', () => void this.submitAuth());
+    el<HTMLButtonElement>('btn-guest-enter').addEventListener('click', () => void this.submitGuestAuth());
 
     // Topbar & Profile modal
     this.btnChangeName.addEventListener('click', () => {
@@ -867,6 +871,45 @@ class OpenHaxApp {
     bindRange('set-wallb', 'lbl-wallb', (v) => v.toFixed(2), (v) => this.updateSettings({ wallBounce: v }));
   }
 
+  private async submitGuestAuth(): Promise<void> {
+    const fallbackGuest = this.settings.nickname || ('Misafir' + Math.floor(100 + Math.random() * 900));
+    const rawNick = this.authNick.value.trim() || fallbackGuest;
+    const avatar = this.authAvatar.value.trim() || ':)';
+    const country = this.authCountry.value || this.settings.country || 'TR';
+    let guestNick = censorText(rawNick.slice(0, 20));
+    if (guestNick.length < 2) guestNick = 'Misafir100';
+
+    const btnGuest = el<HTMLButtonElement>('btn-guest-enter');
+    btnGuest.disabled = true;
+    const isLocked = await this.profileSvc.checkMemberLocked(guestNick);
+    btnGuest.disabled = false;
+    if (isLocked) {
+      guestNick = (guestNick.slice(0, 12) + '_Misafir').slice(0, 20);
+    }
+
+    this.profileSvc.setGuestMode(true);
+    const local = this.profileSvc.loadLocal();
+    const guestProfile =
+      local && !local.passHash && local.username === guestNick
+        ? { ...local, avatar, country }
+        : createEmptyProfile(guestNick, avatar, country, '');
+    await this.profileSvc.saveProfile(guestProfile);
+    this.myProfile = guestProfile;
+
+    this.authError.classList.add('hidden');
+    this.authNick.value = guestNick;
+    this.updateSettings({ nickname: guestNick, avatar, country });
+
+    if (this.pendingInviteCode) {
+      const code = this.pendingInviteCode;
+      this.pendingInviteCode = '';
+      this.switchScreen('lobby');
+      this.joinRemoteRoom(code, '');
+      return;
+    }
+    this.switchScreen('lobby');
+  }
+
   private async submitAuth(): Promise<void> {
     const rawNick = this.authNick.value.trim();
     const avatar = this.authAvatar.value.trim() || ':)';
@@ -878,8 +921,14 @@ class OpenHaxApp {
       this.authError.classList.remove('hidden');
       return;
     }
+    if (pass.length < 3) {
+      this.authError.textContent = 'Üyelik girişi/kaydı için en az 3 karakter şifre girin veya "Misafir Olarak Devam Et" butonunu kullanın.';
+      this.authError.classList.remove('hidden');
+      return;
+    }
 
     const cleanNick = censorText(rawNick);
+    this.profileSvc.setGuestMode(false);
     this.btnAuthEnter.disabled = true;
     const res = await this.profileSvc.loginOrRegister(cleanNick, avatar, country, pass);
     this.btnAuthEnter.disabled = false;
@@ -924,7 +973,7 @@ class OpenHaxApp {
     const badge = document.createElement('span');
     badge.style.fontSize = '11px';
     badge.style.color = profile.passHash ? '#7ee787' : '#cbd5e1';
-    badge.textContent = profile.passHash ? '🔒 Şifreli Üye' : 'Açık Profil';
+    badge.textContent = profile.passHash ? '🔒 Kayıtlı Üye' : '👤 Misafir (Yerel Hatırlanır)';
     header.appendChild(title);
     header.appendChild(badge);
     box.appendChild(header);

@@ -138,12 +138,15 @@
       </label>
 
       <label class="field">
-        <span>Üyelik Şifresi (İsteğe Bağlı · İstatistik Kaydı İçin)</span>
-        <input type="password" id="auth-pass" maxlength="32" placeholder="Profilini kilitlemek için şifre belirle / gir" autocomplete="current-password" />
+        <span>Üyelik Şifresi (Üye Girişi / Kayıt İçin)</span>
+        <input type="password" id="auth-pass" maxlength="32" placeholder="Misafir için boş bırakabilirsin" autocomplete="current-password" />
       </label>
 
       <div id="auth-error" class="error-text hidden"></div>
-      <button type="button" id="btn-auth-enter" class="btn primary lg full">Lobiye Gir</button>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button type="button" id="btn-auth-enter" class="btn primary lg full">Üye Girişi / Kayıt &amp; Lobiye Gir</button>
+        <button type="button" id="btn-guest-enter" class="btn lg full">👤 Misafir Olarak Devam Et (Şifresiz)</button>
+      </div>
     </div>
   </section>
 
