@@ -32,7 +32,10 @@ const UPSTASH_REDIS_REST_TOKEN: string = '';
 
 export class RoomDirectory {
   private phpApiWorks: boolean | null =
-    typeof window !== 'undefined' && window.location.hostname.endsWith('github.io') ? false : null;
+    typeof window !== 'undefined' &&
+    (window.location.hostname.endsWith('github.io') || window.location.hostname.endsWith('pages.dev'))
+      ? false
+      : null;
   private lastCloudRooms: PublicRoomInfo[] = [];
   private cachedOwnerHash: string | null = null;
   private channel: BroadcastChannel | null = null;
