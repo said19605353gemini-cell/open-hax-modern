@@ -15,7 +15,7 @@ export interface PublicRoomInfo {
 }
 
 const LOCAL_STORAGE_KEY = 'openhax_local_rooms_v1';
-const ROOM_TTL_MS = 90000; // >60s so browser background-tab timer throttling never drops open rooms
+const ROOM_TTL_MS = 35000; // Heartbeat runs in Web Worker so background tabs never stall
 
 function emitDebug(tag: 'SYS' | 'NET' | 'ERR' | 'DUP', msg: string): void {
   if (typeof window !== 'undefined') {
@@ -130,8 +130,12 @@ export class RoomDirectory {
           const rooms: PublicRoomInfo[] = [];
           if (data && typeof data === 'object') {
             for (const r of Object.values(data)) {
-              if (r && r.code && now - (r.updatedAt || 0) < ROOM_TTL_MS) {
+              if (!r || !r.code) continue;
+              if (now - (r.updatedAt || 0) < ROOM_TTL_MS) {
                 rooms.push({ ...r, source: 'server' });
+              } else {
+                // Clean up stale closed/abandoned ghost rooms in Firebase
+                void this.removeCloudRoom(r.code);
               }
             }
           }

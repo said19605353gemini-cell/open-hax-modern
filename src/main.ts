@@ -93,6 +93,9 @@ class OpenHaxApp {
   private refreshingRooms = false;
   private lobbyPollTimer: number | null = null;
   private heartbeatTimer: number | null = null;
+  private heartbeatWorker: Worker | null = null;
+  private pageExitHandler: (() => void) | null = null;
+  private currentRoomPassword = '';
 
   private debugLogs: DebugEntry[] = [];
   private debugErrors = 0;
@@ -208,7 +211,10 @@ class OpenHaxApp {
         const p = this.players.find((pl) => pl.id === peerId);
         if (p) p.ping = ping;
       },
-      onAdminCmd: (fromPeerId, cmd, targetId, value) => this.handleRemoteAdminCmd(fromPeerId, cmd, targetId, value)
+      onAdminCmd: (fromPeerId, cmd, targetId, value) => this.handleRemoteAdminCmd(fromPeerId, cmd, targetId, value),
+      onMigrateHost: (newHostId, roomCode, roomName, password) =>
+        this.handleMigrateHost(newHostId, roomCode, roomName, password),
+      onHostLost: (roomCode) => this.handleHostLost(roomCode)
     });
 
     this.loop = new GameLoop(
@@ -958,6 +964,7 @@ class OpenHaxApp {
     this.roomMaxPlayers = maxPlayers;
     this.roomScoreLimit = scoreLimit;
     this.roomTimeLimit = timeLimit;
+    this.currentRoomPassword = password;
     this.roomHasPassword = Boolean(password);
     this.customTuningActive = false;
     this.matchEnded = false;
@@ -1010,16 +1017,81 @@ class OpenHaxApp {
     this.chatBox.innerHTML = '';
     this.players = [];
     this.roomKind = 'public';
+    this.currentRoomPassword = password;
     this.netStatusEl.textContent = 'Bağlanıyor...';
     this.peerMgr.joinRoom(code, this.settings.nickname, this.settings.avatar, password, this.settings.country || 'TR');
+  }
+
+  private pickNextHostPlayer(): PlayerEntity | undefined {
+    const humans = this.players.filter((p) => !p.isBot && p.id !== 'host');
+    if (humans.length === 0) return undefined;
+    return humans.find((p) => p.isAdmin) || humans[0];
+  }
+
+  private handleHostLost(roomCode: string): void {
+    const fallbackNext = this.pickNextHostPlayer();
+    if (!fallbackNext || !roomCode) {
+      this.showLobbyError('Oda kurucusu ayrıldı ve oda kapatıldı.');
+      this.switchScreen('lobby');
+      return;
+    }
+    this.handleMigrateHost(fallbackNext.id, roomCode, this.currentRoomName, this.currentRoomPassword);
+  }
+
+  private handleMigrateHost(newHostId: string, roomCode: string, roomName: string, password: string): void {
+    const myOldId = this.myPlayerId;
+    if (newHostId === myOldId) {
+      const remaining = this.players.filter((p) => p.id !== 'host');
+      const me = remaining.find((p) => p.id === myOldId);
+      if (me) {
+        me.id = 'host';
+        me.isAdmin = true;
+        me.ping = 0;
+      }
+      this.players = remaining;
+      this.myPlayerId = 'host';
+      this.currentRoomName = roomName || this.currentRoomName;
+      this.currentRoomPassword = password ?? this.currentRoomPassword;
+      this.roomHasPassword = Boolean(this.currentRoomPassword);
+      this.addChat('Sistem', 'Kurucu ayrıldı! Oda sahipliği size devredildi (★ Admin).', true);
+      window.setTimeout(() => {
+        if (this.activeScreen !== 'room') return;
+        const claimed = this.peerMgr.hostRoom({
+          roomName: this.currentRoomName,
+          password: this.currentRoomPassword,
+          preferredCode: roomCode
+        });
+        this.roomCodeBadge.textContent = 'Kod: ' + claimed;
+        this.roomCodeBadge.classList.remove('hidden');
+        this.btnCopyLink.classList.remove('hidden');
+        this.startRoomHeartbeat(claimed);
+        this.updateRoomUI();
+      }, 450);
+    } else {
+      this.netStatusEl.textContent = 'Yeni kurucuya bağlanılıyor [' + roomCode + ']...';
+      this.addChat('Sistem', 'Kurucu ayrıldı, oda yeni yöneticiye aktarılıyor...', true);
+      const savedPass = password ?? this.currentRoomPassword;
+      window.setTimeout(() => {
+        if (this.activeScreen !== 'room') return;
+        this.joinRemoteRoom(roomCode, savedPass);
+      }, 1500);
+    }
   }
 
   private leaveCurrentRoom(): void {
     const code = this.peerMgr.getRoomCode();
     const wasHost = this.peerMgr.getRole() === 'host';
+    const nextHost = wasHost ? this.pickNextHostPlayer() : undefined;
     this.stopRoomHeartbeat();
     this.teamsLocked = false;
+
     if (wasHost && code) {
+      if (nextHost) {
+        this.peerMgr.broadcastHostMigration(nextHost.id);
+        this.switchScreen('lobby');
+        window.setTimeout(() => this.peerMgr.disconnect(), 130);
+        return;
+      }
       void this.directory.removeRoom(code);
     }
     this.peerMgr.disconnect();
@@ -1047,20 +1119,47 @@ class OpenHaxApp {
     };
 
     publishNow();
-    this.heartbeatTimer = window.setInterval(publishNow, 8000);
+    try {
+      const blob = new Blob(['setInterval(() => postMessage(1), 8000);'], { type: 'application/javascript' });
+      const workerUrl = URL.createObjectURL(blob);
+      const worker = new Worker(workerUrl);
+      URL.revokeObjectURL(workerUrl);
+      worker.onmessage = () => {
+        if (this.peerMgr.getRole() === 'host') publishNow();
+      };
+      this.heartbeatWorker = worker;
+    } catch {
+      this.heartbeatTimer = window.setInterval(publishNow, 8000);
+    }
+
     const onPageExit = () => {
       if (this.peerMgr.getRole() === 'host' && this.peerMgr.getRoomCode() === code) {
-        void this.directory.removeRoom(code);
+        const nextHost = this.pickNextHostPlayer();
+        if (nextHost) {
+          this.peerMgr.broadcastHostMigration(nextHost.id);
+        } else {
+          void this.directory.removeRoom(code);
+        }
       }
     };
-    window.addEventListener('pagehide', onPageExit, { once: true });
-    window.addEventListener('beforeunload', onPageExit, { once: true });
+    this.pageExitHandler = onPageExit;
+    window.addEventListener('pagehide', onPageExit);
+    window.addEventListener('beforeunload', onPageExit);
   }
 
   private stopRoomHeartbeat(): void {
     if (this.heartbeatTimer !== null) {
       clearInterval(this.heartbeatTimer);
       this.heartbeatTimer = null;
+    }
+    if (this.heartbeatWorker) {
+      this.heartbeatWorker.terminate();
+      this.heartbeatWorker = null;
+    }
+    if (this.pageExitHandler) {
+      window.removeEventListener('pagehide', this.pageExitHandler);
+      window.removeEventListener('beforeunload', this.pageExitHandler);
+      this.pageExitHandler = null;
     }
   }
 

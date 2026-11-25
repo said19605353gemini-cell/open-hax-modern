@@ -14,7 +14,8 @@ export type NetPacket =
   | { type: 'snap'; data: MatchSnapshot }
   | { type: 'ping'; ts: number; lastRtt?: number }
   | { type: 'pong'; ts: number }
-  | { type: 'admin_cmd'; cmd: string; targetId?: string; value?: string | number | boolean };
+  | { type: 'admin_cmd'; cmd: string; targetId?: string; value?: string | number | boolean }
+  | { type: 'migrate_host'; newHostId: string; roomCode: string; roomName: string; password: string };
 
 export interface PeerCallbacks {
   onStatus: (role: PeerRole, stateText: string, roomCode: string) => void;
@@ -30,6 +31,8 @@ export interface PeerCallbacks {
   onPingUpdate: (pingMs: number | null) => void;
   onPeerPing?: (peerId: string, pingMs: number) => void;
   onAdminCmd?: (fromPeerId: string, cmd: string, targetId?: string, value?: string | number | boolean) => void;
+  onMigrateHost?: (newHostId: string, roomCode: string, roomName: string, password: string) => void;
+  onHostLost?: (roomCode: string) => void;
 }
 
 const PEER_PREFIX = 'openhax2026-';
@@ -95,10 +98,11 @@ export class PeerManager {
     return 1;
   }
 
-  hostRoom(options: { roomName: string; password?: string; preferredCode?: string }): string {
+  hostRoom(options: { roomName: string; password?: string; preferredCode?: string; retryAttempt?: number }): string {
     this.disconnect();
 
     const code = (options.preferredCode || randomRoomCode()).toLowerCase().replace(/[^a-z0-9-]/g, '');
+    const attempt = options.retryAttempt || 0;
     this.roomCode = code;
     this.roomName = options.roomName.trim() || 'OpenHax Oda';
     this.roomPassword = (options.password || '').trim();
@@ -189,9 +193,19 @@ export class PeerManager {
     peer.on('error', (err) => {
       const msg = err && (err as Error).message ? (err as Error).message : String(err);
       this.cb.onLog('ERROR', 'PeerJS', 'Host hatasi: ' + msg);
-      if (msg.includes('is taken') && !options.preferredCode) {
-        this.hostRoom({ roomName: this.roomName, password: this.roomPassword });
-        return;
+      if (msg.includes('is taken')) {
+        if (!options.preferredCode) {
+          this.hostRoom({ roomName: this.roomName, password: this.roomPassword });
+          return;
+        }
+        if (attempt < 5) {
+          const savedName = this.roomName;
+          const savedPass = this.roomPassword;
+          setTimeout(() => {
+            this.hostRoom({ roomName: savedName, password: savedPass, preferredCode: code, retryAttempt: attempt + 1 });
+          }, 650);
+          return;
+        }
       }
       this.cb.onStatus('host', 'Hata: ' + msg, this.roomCode);
     });
@@ -219,6 +233,7 @@ export class PeerManager {
       if (this.peer !== peer) return;
       const conn = peer.connect(PEER_PREFIX + code, { reliable: true });
       this.hostConn = conn;
+      let migrationTriggered = false;
 
       conn.on('open', () => {
         this.cb.onStatus('guest', 'Yetkilendiriliyor...', code);
@@ -239,9 +254,13 @@ export class PeerManager {
           this.cb.onStatus('guest', 'Baglandi (P2P)', code);
           this.cb.onWelcome(pkt.playerId, this.roomName);
         } else if (pkt.type === 'auth_error') {
+          migrationTriggered = true;
           this.cb.onLog('WARN', 'PeerJS', 'Odaya giris reddedildi: ' + pkt.reason);
           this.cb.onAuthError(pkt.reason);
           this.disconnect();
+        } else if (pkt.type === 'migrate_host') {
+          migrationTriggered = true;
+          this.cb.onMigrateHost?.(pkt.newHostId, pkt.roomCode, pkt.roomName, pkt.password);
         } else if (pkt.type === 'snap') {
           this.cb.onSnapshot(pkt.data);
         } else if (pkt.type === 'chat') {
@@ -256,6 +275,12 @@ export class PeerManager {
       conn.on('close', () => {
         if (this.role === 'guest') {
           this.cb.onLog('WARN', 'PeerJS', 'Oda baglantisi kapandi.');
+          if (!migrationTriggered && this.cb.onHostLost) {
+            const lostCode = this.roomCode;
+            this.disconnect();
+            this.cb.onHostLost(lostCode);
+            return;
+          }
           this.disconnect();
         }
       });
@@ -276,6 +301,17 @@ export class PeerManager {
   broadcastSnapshot(snap: MatchSnapshot): void {
     if (this.role !== 'host' || this.clientConns.size === 0) return;
     this.broadcast({ type: 'snap', data: snap });
+  }
+
+  broadcastHostMigration(newHostId: string): void {
+    if (this.role !== 'host' || this.clientConns.size === 0) return;
+    this.broadcast({
+      type: 'migrate_host',
+      newHostId,
+      roomCode: this.roomCode,
+      roomName: this.roomName,
+      password: this.roomPassword
+    });
   }
 
   broadcastChat(author: string, text: string, team?: Team): void {
