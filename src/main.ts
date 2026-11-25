@@ -510,6 +510,7 @@ class OpenHaxApp {
       lists.blue.innerHTML = '';
       const isAdm = this.isMeAdmin();
       el<HTMLDivElement>('teams-admin-actions').classList.toggle('hidden', !isAdm);
+      el<HTMLSelectElement>('teams-powerup-mode').value = this.powerupMode;
       el<HTMLButtonElement>('btn-teams-lock').textContent = this.teamsLocked ? '🔒 Kilitli' : '🔓 Kilitle';
       for (const p of this.players) {
         const row = document.createElement('div');
@@ -606,6 +607,10 @@ class OpenHaxApp {
     el<HTMLButtonElement>('btn-teams-rembot').addEventListener('click', () => {
       el<HTMLButtonElement>('btn-remove-bot').click();
       setTimeout(renderTeamsModal, 60);
+    });
+    el<HTMLSelectElement>('teams-powerup-mode').addEventListener('change', (e) => {
+      if (!this.isMeAdmin()) return;
+      this.dispatchAdminAction('set_powerup', undefined, (e.target as HTMLSelectElement).value);
     });
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && this.activeScreen === 'room') {
@@ -1631,6 +1636,20 @@ class OpenHaxApp {
       const hz = Math.max(60, Math.min(500, value));
       this.updateSettings({ physicsHz: hz });
       el<HTMLSelectElement>('set-physicshz').value = String(hz);
+    } else if (cmd === 'set_powerup' && typeof value === 'string') {
+      this.powerupMode = value as PowerupMode;
+      this.fieldPowerup = null;
+      this.ballFireType = null;
+      if (this.powerupMode === 'none') {
+        for (const pl of this.players) {
+          pl.powerup = null;
+          pl.radius = 15;
+        }
+      } else {
+        this.nextPowerupSpawnTick = this.tick + 120;
+      }
+      this.addChat('Sistem', 'Özel Güç Modu: ' + this.powerupMode, true);
+      this.peerMgr.broadcastChat('Sistem', 'Özel Güç Modu: ' + this.powerupMode, undefined);
     }
   }
 
@@ -2015,8 +2034,11 @@ class OpenHaxApp {
         const margin = 70;
         const px = this.stadium.pitchX + margin + Math.random() * Math.max(40, this.stadium.pitchWidth - margin * 2);
         const py = this.stadium.pitchY + margin + Math.random() * Math.max(40, this.stadium.pitchHeight - margin * 2);
+        const allTypes: PowerupType[] = ['hawk', 'fire', 'speed', 'magnet', 'giant'];
         const pType: PowerupType =
-          this.powerupMode === 'hawk' ? 'hawk' : this.powerupMode === 'fire' ? 'fire' : Math.random() < 0.5 ? 'hawk' : 'fire';
+          this.powerupMode === 'all'
+            ? allTypes[Math.floor(Math.random() * allTypes.length)]
+            : (this.powerupMode as PowerupType);
         this.fieldPowerup = { x: Math.round(px), y: Math.round(py), type: pType };
       } else if (this.fieldPowerup) {
         for (const pl of this.players) {
@@ -2026,10 +2048,14 @@ class OpenHaxApp {
           if (dx * dx + dy * dy <= (pl.radius + 16) * (pl.radius + 16)) {
             pl.powerup = this.fieldPowerup.type;
             pl.powerupUntilTick = this.tick + Math.round(8 * physicsHz);
-            const msg =
-              this.fieldPowerup.type === 'hawk'
-                ? `🦅 ${pl.name} Şahin Vuruşu aldı! (8sn)`
-                : `🔥 ${pl.name} Alevli Şut aldı! (8sn)`;
+            const names: Record<PowerupType, string> = {
+              hawk: '🦅 Şahin Vuruşu',
+              fire: '🔥 Alevli Şut',
+              speed: '⚡ Hızlı Koşu',
+              magnet: '🧲 Mıknatıs',
+              giant: '🛡️ Dev Oyuncu'
+            };
+            const msg = `${names[this.fieldPowerup.type]} -> ${pl.name}! (8sn)`;
             this.addChat('Sistem', msg, true);
             this.peerMgr.broadcastChat('Sistem', msg, undefined);
             this.fieldPowerup = null;

@@ -312,15 +312,23 @@ export class CanvasRenderer {
       ctx.globalAlpha = 1;
     }
 
-    // 2.5 Render Field Powerup Orb (Hawk / Fire)
+    // 2.5 Render Field Powerup Orb
     if (fieldPowerup) {
       const pulse = 1 + Math.sin(performance.now() * 0.008) * 0.14;
+      const colorMap: Record<PowerupType, { bg: string; ring: string; icon: string }> = {
+        hawk: { bg: 'rgba(250, 204, 21, 0.28)', ring: '#facc15', icon: '🦅' },
+        fire: { bg: 'rgba(249, 115, 22, 0.32)', ring: '#f97316', icon: '🔥' },
+        speed: { bg: 'rgba(56, 189, 248, 0.30)', ring: '#38bdf8', icon: '⚡' },
+        magnet: { bg: 'rgba(192, 132, 252, 0.30)', ring: '#c084fc', icon: '🧲' },
+        giant: { bg: 'rgba(74, 222, 128, 0.30)', ring: '#4ade80', icon: '🛡️' }
+      };
+      const st = colorMap[fieldPowerup.type];
       ctx.save();
-      ctx.fillStyle = fieldPowerup.type === 'hawk' ? 'rgba(250, 204, 21, 0.28)' : 'rgba(249, 115, 22, 0.32)';
+      ctx.fillStyle = st.bg;
       ctx.beginPath();
       ctx.arc(fieldPowerup.x, fieldPowerup.y, 20 * pulse, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = fieldPowerup.type === 'hawk' ? '#facc15' : '#f97316';
+      ctx.strokeStyle = st.ring;
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.arc(fieldPowerup.x, fieldPowerup.y, 14, 0, Math.PI * 2);
@@ -328,7 +336,7 @@ export class CanvasRenderer {
       ctx.font = '16px "Segoe UI Emoji", Arial, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(fieldPowerup.type === 'hawk' ? '🦅' : '🔥', fieldPowerup.x, fieldPowerup.y + 1);
+      ctx.fillText(st.icon, fieldPowerup.x, fieldPowerup.y + 1);
       ctx.restore();
     }
 
@@ -350,8 +358,15 @@ export class CanvasRenderer {
       }
 
       if (p.powerup) {
+        const auraColors: Record<PowerupType, string> = {
+          hawk: '#facc15',
+          fire: '#f97316',
+          speed: '#38bdf8',
+          magnet: '#c084fc',
+          giant: '#4ade80'
+        };
         ctx.save();
-        ctx.strokeStyle = p.powerup === 'hawk' ? '#facc15' : '#f97316';
+        ctx.strokeStyle = auraColors[p.powerup];
         ctx.lineWidth = 3.5;
         ctx.beginPath();
         ctx.arc(rx, ry, p.radius + 5, 0, Math.PI * 2);

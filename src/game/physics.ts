@@ -570,9 +570,21 @@ export function stepPhysicsTick(
 
       const dot = dx * p.vx + dy * p.vy;
       const brakeMul = dot < -0.4 ? 1.25 : 1.0;
-      const accel = (p.kickArmed ? cfg.kickAccel : cfg.accel) * botSpeedScale * brakeMul * dtScale;
+      const spdMul = p.powerup === 'speed' ? 1.55 : 1.0;
+      const accel = (p.kickArmed ? cfg.kickAccel : cfg.accel) * botSpeedScale * brakeMul * dtScale * spdMul;
       p.vx += dx * accel;
       p.vy += dy * accel;
+    }
+
+    if (p.powerup === 'magnet') {
+      const mdx = p.x - ball.x;
+      const mdy = p.y - ball.y;
+      const mDistSq = mdx * mdx + mdy * mdy;
+      if (mDistSq > 100 && mDistSq < 110 * 110) {
+        const mDist = Math.sqrt(mDistSq);
+        ball.vx += (mdx / mDist) * 0.14 * dtScale;
+        ball.vy += (mdy / mDist) * 0.14 * dtScale;
+      }
     }
 
     // Kick direction from player center to ball center (equivalent to open-hax alpha quadrant math)
@@ -605,9 +617,11 @@ export function stepPhysicsTick(
 
   for (let i = 0; i < activePlayers.length; i++) {
     const p = activePlayers[i];
+    p.radius = p.powerup === 'giant' ? 20 : 15;
+    const pMax = p.powerup === 'speed' ? cfg.maxPlayerSpeed * 1.55 : cfg.maxPlayerSpeed;
     const spdSq = p.vx * p.vx + p.vy * p.vy;
-    if (spdSq > cfg.maxPlayerSpeed * cfg.maxPlayerSpeed) {
-      const scale = cfg.maxPlayerSpeed / Math.sqrt(spdSq);
+    if (spdSq > pMax * pMax) {
+      const scale = pMax / Math.sqrt(spdSq);
       p.vx *= scale;
       p.vy *= scale;
     }
