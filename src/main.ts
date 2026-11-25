@@ -561,6 +561,18 @@ class OpenHaxApp {
     el<HTMLInputElement>('set-goalgif').addEventListener('change', (e) => {
       this.updateSettings({ goalGifUrl: (e.target as HTMLInputElement).value.trim() });
     });
+    el<HTMLInputElement>('set-concedegif').addEventListener('change', (e) => {
+      this.updateSettings({ concedeGifUrl: (e.target as HTMLInputElement).value.trim() });
+    });
+    el<HTMLInputElement>('set-chantgif').addEventListener('change', (e) => {
+      this.updateSettings({ chantGifUrl: (e.target as HTMLInputElement).value.trim() });
+    });
+    el<HTMLButtonElement>('btn-trigger-chant').addEventListener('click', () => {
+      const url = el<HTMLInputElement>('set-chantgif').value.trim() || this.settings.chantGifUrl || '';
+      if (!url) return;
+      this.updateSettings({ chantGifUrl: url });
+      (this as unknown as { chantBannerUntil: number }).chantBannerUntil = performance.now() + 3500;
+    });
 
     const bindRange = (id: string, lblId: string, fmt: (v: number) => string, apply: (v: number) => void) => {
       el<HTMLInputElement>(id).addEventListener('input', (e) => {
@@ -983,6 +995,8 @@ class OpenHaxApp {
     el<HTMLInputElement>('set-volume').value = String(s.soundVolume);
     el<HTMLSpanElement>('vol-label').textContent = Math.round(s.soundVolume * 100) + '%';
     el<HTMLInputElement>('set-goalgif').value = s.goalGifUrl || '';
+    el<HTMLInputElement>('set-concedegif').value = s.concedeGifUrl || '';
+    el<HTMLInputElement>('set-chantgif').value = s.chantGifUrl || '';
     el<HTMLInputElement>('set-ballctrl').value = String(s.ballControl);
     el<HTMLSpanElement>('lbl-ballctrl').textContent = s.ballControl + '%';
     el<HTMLInputElement>('set-balldamp').value = String(s.ballDamping);
@@ -1428,13 +1442,22 @@ class OpenHaxApp {
     if (this.goalBannerTeam) {
       const l = this.settings.lang || 'tr';
       this.goalBannerEl.className = 'overlay-banner ' + this.goalBannerTeam;
-      const gifHtml = this.settings.goalGifUrl
-        ? '<img src="' + this.settings.goalGifUrl.replace(/"/g, '&quot;') + '" alt="goal" style="max-height:110px;border-radius:6px;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto;" />'
+      const me = this.players.find((p) => p.id === this.myPlayerId);
+      const isConcede = Boolean(me && me.team !== 'spec' && me.team !== this.goalBannerTeam && this.settings.concedeGifUrl);
+      const activeGif = isConcede ? (this.settings.concedeGifUrl || '') : (this.settings.goalGifUrl || '');
+      const gifHtml = activeGif
+        ? '<img src="' + activeGif.replace(/"/g, '&quot;') + '" alt="goal" style="max-height:110px;border-radius:6px;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto;" />'
         : '';
       this.goalBannerEl.innerHTML =
         '<div style="text-align:center;">' +
         gifHtml +
         '<span>' + (this.goalBannerTeam === 'red' ? t(l, 'goalRed') : t(l, 'goalBlue')) + '</span></div>';
+    } else if (((this as unknown as { chantBannerUntil?: number }).chantBannerUntil || 0) > performance.now() && this.settings.chantGifUrl) {
+      this.goalBannerEl.className = 'overlay-banner';
+      this.goalBannerEl.innerHTML =
+        '<div style="text-align:center;">' +
+        '<img src="' + this.settings.chantGifUrl.replace(/"/g, '&quot;') + '" alt="chant" style="max-height:120px;border-radius:6px;display:block;margin-left:auto;margin-right:auto;" />' +
+        '</div>';
     } else {
       this.goalBannerEl.className = 'overlay-banner hidden';
       this.goalBannerEl.innerHTML = '';

@@ -27,7 +27,9 @@ export const DEFAULT_SETTINGS: GameSettings = {
   nickname: '',
   avatar: ':)',
   lang: 'tr',
-  goalGifUrl: ''
+  goalGifUrl: '',
+  concedeGifUrl: '',
+  chantGifUrl: ''
 };
 
 export const PERFORMANCE_PRESETS: Record<string, Partial<GameSettings>> = {

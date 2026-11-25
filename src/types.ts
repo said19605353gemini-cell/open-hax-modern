@@ -39,6 +39,8 @@ export interface GameSettings {
   avatar: string;
   lang: Lang;
   goalGifUrl: string;
+  concedeGifUrl: string;
+  chantGifUrl: string;
 }
 
 export interface PlayerEntity {
