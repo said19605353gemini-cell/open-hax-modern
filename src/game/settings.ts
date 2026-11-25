@@ -2,6 +2,50 @@ import { GameSettings } from '../types';
 
 const STORAGE_KEY = 'openhax_modern_settings_v2';
 
+export const COUNTRY_FLAGS: Record<string, string> = {
+  TR: '🇹🇷',
+  AZ: '🇦🇿',
+  DE: '🇩🇪',
+  NL: '🇳🇱',
+  GB: '🇬🇧',
+  FR: '🇫🇷',
+  ES: '🇪🇸',
+  IT: '🇮🇹',
+  PL: '🇵🇱',
+  RU: '🇷🇺',
+  BR: '🇧🇷',
+  US: '🇺🇸',
+  GL: '🌍'
+};
+
+export function countryFlag(code?: string): string {
+  const key = (code || '').toUpperCase();
+  return COUNTRY_FLAGS[key] || '🌍';
+}
+
+export function detectDefaultCountry(): string {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    if (tz.includes('Istanbul')) return 'TR';
+    if (tz.includes('Baku')) return 'AZ';
+    if (tz.includes('Berlin')) return 'DE';
+    if (tz.includes('Amsterdam')) return 'NL';
+    if (tz.includes('London')) return 'GB';
+    if (tz.includes('Paris')) return 'FR';
+    if (tz.includes('Madrid')) return 'ES';
+    if (tz.includes('Rome')) return 'IT';
+    if (tz.includes('Warsaw')) return 'PL';
+    if (tz.includes('Moscow')) return 'RU';
+    if (tz.includes('Sao_Paulo')) return 'BR';
+    if (tz.includes('America/')) return 'US';
+    const lang = (navigator.language || '').toUpperCase();
+    const parts = lang.split('-');
+    if (parts[1] && COUNTRY_FLAGS[parts[1]]) return parts[1];
+    if (lang.startsWith('TR')) return 'TR';
+  } catch { /* ignore */ }
+  return 'TR';
+}
+
 export const DEFAULT_SETTINGS: GameSettings = {
   fpsLimit: 0,
   grassDetail: 'hd_stadium',
@@ -26,6 +70,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   soundVolume: 0.6,
   nickname: '',
   avatar: ':)',
+  country: detectDefaultCountry(),
   lang: 'tr',
   goalGifUrl: '',
   concedeGifUrl: '',

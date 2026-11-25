@@ -111,6 +111,10 @@ if ($action === 'upsert') {
     $bots = max(0, min(16, (int)($body['bots'] ?? 0)));
     $maxPlayers = max(2, min(20, (int)($body['maxPlayers'] ?? 8)));
     $hasPassword = !empty($body['hasPassword']);
+    $country = substr(preg_replace('/[^A-Z]/', '', strtoupper((string)($body['country'] ?? 'TR'))), 0, 2);
+    if ($country === '') {
+        $country = 'TR';
+    }
 
     $rooms[$code] = [
         'code' => $code,
@@ -121,6 +125,7 @@ if ($action === 'upsert') {
         'bots' => $bots,
         'maxPlayers' => $maxPlayers,
         'hasPassword' => $hasPassword,
+        'country' => $country,
         'updatedAt' => $now
     ];
     saveRooms($storeFile, $rooms);

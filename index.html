@@ -68,6 +68,25 @@
         </div>
       </label>
 
+      <label class="field">
+        <span>Ülke / Bayrak</span>
+        <select id="auth-country">
+          <option value="TR">🇹🇷 Türkiye (TR)</option>
+          <option value="AZ">🇦🇿 Azerbaycan (AZ)</option>
+          <option value="DE">🇩🇪 Almanya (DE)</option>
+          <option value="NL">🇳🇱 Hollanda (NL)</option>
+          <option value="GB">🇬🇧 İngiltere (GB)</option>
+          <option value="FR">🇫🇷 Fransa (FR)</option>
+          <option value="ES">🇪🇸 İspanya (ES)</option>
+          <option value="IT">🇮🇹 İtalya (IT)</option>
+          <option value="PL">🇵🇱 Polonya (PL)</option>
+          <option value="RU">🇷🇺 Rusya (RU)</option>
+          <option value="BR">🇧🇷 Brezilya (BR)</option>
+          <option value="US">🇺🇸 ABD (US)</option>
+          <option value="GL">🌍 Global</option>
+        </select>
+      </label>
+
       <div id="auth-error" class="error-text hidden"></div>
       <button type="button" id="btn-auth-enter" class="btn primary lg full">Lobiye Gir</button>
     </div>
@@ -99,10 +118,12 @@
           <table class="rooms-table">
             <thead>
               <tr>
+                <th>Ülke</th>
                 <th>Oda Adı</th>
                 <th>Kurucu</th>
                 <th>Saha</th>
                 <th>Oyuncu</th>
+                <th>Ping</th>
                 <th>Durum</th>
                 <th></th>
               </tr>

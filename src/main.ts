@@ -12,7 +12,7 @@ import {
   StadiumId,
   Team
 } from './types';
-import { loadSettings, PERFORMANCE_PRESETS, saveSettings } from './game/settings';
+import { countryFlag, loadSettings, PERFORMANCE_PRESETS, saveSettings } from './game/settings';
 import { getStadium } from './game/stadiums';
 import { resetPositionsForKickoff, stepPhysicsTick } from './game/physics';
 import { InputController } from './game/input';
@@ -88,6 +88,7 @@ class OpenHaxApp {
   private pendingNetEvents = 0;
 
   private roomsCache: PublicRoomInfo[] = [];
+  private lastDirPingMs = 0;
   private refreshingRooms = false;
   private lobbyPollTimer: number | null = null;
   private heartbeatTimer: number | null = null;
@@ -118,6 +119,7 @@ class OpenHaxApp {
   // Auth refs
   private authNick = el<HTMLInputElement>('auth-nick');
   private authAvatar = el<HTMLInputElement>('auth-avatar');
+  private authCountry = el<HTMLSelectElement>('auth-country');
   private authError = el<HTMLDivElement>('auth-error');
   private inviteNotice = el<HTMLDivElement>('invite-notice');
   private btnAuthEnter = el<HTMLButtonElement>('btn-auth-enter');
@@ -179,7 +181,7 @@ class OpenHaxApp {
     this.peerMgr = new PeerManager({
       onStatus: (role, stateText, roomCode) => this.onPeerStatus(role, stateText, roomCode),
       onLog: (level, source, msg, detail) => this.log(level, source, msg, detail),
-      onPeerJoin: (peerId, name, avatar) => this.handlePeerJoin(peerId, name, avatar),
+      onPeerJoin: (peerId, name, avatar, country) => this.handlePeerJoin(peerId, name, avatar, country),
       onPeerLeave: (peerId) => this.handlePeerLeave(peerId),
       onPeerInput: (peerId, bits) => this.handlePeerInput(peerId, bits),
       onPeerTeam: (peerId, team) => this.handlePeerTeam(peerId, team),
@@ -198,6 +200,12 @@ class OpenHaxApp {
       onSnapshot: (snap) => this.applyGuestSnapshot(snap),
       onPingUpdate: (ping) => {
         this.pingMs = ping;
+        const me = this.players.find((p) => p.id === this.myPlayerId);
+        if (me && ping !== null) me.ping = ping;
+      },
+      onPeerPing: (peerId, ping) => {
+        const p = this.players.find((pl) => pl.id === peerId);
+        if (p) p.ping = ping;
       },
       onAdminCmd: (fromPeerId, cmd, targetId, value) => this.handleRemoteAdminCmd(fromPeerId, cmd, targetId, value)
     });
@@ -224,6 +232,7 @@ class OpenHaxApp {
 
     this.authNick.value = this.settings.nickname || '';
     this.authAvatar.value = this.settings.avatar || ':)';
+    this.authCountry.value = this.settings.country || 'TR';
     this.switchScreen('auth');
     this.authNick.focus();
 
@@ -420,8 +429,20 @@ class OpenHaxApp {
         const row = document.createElement('div');
         row.className = 'team-player-row';
         const label = document.createElement('span');
-        label.textContent = (p.isAdmin ? '★ ' : '') + p.avatar + ' ' + p.name + (p.isBot ? ' [BOT]' : '');
+        const flag = p.isBot ? '🤖' : countryFlag(p.country);
+        label.textContent = flag + ' ' + (p.isAdmin ? '★ ' : '') + p.avatar + ' ' + p.name;
+        const pingSpan = document.createElement('span');
+        pingSpan.style.opacity = '0.75';
+        pingSpan.style.fontSize = '12px';
+        pingSpan.textContent = p.isBot
+          ? 'BOT'
+          : typeof p.ping === 'number'
+            ? p.ping + ' ms'
+            : p.id === 'host'
+              ? '0 ms'
+              : '—';
         row.appendChild(label);
+        row.appendChild(pingSpan);
         row.addEventListener('click', (ev) => {
           ev.stopPropagation();
           if (isAdm) this.openPlayerContextMenu(ev.clientX, ev.clientY, p);
@@ -758,7 +779,11 @@ class OpenHaxApp {
     }
 
     this.authError.classList.add('hidden');
-    this.updateSettings({ nickname: nick, avatar });
+    this.updateSettings({
+      nickname: nick,
+      avatar,
+      country: this.authCountry.value || this.settings.country || 'TR'
+    });
 
     if (this.pendingInviteCode) {
       const code = this.pendingInviteCode;
@@ -783,8 +808,9 @@ class OpenHaxApp {
     if (this.refreshingRooms) return;
     this.refreshingRooms = true;
     try {
-      const { rooms, mode } = await this.directory.listRooms();
+      const { rooms, mode, latencyMs } = await this.directory.listRooms();
       this.roomsCache = rooms;
+      this.lastDirPingMs = latencyMs;
       this.dirModeBadge.textContent =
         mode === 'server'
           ? 'Canlı Sunucu Listesi (Hosting)'
@@ -814,6 +840,10 @@ class OpenHaxApp {
       const tr = document.createElement('tr');
       const stadiumLabel = getStadium(r.stadium).label.split(' ')[0];
 
+      const tdFlag = document.createElement('td');
+      const roomCountry = (r.country || 'TR').toUpperCase();
+      tdFlag.textContent = countryFlag(roomCountry) + ' ' + roomCountry;
+
       const tdName = document.createElement('td');
       tdName.textContent = r.name;
 
@@ -825,6 +855,17 @@ class OpenHaxApp {
 
       const tdPl = document.createElement('td');
       tdPl.textContent = r.players + '/' + r.maxPlayers + (r.bots > 0 ? ' (+' + r.bots + ' Bot)' : '');
+
+      const tdPing = document.createElement('td');
+      if (r.source === 'local') {
+        tdPing.textContent = '🟢 1 ms';
+      } else {
+        const myCountry = (this.settings.country || 'TR').toUpperCase();
+        const sameRegion = roomCountry === myCountry;
+        const pingVal = sameRegion ? Math.min(85, Math.max(8, this.lastDirPingMs || 18)) : Math.max(35, (this.lastDirPingMs || 45) + 30);
+        const dot = pingVal < 60 ? '🟢' : pingVal < 130 ? '🟡' : '🔴';
+        tdPing.textContent = dot + ' ~' + pingVal + ' ms';
+      }
 
       const tdLock = document.createElement('td');
       tdLock.textContent = r.hasPassword ? 'Şifreli' : 'Açık';
@@ -843,10 +884,12 @@ class OpenHaxApp {
       });
       tdAct.appendChild(btn);
 
+      tr.appendChild(tdFlag);
       tr.appendChild(tdName);
       tr.appendChild(tdHost);
       tr.appendChild(tdSt);
       tr.appendChild(tdPl);
+      tr.appendChild(tdPing);
       tr.appendChild(tdLock);
       tr.appendChild(tdAct);
       this.roomsTbody.appendChild(tr);
@@ -883,7 +926,7 @@ class OpenHaxApp {
 
     this.myPlayerId = 'host';
     this.players = [
-      this.createPlayer('host', this.settings.nickname, this.settings.avatar, 'red', false, true)
+      this.createPlayer('host', this.settings.nickname, this.settings.avatar, 'red', false, true, this.settings.country || 'TR', 0)
     ];
 
     if (kind === 'local2p') {
@@ -923,7 +966,7 @@ class OpenHaxApp {
     this.players = [];
     this.roomKind = 'public';
     this.netStatusEl.textContent = 'Bağlanıyor...';
-    this.peerMgr.joinRoom(code, this.settings.nickname, this.settings.avatar, password);
+    this.peerMgr.joinRoom(code, this.settings.nickname, this.settings.avatar, password, this.settings.country || 'TR');
   }
 
   private leaveCurrentRoom(): void {
@@ -953,7 +996,8 @@ class OpenHaxApp {
         players: humans,
         bots,
         maxPlayers: this.roomMaxPlayers,
-        hasPassword: this.roomHasPassword
+        hasPassword: this.roomHasPassword,
+        country: this.settings.country || 'TR'
       });
     };
 
@@ -1041,7 +1085,9 @@ class OpenHaxApp {
       const p = this.players[i];
       const chip = document.createElement('span');
       chip.className = 'roster-chip ' + p.team + (p.isAdmin ? ' admin' : '');
-      chip.textContent = (p.isAdmin ? '★ ' : '') + (p.isBot ? '[BOT] ' : '') + p.name;
+      const flagPrefix = p.isBot ? '🤖 ' : countryFlag(p.country) + ' ';
+      const pingSuffix = !p.isBot && typeof p.ping === 'number' ? ' (' + p.ping + 'ms)' : '';
+      chip.textContent = flagPrefix + (p.isAdmin ? '★ ' : '') + (p.isBot ? '[BOT] ' : '') + p.name + pingSuffix;
       if (isAdmin && p.id !== 'host') {
         chip.title = 'Sağ tıkla: Admin / Takım / At';
         chip.style.cursor = 'context-menu';
@@ -1244,7 +1290,16 @@ class OpenHaxApp {
     this.btnPause.textContent = this.paused ? t(l, 'resume') : t(l, 'pause');
   }
 
-  private createPlayer(id: string, name: string, avatar: string, team: Team, isBot: boolean, isAdmin = false): PlayerEntity {
+  private createPlayer(
+    id: string,
+    name: string,
+    avatar: string,
+    team: Team,
+    isBot: boolean,
+    isAdmin = false,
+    country?: string,
+    ping?: number
+  ): PlayerEntity {
     return {
       id,
       name,
@@ -1252,6 +1307,8 @@ class OpenHaxApp {
       team,
       isBot,
       isAdmin,
+      country,
+      ping,
       x: 0,
       y: 0,
       prevX: 0,
@@ -1276,7 +1333,7 @@ class OpenHaxApp {
     }
   }
 
-  private handlePeerJoin(peerId: string, name: string, avatar: string): boolean | string {
+  private handlePeerJoin(peerId: string, name: string, avatar: string, country = 'TR'): boolean | string {
     const humanCount = this.players.filter((p) => !p.isBot).length;
     if (humanCount >= this.roomMaxPlayers) {
       return 'Oda dolu (' + humanCount + '/' + this.roomMaxPlayers + ')';
@@ -1286,7 +1343,7 @@ class OpenHaxApp {
     const redCount = this.players.filter((p) => p.team === 'red').length;
     const blueCount = this.players.filter((p) => p.team === 'blue').length;
     const team: Team = redCount <= blueCount ? 'red' : 'blue';
-    const player = this.createPlayer(peerId, name, avatar, team, false);
+    const player = this.createPlayer(peerId, name, avatar, team, false, false, country);
 
     const cx = this.stadium.pitchX + this.stadium.pitchWidth / 2;
     const cy = this.stadium.pitchY + this.stadium.pitchHeight / 2;
@@ -1534,6 +1591,8 @@ class OpenHaxApp {
         team: p.team,
         isBot: p.isBot,
         adm: Boolean(p.isAdmin),
+        ct: p.country,
+        pg: p.ping,
         x: Math.round(p.x * 10) / 10,
         y: Math.round(p.y * 10) / 10,
         vx: Math.round(p.vx * 100) / 100,
@@ -1605,11 +1664,13 @@ class OpenHaxApp {
         cur.team = sp.team;
         cur.isBot = sp.isBot;
         cur.isAdmin = Boolean(sp.adm);
+        cur.country = sp.ct;
+        cur.ping = sp.pg;
         cur.kickFlashTicks = sp.kf;
         updated.push(cur);
       } else {
         rosterChanged = true;
-        const fresh = this.createPlayer(sp.id, sp.name, sp.avatar, sp.team, sp.isBot, Boolean(sp.adm));
+        const fresh = this.createPlayer(sp.id, sp.name, sp.avatar, sp.team, sp.isBot, Boolean(sp.adm), sp.ct, sp.pg);
         fresh.x = sp.x;
         fresh.y = sp.y;
         fresh.prevX = sp.x;

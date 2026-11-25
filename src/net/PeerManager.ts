@@ -4,21 +4,21 @@ import { MatchSnapshot, Team } from '../types';
 export type PeerRole = 'offline' | 'host' | 'guest';
 
 export type NetPacket =
-  | { type: 'join'; name: string; avatar: string; password?: string }
+  | { type: 'join'; name: string; avatar: string; password?: string; country?: string }
   | { type: 'welcome'; playerId: string; roomName: string }
   | { type: 'auth_error'; reason: string }
   | { type: 'input'; bits: number }
   | { type: 'team'; team: Team }
   | { type: 'chat'; author: string; text: string; team?: Team }
   | { type: 'snap'; data: MatchSnapshot }
-  | { type: 'ping'; ts: number }
+  | { type: 'ping'; ts: number; lastRtt?: number }
   | { type: 'pong'; ts: number }
   | { type: 'admin_cmd'; cmd: string; targetId?: string; value?: string | number | boolean };
 
 export interface PeerCallbacks {
   onStatus: (role: PeerRole, stateText: string, roomCode: string) => void;
   onLog: (level: 'INFO' | 'WARN' | 'ERROR', source: string, msg: string, detail?: string) => void;
-  onPeerJoin: (peerId: string, name: string, avatar: string) => boolean | string; // true = ok, string = reject reason
+  onPeerJoin: (peerId: string, name: string, avatar: string, country?: string) => boolean | string; // true = ok, string = reject reason
   onPeerLeave: (peerId: string) => void;
   onPeerInput: (peerId: string, bits: number) => void;
   onPeerTeam: (peerId: string, team: Team) => void;
@@ -27,6 +27,7 @@ export interface PeerCallbacks {
   onAuthError: (reason: string) => void;
   onSnapshot: (snap: MatchSnapshot) => void;
   onPingUpdate: (pingMs: number | null) => void;
+  onPeerPing?: (peerId: string, pingMs: number) => void;
   onAdminCmd?: (fromPeerId: string, cmd: string, targetId?: string, value?: string | number | boolean) => void;
 }
 
@@ -64,6 +65,7 @@ export class PeerManager {
   private clientConns = new Map<string, DataConnection>();
   private clientNames = new Map<string, string>();
   private pingTimer: number | null = null;
+  private lastGuestRtt: number | null = null;
   private role: PeerRole = 'offline';
   private roomCode = '';
   private roomName = '';
@@ -128,7 +130,8 @@ export class PeerManager {
           }
           const cleanName = String(pkt.name || 'Misafir').trim().slice(0, 20) || 'Misafir';
           const cleanAvatar = String(pkt.avatar || ':)').trim().slice(0, 8) || ':)';
-          const result = this.cb.onPeerJoin(conn.peer, cleanName, cleanAvatar);
+          const cleanCountry = String(pkt.country || 'TR').trim().toUpperCase().replace(/[^A-Z]/g, '').slice(0, 2) || 'TR';
+          const result = this.cb.onPeerJoin(conn.peer, cleanName, cleanAvatar, cleanCountry);
           if (result !== true) {
             conn.send({ type: 'auth_error', reason: typeof result === 'string' ? result : 'Oda dolu!' } satisfies NetPacket);
             setTimeout(() => {
@@ -141,6 +144,9 @@ export class PeerManager {
           conn.send({ type: 'welcome', playerId: conn.peer, roomName: this.roomName } satisfies NetPacket);
           this.cb.onStatus('host', 'Oda acik (' + (this.clientConns.size + 1) + ' kisi)', this.roomCode);
         } else if (pkt.type === 'ping') {
+          if (typeof pkt.lastRtt === 'number' && this.clientConns.has(conn.peer)) {
+            this.cb.onPeerPing?.(conn.peer, Math.max(1, Math.min(999, Math.round(pkt.lastRtt))));
+          }
           conn.send({ type: 'pong', ts: pkt.ts } satisfies NetPacket);
         } else {
           // Reject any gameplay/chat/admin packet before join handshake succeeds
@@ -191,7 +197,7 @@ export class PeerManager {
     return code;
   }
 
-  joinRoom(codeRaw: string, name: string, avatar: string, password?: string): void {
+  joinRoom(codeRaw: string, name: string, avatar: string, password?: string, country?: string): void {
     const code = extractRoomCode(codeRaw);
     if (!code) {
       this.cb.onAuthError('Gecersiz oda kodu.');
@@ -214,11 +220,11 @@ export class PeerManager {
 
       conn.on('open', () => {
         this.cb.onStatus('guest', 'Yetkilendiriliyor...', code);
-        conn.send({ type: 'join', name, avatar, password } satisfies NetPacket);
+        conn.send({ type: 'join', name, avatar, password, country } satisfies NetPacket);
 
         this.pingTimer = window.setInterval(() => {
           if (conn.open) {
-            conn.send({ type: 'ping', ts: performance.now() } satisfies NetPacket);
+            conn.send({ type: 'ping', ts: performance.now(), lastRtt: this.lastGuestRtt ?? undefined } satisfies NetPacket);
           }
         }, 2000);
       });
@@ -240,6 +246,7 @@ export class PeerManager {
           this.cb.onChat(pkt.author, pkt.text, pkt.team);
         } else if (pkt.type === 'pong') {
           const rtt = Math.max(1, Math.round(performance.now() - pkt.ts));
+          this.lastGuestRtt = rtt;
           this.cb.onPingUpdate(rtt);
         }
       });

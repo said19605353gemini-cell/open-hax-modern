@@ -9,6 +9,7 @@ export interface PublicRoomInfo {
   bots: number;
   maxPlayers: number;
   hasPassword: boolean;
+  country?: string;
   updatedAt: number;
   source?: 'server' | 'local';
 }
@@ -226,8 +227,9 @@ export class RoomDirectory {
     }
   }
 
-  async listRooms(): Promise<{ rooms: PublicRoomInfo[]; mode: 'server' | 'local' }> {
+  async listRooms(): Promise<{ rooms: PublicRoomInfo[]; mode: 'server' | 'local'; latencyMs: number }> {
     const localRooms = this.readLocalRooms();
+    const t0 = performance.now();
 
     if (this.phpApiWorks !== false) {
       try {
@@ -247,7 +249,7 @@ export class RoomDirectory {
                 map.set(lr.code, lr);
               }
             }
-            return { rooms: Array.from(map.values()), mode: 'server' };
+            return { rooms: Array.from(map.values()), mode: 'server', latencyMs: Math.max(1, Math.round(performance.now() - t0)) };
           }
         }
         this.phpApiWorks = false;
@@ -259,11 +261,11 @@ export class RoomDirectory {
     if (this.hasCloudDb()) {
       const cloudRooms = await this.listCloudRooms();
       if (cloudRooms !== null) {
-        return { rooms: cloudRooms, mode: 'server' };
+        return { rooms: cloudRooms, mode: 'server', latencyMs: Math.max(1, Math.round(performance.now() - t0)) };
       }
     }
 
-    return { rooms: localRooms, mode: 'local' };
+    return { rooms: localRooms, mode: 'local', latencyMs: 0 };
   }
 
   async publishRoom(room: Omit<PublicRoomInfo, 'updatedAt' | 'source'>): Promise<void> {

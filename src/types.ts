@@ -37,6 +37,7 @@ export interface GameSettings {
   soundVolume: number;
   nickname: string;
   avatar: string;
+  country: string;
   lang: Lang;
   goalGifUrl: string;
   concedeGifUrl: string;
@@ -50,6 +51,8 @@ export interface PlayerEntity {
   team: Team;
   isBot: boolean;
   isAdmin?: boolean;
+  country?: string;
+  ping?: number;
   x: number;
   y: number;
   prevX: number;
@@ -128,6 +131,8 @@ export interface SnapshotPlayer {
   team: Team;
   isBot: boolean;
   adm?: boolean;
+  ct?: string;
+  pg?: number;
   x: number;
   y: number;
   vx: number;
