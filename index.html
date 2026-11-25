@@ -38,9 +38,11 @@
         <button type="button" id="btn-pause" class="btn hidden">Duraklat (P)</button>
         <button type="button" id="btn-reset" class="btn hidden">Sıfırla (R)</button>
         <button type="button" id="btn-mute" class="btn">Ses: Açık</button>
-        <button type="button" id="btn-record" class="btn hidden" title="Maç Videosu Kaydet & YouTube'a Yükle">⏺ Kayıt</button>
+        <button type="button" id="btn-record" class="btn hidden" title="Maç Videosu Kaydet & YouTube'a Yükle">⏺
+          Kayıt</button>
         <button type="button" id="btn-topbar-menu" class="btn hidden" title="Oda & Takım Menüsü (ESC)">☰ Menü</button>
-        <button type="button" id="btn-toggle-roombars" class="btn hidden" title="Oda Kontrolleri / Botlar">🎛️ Oda</button>
+        <button type="button" id="btn-toggle-roombars" class="btn hidden" title="Oda Kontrolleri / Botlar">🎛️
+          Oda</button>
         <select id="select-lang" class="btn" title="Dil / Language">
           <option value="tr">Türkçe</option>
           <option value="en">English</option>
@@ -96,7 +98,14 @@
             <h3>⚽ Gol Kralları</h3>
             <div class="rooms-table-wrap" style="max-height:220px;">
               <table class="rooms-table">
-                <thead><tr><th>#</th><th>Oyuncu</th><th>Gol</th><th>Kurtarma</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Oyuncu</th>
+                    <th>Gol</th>
+                    <th>Kurtarma</th>
+                  </tr>
+                </thead>
                 <tbody id="auth-top-goals"></tbody>
               </table>
             </div>
@@ -105,7 +114,14 @@
             <h3>⏱️ En Çok Süre Geçirenler</h3>
             <div class="rooms-table-wrap" style="max-height:220px;">
               <table class="rooms-table">
-                <thead><tr><th>#</th><th>Oyuncu</th><th>Rozet</th><th>Süre</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Oyuncu</th>
+                    <th>Rozet</th>
+                    <th>Süre</th>
+                  </tr>
+                </thead>
                 <tbody id="auth-top-time"></tbody>
               </table>
             </div>
@@ -114,101 +130,106 @@
       </div>
 
       <div class="card auth-card">
-      <h1>OpenHax'e Hoş Geldin</h1>
-      <p class="subtitle">Sahaya çıkmadan önce oyuncu adını ve avatarını belirle.</p>
-      <div id="invite-notice" class="notice hidden"></div>
+        <h1>OpenHax'e Hoş Geldin</h1>
+        <p class="subtitle">Sahaya çıkmadan önce oyuncu adını ve avatarını belirle.</p>
+        <div id="invite-notice" class="notice hidden"></div>
 
-      <label class="field">
-        <span>Kullanıcı Adı</span>
-        <input type="text" id="auth-nick" maxlength="16" placeholder="Örn: Kaptan10" autocomplete="nickname" />
-      </label>
+        <label class="field">
+          <span>Kullanıcı Adı</span>
+          <input type="text" id="auth-nick" maxlength="16" placeholder="Örn: Kaptan10" autocomplete="nickname" />
+        </label>
 
-      <label class="field">
-        <span>Avatar (Kısa Simge)</span>
-        <div class="avatar-row">
-          <input type="text" id="auth-avatar" maxlength="3" value=":)" class="short" />
-          <div class="avatar-picks">
-            <button type="button" class="btn av-pick" data-av=":)">:)</button>
-            <button type="button" class="btn av-pick" data-av="10">10</button>
-            <button type="button" class="btn av-pick" data-av="★">★</button>
-            <button type="button" class="btn av-pick" data-av="🔥">🔥</button>
-            <button type="button" class="btn av-pick" data-av="⚽">⚽</button>
+        <label class="field">
+          <span>Avatar (Kısa Simge)</span>
+          <div class="avatar-row">
+            <input type="text" id="auth-avatar" maxlength="3" value=":)" class="short" />
+            <div class="avatar-picks">
+              <button type="button" class="btn av-pick" data-av=":)">:)</button>
+              <button type="button" class="btn av-pick" data-av="10">10</button>
+              <button type="button" class="btn av-pick" data-av="★">★</button>
+              <button type="button" class="btn av-pick" data-av="🔥">🔥</button>
+              <button type="button" class="btn av-pick" data-av="⚽">⚽</button>
+            </div>
           </div>
+        </label>
+
+        <label class="field">
+          <span>Ülke / Bayrak</span>
+          <select id="auth-country">
+            <option value="TR">🇹🇷 Türkiye (TR)</option>
+            <option value="AZ">🇦🇿 Azerbaycan (AZ)</option>
+            <option value="DE">🇩🇪 Almanya (DE)</option>
+            <option value="NL">🇳🇱 Hollanda (NL)</option>
+            <option value="GB">🇬🇧 İngiltere (GB)</option>
+            <option value="FR">🇫🇷 Fransa (FR)</option>
+            <option value="ES">🇪🇸 İspanya (ES)</option>
+            <option value="IT">🇮🇹 İtalya (IT)</option>
+            <option value="PL">🇵🇱 Polonya (PL)</option>
+            <option value="PT">🇵🇹 Portekiz (PT)</option>
+            <option value="BE">🇧🇪 Belçika (BE)</option>
+            <option value="CH">🇨🇭 İsviçre (CH)</option>
+            <option value="AT">🇦🇹 Avusturya (AT)</option>
+            <option value="SE">🇸🇪 İsveç (SE)</option>
+            <option value="NO">🇳🇴 Norveç (NO)</option>
+            <option value="DK">🇩🇰 Danimarka (DK)</option>
+            <option value="FI">🇫🇮 Finlandiya (FI)</option>
+            <option value="GR">🇬🇷 Yunanistan (GR)</option>
+            <option value="BG">🇧🇬 Bulgaristan (BG)</option>
+            <option value="RO">🇷🇴 Romanya (RO)</option>
+            <option value="HU">🇭🇺 Macaristan (HU)</option>
+            <option value="CZ">🇨🇿 Çekya (CZ)</option>
+            <option value="HR">🇭🇷 Hırvatistan (HR)</option>
+            <option value="RS">🇷🇸 Sırbistan (RS)</option>
+            <option value="UA">🇺🇦 Ukrayna (UA)</option>
+            <option value="RU">🇷🇺 Rusya (RU)</option>
+            <option value="GE">🇬🇪 Gürcistan (GE)</option>
+            <option value="KZ">🇰🇿 Kazakistan (KZ)</option>
+            <option value="UZ">🇺🇿 Özbekistan (UZ)</option>
+            <option value="SA">🇸🇦 Suudi Arabistan (SA)</option>
+            <option value="AE">🇦🇪 BAE (AE)</option>
+            <option value="EG">🇪🇬 Mısır (EG)</option>
+            <option value="MA">🇲🇦 Fas (MA)</option>
+            <option value="DZ">🇩🇿 Cezayir (DZ)</option>
+            <option value="TN">🇹🇳 Tunus (TN)</option>
+            <option value="US">🇺🇸 ABD (US)</option>
+            <option value="CA">🇨🇦 Kanada (CA)</option>
+            <option value="MX">🇲🇽 Meksika (MX)</option>
+            <option value="BR">🇧🇷 Brezilya (BR)</option>
+            <option value="AR">🇦🇷 Arjantin (AR)</option>
+            <option value="CL">🇨🇱 Şili (CL)</option>
+            <option value="CO">🇨🇴 Kolombiya (CO)</option>
+            <option value="UY">🇺🇾 Uruguay (UY)</option>
+            <option value="JP">🇯🇵 Japonya (JP)</option>
+            <option value="KR">🇰🇷 Güney Kore (KR)</option>
+            <option value="CN">🇨🇳 Çin (CN)</option>
+            <option value="IN">🇮🇳 Hindistan (IN)</option>
+            <option value="ID">🇮🇩 Endonezya (ID)</option>
+            <option value="AU">🇦🇺 Avustralya (AU)</option>
+            <option value="GL">🌍 Global (GL)</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Üyelik Şifresi (Üye Girişi / Kayıt İçin)</span>
+          <input type="password" id="auth-pass" maxlength="32" placeholder="Misafir için boş bırakabilirsin"
+            autocomplete="current-password" />
+        </label>
+
+        <div id="auth-error" class="error-text hidden"></div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button type="button" id="btn-auth-enter" class="btn primary lg full">Üye Girişi / Kayıt &amp; Lobiye
+            Gir</button>
+          <button type="button" id="btn-guest-enter" class="btn lg full">👤 Misafir Olarak Devam Et (Şifresiz)</button>
         </div>
-      </label>
-
-      <label class="field">
-        <span>Ülke / Bayrak</span>
-        <select id="auth-country">
-          <option value="TR">🇹🇷 Türkiye (TR)</option>
-          <option value="AZ">🇦🇿 Azerbaycan (AZ)</option>
-          <option value="DE">🇩🇪 Almanya (DE)</option>
-          <option value="NL">🇳🇱 Hollanda (NL)</option>
-          <option value="GB">🇬🇧 İngiltere (GB)</option>
-          <option value="FR">🇫🇷 Fransa (FR)</option>
-          <option value="ES">🇪🇸 İspanya (ES)</option>
-          <option value="IT">🇮🇹 İtalya (IT)</option>
-          <option value="PL">🇵🇱 Polonya (PL)</option>
-          <option value="PT">🇵🇹 Portekiz (PT)</option>
-          <option value="BE">🇧🇪 Belçika (BE)</option>
-          <option value="CH">🇨🇭 İsviçre (CH)</option>
-          <option value="AT">🇦🇹 Avusturya (AT)</option>
-          <option value="SE">🇸🇪 İsveç (SE)</option>
-          <option value="NO">🇳🇴 Norveç (NO)</option>
-          <option value="DK">🇩🇰 Danimarka (DK)</option>
-          <option value="FI">🇫🇮 Finlandiya (FI)</option>
-          <option value="GR">🇬🇷 Yunanistan (GR)</option>
-          <option value="BG">🇧🇬 Bulgaristan (BG)</option>
-          <option value="RO">🇷🇴 Romanya (RO)</option>
-          <option value="HU">🇭🇺 Macaristan (HU)</option>
-          <option value="CZ">🇨🇿 Çekya (CZ)</option>
-          <option value="HR">🇭🇷 Hırvatistan (HR)</option>
-          <option value="RS">🇷🇸 Sırbistan (RS)</option>
-          <option value="UA">🇺🇦 Ukrayna (UA)</option>
-          <option value="RU">🇷🇺 Rusya (RU)</option>
-          <option value="GE">🇬🇪 Gürcistan (GE)</option>
-          <option value="KZ">🇰🇿 Kazakistan (KZ)</option>
-          <option value="UZ">🇺🇿 Özbekistan (UZ)</option>
-          <option value="SA">🇸🇦 Suudi Arabistan (SA)</option>
-          <option value="AE">🇦🇪 BAE (AE)</option>
-          <option value="EG">🇪🇬 Mısır (EG)</option>
-          <option value="MA">🇲🇦 Fas (MA)</option>
-          <option value="DZ">🇩🇿 Cezayir (DZ)</option>
-          <option value="TN">🇹🇳 Tunus (TN)</option>
-          <option value="US">🇺🇸 ABD (US)</option>
-          <option value="CA">🇨🇦 Kanada (CA)</option>
-          <option value="MX">🇲🇽 Meksika (MX)</option>
-          <option value="BR">🇧🇷 Brezilya (BR)</option>
-          <option value="AR">🇦🇷 Arjantin (AR)</option>
-          <option value="CL">🇨🇱 Şili (CL)</option>
-          <option value="CO">🇨🇴 Kolombiya (CO)</option>
-          <option value="UY">🇺🇾 Uruguay (UY)</option>
-          <option value="JP">🇯🇵 Japonya (JP)</option>
-          <option value="KR">🇰🇷 Güney Kore (KR)</option>
-          <option value="CN">🇨🇳 Çin (CN)</option>
-          <option value="IN">🇮🇳 Hindistan (IN)</option>
-          <option value="ID">🇮🇩 Endonezya (ID)</option>
-          <option value="AU">🇦🇺 Avustralya (AU)</option>
-          <option value="GL">🌍 Global (GL)</option>
-        </select>
-      </label>
-
-      <label class="field">
-        <span>Üyelik Şifresi (Üye Girişi / Kayıt İçin)</span>
-        <input type="password" id="auth-pass" maxlength="32" placeholder="Misafir için boş bırakabilirsin" autocomplete="current-password" />
-      </label>
-
-      <div id="auth-error" class="error-text hidden"></div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <button type="button" id="btn-auth-enter" class="btn primary lg full">Üye Girişi / Kayıt &amp; Lobiye Gir</button>
-        <button type="button" id="btn-guest-enter" class="btn lg full">👤 Misafir Olarak Devam Et (Şifresiz)</button>
+        <div id="auth-top-stats"
+          style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.12);font-size:12px;color:#cbd5e1;">
+        </div>
       </div>
-      <div id="auth-top-stats" style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.12);font-size:12px;color:#cbd5e1;"></div>
-    </div>
 
       <div class="card auth-chat-card">
         <h2>💬 Genel Sohbet</h2>
-        <div id="global-chat-box" class="chat-box" style="height:290px;background:rgba(0,0,0,0.28);margin-bottom:8px;"></div>
+        <div id="global-chat-box" class="chat-box" style="height:290px;background:rgba(0,0,0,0.28);margin-bottom:8px;">
+        </div>
         <div class="chat-row">
           <input type="text" id="global-chat-input" maxlength="160" placeholder="Genel sohbete yaz (Enter)..." />
           <button type="button" id="btn-global-chat-send" class="btn primary">Gönder</button>
@@ -225,7 +246,8 @@
         <div class="card-head">
           <h2>💬 Genel Sohbet</h2>
         </div>
-        <div id="lobby-global-chat-box" class="chat-box" style="height:360px;background:rgba(0,0,0,0.28);margin-bottom:8px;"></div>
+        <div id="lobby-global-chat-box" class="chat-box"
+          style="height:360px;background:rgba(0,0,0,0.28);margin-bottom:8px;"></div>
         <div class="chat-row">
           <input type="text" id="lobby-global-chat-input" maxlength="160" placeholder="Genel sohbete yaz (Enter)..." />
           <button type="button" id="btn-lobby-global-chat-send" class="btn primary">Gönder</button>
@@ -416,6 +438,19 @@
             </select>
           </label>
           <label class="field">
+            <span>Oda FPS Limiti</span>
+            <select id="create-roommaxfps">
+              <option value="0" selected>Sınırsız</option>
+              <option value="30">30 FPS</option>
+              <option value="60">60 FPS</option>
+              <option value="75">75 FPS</option>
+              <option value="120">120 FPS</option>
+              <option value="144">144 FPS</option>
+              <option value="240">240 FPS</option>
+              <option value="500">500 FPS</option>
+            </select>
+          </label>
+          <label class="field">
             <span>Özel Güç Modu</span>
             <select id="create-powerup">
               <option value="none" selected>Kapalı (Klasik)</option>
@@ -519,7 +554,17 @@
       <canvas id="game-canvas" width="860" height="460"></canvas>
       <div id="fps-hud" class="fps-hud">60 FPS | 16.7 ms | CPU 0.0 ms</div>
       <div id="goal-banner" class="overlay-banner hidden"></div>
-      <div id="pause-banner" class="overlay-banner pause hidden"><span>OYUN DURAKLATILDI (P)</span></div>
+      <div id="pause-banner" class="overlay-banner pause hidden">
+        <div class="pause-menu-card">
+          <span>OYUN DURAKLATILDI (P)</span>
+          <div class="pause-menu-actions">
+            <button type="button" id="btn-pause-resume" class="btn primary">▶ Devam Et (P)</button>
+            <button type="button" id="btn-pause-reset" class="btn">🔄 Sıfırla (R)</button>
+            <button type="button" id="btn-pause-settings" class="btn">⚙️ Ayarlar</button>
+            <button type="button" id="btn-pause-leave" class="btn danger">🚪 Odadan Çık</button>
+          </div>
+        </div>
+      </div>
     </section>
 
     <div class="controls-strip">
@@ -588,10 +633,14 @@
               <option value="3">300%</option>
             </select>
           </div>
-          <label class="hax-check-row"><input type="checkbox" id="set-lowlatency" /><span>Düşük gecikmeli canvas (Low latency)</span></label>
-          <label class="hax-check-row"><input type="checkbox" id="set-customcolors" /><span>Özel takım renkleri aktif</span></label>
-          <label class="hax-check-row"><input type="checkbox" id="set-chatind" /><span>Sohbet göstergelerini göster</span></label>
-          <label class="hax-check-row"><input type="checkbox" id="set-avatars" /><span>Oyuncu avatarlarını göster</span></label>
+          <label class="hax-check-row"><input type="checkbox" id="set-lowlatency" /><span>Düşük gecikmeli canvas (Low
+              latency)</span></label>
+          <label class="hax-check-row"><input type="checkbox" id="set-customcolors" /><span>Özel takım renkleri
+              aktif</span></label>
+          <label class="hax-check-row"><input type="checkbox" id="set-chatind" /><span>Sohbet göstergelerini
+              göster</span></label>
+          <label class="hax-check-row"><input type="checkbox" id="set-avatars" /><span>Oyuncu avatarlarını
+              göster</span></label>
 
           <div class="hax-opt-row">
             <span>Chat saydamlığı</span>
@@ -632,7 +681,8 @@
           <label class="hax-check-row"><input type="checkbox" id="set-aa" /><span>Kenar Yumuşatma</span></label>
           <label class="hax-check-row"><input type="checkbox" id="set-shadows" /><span>Yumuşak Gölgeler</span></label>
           <label class="hax-check-row"><input type="checkbox" id="set-particles" /><span>Gol Parçacıkları</span></label>
-          <label class="hax-check-row"><input type="checkbox" id="set-kickflash" /><span>Şut Halkası Efekti</span></label>
+          <label class="hax-check-row"><input type="checkbox" id="set-kickflash" /><span>Şut Halkası
+              Efekti</span></label>
           <label class="hax-check-row"><input type="checkbox" id="set-hud" /><span>FPS / Ping HUD</span></label>
         </div>
 
@@ -648,7 +698,8 @@
 
         <!-- INPUT TAB -->
         <div class="hax-tab-pane hidden" data-pane="input">
-          <label class="hax-check-row"><input type="checkbox" id="set-blurpause" /><span>Arka Planda Otomatik Duraklat (Çevrimdışı)</span></label>
+          <label class="hax-check-row"><input type="checkbox" id="set-blurpause" /><span>Arka Planda Otomatik Duraklat
+              (Çevrimdışı)</span></label>
           <div class="help-box">
             <strong>Kontroller:</strong><br />
             Tek / Online: Ok Tuşları veya W A S D + X / Boşluk<br />
@@ -686,7 +737,8 @@
           <label class="row">
             <span>Tezahürat GIF (.gif)</span>
             <div style="display:flex;gap:4px;align-items:center;">
-              <input type="text" id="set-chantgif" placeholder="https://.../tezahurat.gif" class="hax-txt-in" style="width:140px;" />
+              <input type="text" id="set-chantgif" placeholder="https://.../tezahurat.gif" class="hax-txt-in"
+                style="width:140px;" />
               <button id="btn-trigger-chant" type="button" class="btn btn-sm" title="Tezahürat GIF Göster">🔥</button>
             </div>
           </label>
@@ -694,7 +746,8 @@
 
         <!-- PHYSICS (ADMIN) TAB -->
         <div class="hax-tab-pane hidden" data-pane="physics" id="settings-physics-col">
-          <div id="physics-admin-note" class="admin-only-note hidden">Fizik ayarlarını sadece Oda Admini değiştirebilir.</div>
+          <div id="physics-admin-note" class="admin-only-note hidden">Fizik ayarlarını sadece Oda Admini değiştirebilir.
+          </div>
           <label class="row">
             <span>Fizik Profili</span>
             <select id="set-physics">
@@ -781,13 +834,16 @@
           <button type="button" id="btn-teams-remredbot" class="btn team-btn red">- Red Bot</button>
           <button type="button" id="btn-teams-addbluebot" class="btn team-btn blue">+ Blue Bot</button>
           <button type="button" id="btn-teams-rembluebot" class="btn team-btn blue">- Blue Bot</button>
-          <select id="teams-botdiff" title="Bot Zorluğu" style="background:#244562;color:#fff;border:1px solid #356084;border-radius:4px;padding:4px;font-size:11px;">
+          <select id="teams-botdiff" title="Bot Zorluğu"
+            style="background:#244562;color:#fff;border:1px solid #356084;border-radius:4px;padding:4px;font-size:11px;">
             <option value="easy">Bot: Kolay</option>
             <option value="medium">Bot: Orta</option>
             <option value="hard">Bot: Zor</option>
           </select>
           <button type="button" id="btn-powerups-modal" class="btn primary">⚡ Süper Güçler</button>
-          <div id="teams-kick-dropzone" style="border:1px dashed #ef4444;color:#fca5a5;border-radius:5px;padding:6px;text-align:center;font-size:11px;margin-top:4px;">🗑️ Atmak İçin Buraya Sürükle</div>
+          <div id="teams-kick-dropzone"
+            style="border:1px dashed #ef4444;color:#fca5a5;border-radius:5px;padding:6px;text-align:center;font-size:11px;margin-top:4px;">
+            🗑️ Atmak İçin Buraya Sürükle</div>
         </div>
         <div class="teams-columns">
           <div class="team-col">
@@ -820,11 +876,16 @@
         <button type="button" id="btn-powerups-close" class="btn hax-close-btn">Kapat</button>
       </div>
       <div class="modal-body" style="padding-top:12px;display:flex;flex-direction:column;gap:10px;">
-        <label class="hax-check-row"><input type="checkbox" class="pw-chk" value="hawk" /><span>🦅 Şahin Vuruşu (1.95x Top Güllesi)</span></label>
-        <label class="hax-check-row"><input type="checkbox" class="pw-chk" value="fire" /><span>🔥 Alevli Şut (1.55x Alevli Top)</span></label>
-        <label class="hax-check-row"><input type="checkbox" class="pw-chk" value="speed" /><span>⚡ Hızlı Koşu (1.55x Hız)</span></label>
-        <label class="hax-check-row"><input type="checkbox" class="pw-chk" value="magnet" /><span>🧲 Mıknatıs (Top Çekimi)</span></label>
-        <label class="hax-check-row"><input type="checkbox" class="pw-chk" value="giant" /><span>🛡️ Dev Oyuncu (Büyük Boyut)</span></label>
+        <label class="hax-check-row"><input type="checkbox" class="pw-chk" value="hawk" /><span>🦅 Şahin Vuruşu (1.95x
+            Top Güllesi)</span></label>
+        <label class="hax-check-row"><input type="checkbox" class="pw-chk" value="fire" /><span>🔥 Alevli Şut (1.55x
+            Alevli Top)</span></label>
+        <label class="hax-check-row"><input type="checkbox" class="pw-chk" value="speed" /><span>⚡ Hızlı Koşu (1.55x
+            Hız)</span></label>
+        <label class="hax-check-row"><input type="checkbox" class="pw-chk" value="magnet" /><span>🧲 Mıknatıs (Top
+            Çekimi)</span></label>
+        <label class="hax-check-row"><input type="checkbox" class="pw-chk" value="giant" /><span>🛡️ Dev Oyuncu (Büyük
+            Boyut)</span></label>
       </div>
     </div>
   </div>
@@ -838,7 +899,8 @@
       </div>
       <div class="modal-body" style="padding-top:12px;">
         <div style="display:flex;gap:8px;margin-bottom:12px;">
-          <input type="text" id="profile-search-input" placeholder="Oyuncu adı ara..." class="hax-txt-in" style="flex:1;" />
+          <input type="text" id="profile-search-input" placeholder="Oyuncu adı ara..." class="hax-txt-in"
+            style="flex:1;" />
           <button type="button" id="btn-profile-search" class="btn primary">Profil Ara</button>
           <button type="button" id="btn-profile-mine" class="btn">Kendi Profilim</button>
         </div>
@@ -871,7 +933,8 @@
         <h2 id="info-modal-title">OpenHax</h2>
         <button type="button" id="btn-info-close" class="btn hax-close-btn">Kapat</button>
       </div>
-      <div id="info-modal-body" class="modal-body" style="padding-top:12px;font-size:13px;line-height:1.6;color:#e2e8f0;"></div>
+      <div id="info-modal-body" class="modal-body"
+        style="padding-top:12px;font-size:13px;line-height:1.6;color:#e2e8f0;"></div>
     </div>
   </div>
 

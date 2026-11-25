@@ -395,6 +395,7 @@ class OpenHaxApp {
               botDiff?: string;
               physProfile?: string;
               physHz?: string;
+              roomMaxFps?: string;
               powerupMode?: string;
             };
             if (fullSr.roomName) this.createName.value = fullSr.roomName;
@@ -406,6 +407,7 @@ class OpenHaxApp {
             if (fullSr.botDiff) this.createBotDiff.value = fullSr.botDiff;
             if (fullSr.physProfile) this.createPhysics.value = fullSr.physProfile;
             if (fullSr.physHz) el<HTMLSelectElement>('create-physicshz').value = fullSr.physHz;
+            if (fullSr.roomMaxFps) el<HTMLSelectElement>('create-roommaxfps').value = fullSr.roomMaxFps;
             if (fullSr.powerupMode) el<HTMLSelectElement>('create-powerup').value = fullSr.powerupMode;
             this.createPass.value = fullSr.password || '';
             this.createAndEnterRoom(true);
@@ -740,6 +742,18 @@ class OpenHaxApp {
     });
     this.btnPause.addEventListener('click', () => {
       if (this.isMeAdmin()) this.dispatchAdminAction('toggle_pause');
+    });
+    el<HTMLButtonElement>('btn-pause-resume').addEventListener('click', () => {
+      if (this.isMeAdmin()) this.dispatchAdminAction('toggle_pause');
+    });
+    el<HTMLButtonElement>('btn-pause-reset').addEventListener('click', () => {
+      if (this.isMeAdmin()) this.dispatchAdminAction('reset_match');
+    });
+    el<HTMLButtonElement>('btn-pause-settings').addEventListener('click', () => {
+      this.settingsModal.classList.remove('hidden');
+    });
+    el<HTMLButtonElement>('btn-pause-leave').addEventListener('click', () => {
+      this.leaveCurrentRoom();
     });
     this.btnReset.addEventListener('click', () => {
       if (this.isMeAdmin()) this.dispatchAdminAction('reset_match');
@@ -1632,6 +1646,7 @@ class OpenHaxApp {
     const botDiff = this.createBotDiff.value as BotDifficulty;
     const physProfile = this.createPhysics.value as PhysicsProfile;
     const physHz = Math.max(60, Math.min(500, Number(el<HTMLSelectElement>('create-physicshz').value) || 60));
+    const roomMaxFps = Math.max(0, Number(el<HTMLSelectElement>('create-roommaxfps').value) || 0);
     const powerupMode = (el<HTMLSelectElement>('create-powerup').value as PowerupMode) || 'none';
     const scoreLimit = Number(this.createScoreLimit.value) || 0;
     const timeLimit = Number(this.createTimeLimit.value) || 0;
@@ -1659,10 +1674,11 @@ class OpenHaxApp {
     this.botCounter = 1;
     this.chatBox.innerHTML = '';
 
-    this.updateSettings({ stadium: stadiumId, botDifficulty: botDiff, physicsProfile: physProfile, physicsHz: physHz });
+    this.updateSettings({ stadium: stadiumId, botDifficulty: botDiff, physicsProfile: physProfile, physicsHz: physHz, roomMaxFps });
     this.roomBotDiff.value = botDiff;
     this.roomStadium.value = stadiumId;
     this.roomPhysics.value = physProfile;
+    el<HTMLSelectElement>('room-fps-select').value = String(roomMaxFps);
 
     this.myPlayerId = 'host';
     this.players = [
@@ -1801,6 +1817,7 @@ class OpenHaxApp {
           botDiff,
           physProfile,
           physHz: String(physHz),
+          roomMaxFps: String(roomMaxFps),
           powerupMode
         })
       );

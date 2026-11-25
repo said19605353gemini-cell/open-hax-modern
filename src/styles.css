@@ -581,10 +581,32 @@ body {
   background: rgba(45, 126, 255, 0.92);
 }
 
-.overlay-banner.pause span {
-  font-size: 16px;
-  background: rgba(34, 28, 25, 0.92);
-  border-color: rgba(255, 255, 255, 0.28);
+.overlay-banner.pause {
+  pointer-events: auto;
+  background: rgba(0, 0, 0, 0.45);
+}
+.pause-menu-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 24px;
+  border-radius: 8px;
+  background: rgba(28, 22, 19, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+}
+.pause-menu-card > span {
+  font-size: 17px;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+.pause-menu-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
 }
 
 .controls-strip {
