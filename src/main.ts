@@ -467,6 +467,32 @@ class OpenHaxApp {
       });
       setTimeout(renderTeamsModal, 60);
     });
+    el<HTMLButtonElement>('btn-teams-addredbot').addEventListener('click', () => {
+      el<HTMLButtonElement>('btn-add-red-bot').click();
+      setTimeout(renderTeamsModal, 60);
+    });
+    el<HTMLButtonElement>('btn-teams-addbluebot').addEventListener('click', () => {
+      el<HTMLButtonElement>('btn-add-blue-bot').click();
+      setTimeout(renderTeamsModal, 60);
+    });
+    el<HTMLButtonElement>('btn-teams-rembot').addEventListener('click', () => {
+      el<HTMLButtonElement>('btn-remove-bot').click();
+      setTimeout(renderTeamsModal, 60);
+    });
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.activeScreen === 'room') {
+        if (!this.settingsModal.classList.contains('hidden')) {
+          this.settingsModal.classList.add('hidden');
+          return;
+        }
+        if (!this.debugModal.classList.contains('hidden')) {
+          this.debugModal.classList.add('hidden');
+          return;
+        }
+        renderTeamsModal();
+        teamsModal.classList.toggle('hidden');
+      }
+    });
     document.addEventListener('click', () => {
       this.ctxMenu.classList.add('hidden');
     });
