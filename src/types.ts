@@ -3,7 +3,7 @@ import { Lang } from './i18n';
 export type Team = 'red' | 'blue' | 'spec';
 export type StadiumId = 'classic' | 'big' | 'huge' | 'futsal' | 'tiny' | 'long' | 'arena_3v3' | 'mini_fast' | 'wide_wing' | 'penalty_box' | 'hbs_classic' | 'hbs_easy' | 'hbs_small' | 'hbs_rounded' | 'hbs_big' | 'hbs_big_easy' | 'hbs_huge';
 export type BotDifficulty = 'easy' | 'medium' | 'hard';
-export type PhysicsProfile = 'openhax' | 'classic_hax' | 'pro_control' | 'futsal' | 'big_arena' | 'turbo' | 'low_gravity' | 'real_soccer' | 'ice_hockey' | 'pinball' | 'heavy_tank';
+export type PhysicsProfile = 'openhax' | 'classic_hax' | 'classic_hax_v2' | 'pro_control' | 'pro_control_v2' | 'pro_control_v3' | 'futsal' | 'big_arena' | 'turbo' | 'turbo_v2' | 'low_gravity' | 'real_soccer' | 'real_soccer_v2' | 'ice_hockey' | 'pinball' | 'heavy_tank';
 export type GrassDetail = 'standard' | 'hd_stadium' | 'night_neon' | 'flat';
 export type BallStyle = 'classic' | 'soccer';
 

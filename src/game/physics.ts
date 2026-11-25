@@ -128,6 +128,91 @@ function getProfileParams(profile: PhysicsProfile): PhysicsParams {
       maxBallSpeed: 13.0
     };
   }
+  if (profile === 'pro_control_v2') {
+    return {
+      playerInvMass: 0.55,
+      ballInvMass: 1.05,
+      playerDamping: 0.962,
+      ballDamping: 0.985,
+      playerPlayerRestitution: 0.55,
+      playerBallRestitution: 0.14,
+      playerWorldRestitution: 0.0,
+      ballWorldRestitution: 0.72,
+      accel: 0.195,
+      kickAccel: 0.135,
+      kickImpulse: 5.9,
+      maxPlayerSpeed: 4.0,
+      maxBallSpeed: 11.4
+    };
+  }
+  if (profile === 'pro_control_v3') {
+    return {
+      playerInvMass: 0.5,
+      ballInvMass: 1.1,
+      playerDamping: 0.966,
+      ballDamping: 0.982,
+      playerPlayerRestitution: 0.5,
+      playerBallRestitution: 0.08,
+      playerWorldRestitution: 0.0,
+      ballWorldRestitution: 0.68,
+      accel: 0.21,
+      kickAccel: 0.15,
+      kickImpulse: 6.2,
+      maxPlayerSpeed: 4.15,
+      maxBallSpeed: 11.8
+    };
+  }
+  if (profile === 'classic_hax_v2') {
+    return {
+      playerInvMass: 0.5,
+      ballInvMass: 1.0,
+      playerDamping: 0.964,
+      ballDamping: 0.991,
+      playerPlayerRestitution: 0.5,
+      playerBallRestitution: 0.32,
+      playerWorldRestitution: 0.0,
+      ballWorldRestitution: 0.82,
+      accel: 0.185,
+      kickAccel: 0.128,
+      kickImpulse: 6.05,
+      maxPlayerSpeed: 4.25,
+      maxBallSpeed: 11.6
+    };
+  }
+  if (profile === 'turbo_v2') {
+    return {
+      playerInvMass: 0.45,
+      ballInvMass: 1.25,
+      playerDamping: 0.972,
+      ballDamping: 0.994,
+      playerPlayerRestitution: 0.95,
+      playerBallRestitution: 0.28,
+      playerWorldRestitution: 0.0,
+      ballWorldRestitution: 0.88,
+      accel: 0.26,
+      kickAccel: 0.19,
+      kickImpulse: 7.4,
+      maxPlayerSpeed: 5.5,
+      maxBallSpeed: 14.2
+    };
+  }
+  if (profile === 'real_soccer_v2') {
+    return {
+      playerInvMass: 0.65,
+      ballInvMass: 0.8,
+      playerDamping: 0.965,
+      ballDamping: 0.988,
+      playerPlayerRestitution: 0.42,
+      playerBallRestitution: 0.24,
+      playerWorldRestitution: 0.0,
+      ballWorldRestitution: 0.65,
+      accel: 0.155,
+      kickAccel: 0.11,
+      kickImpulse: 6.45,
+      maxPlayerSpeed: 3.8,
+      maxBallSpeed: 12.2
+    };
+  }
   if (profile === 'real_soccer') {
     return {
       playerInvMass: 0.7,
