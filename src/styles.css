@@ -1103,7 +1103,7 @@ body.in-room .chat-panel:focus-within .chat-box {
   height: var(--chat-focus-h, 140px);
 }
 body.in-room #game-canvas {
-  width: min(96vw, var(--canvas-w, 860px));
+  width: min(98vw, calc(var(--canvas-w, 860px) * var(--canvas-scale, 1)));
   height: auto;
 }
 body.in-room.vp-full #game-canvas {
@@ -1112,7 +1112,7 @@ body.in-room.vp-full #game-canvas {
   max-height: calc(100vh - 54px);
 }
 body.in-room.vp-restricted #game-canvas {
-  width: min(720px, 94vw);
+  width: min(720px, calc(720px * var(--canvas-scale, 1)), 94vw);
   height: auto;
 }
 

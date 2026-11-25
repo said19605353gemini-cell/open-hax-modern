@@ -502,6 +502,15 @@
           <option value="pinball">Fizik: Pinball</option>
           <option value="heavy_tank">Fizik: Ağır Tank</option>
         </select>
+        <select id="room-fps-select" title="Oda FPS Limiti (Admin)">
+          <option value="0">Oda FPS: Sınırsız</option>
+          <option value="240">Oda FPS: 240</option>
+          <option value="144">Oda FPS: 144</option>
+          <option value="120">Oda FPS: 120</option>
+          <option value="75">Oda FPS: 75</option>
+          <option value="60">Oda FPS: 60</option>
+          <option value="30">Oda FPS: 30</option>
+        </select>
       </div>
       <div id="roster-strip" class="roster-strip"></div>
     </section>
@@ -549,7 +558,8 @@
             <select id="set-viewport">
               <option value="dynamic">Dinamik</option>
               <option value="restricted">Sabit</option>
-              <option value="full">Tam Ekran</option>
+              <option value="full">Tam Ekran (Geniş)</option>
+              <option value="fullscreen">Tam Ekran (F11 / Gerçek)</option>
             </select>
           </div>
           <div class="hax-opt-row">
@@ -566,11 +576,16 @@
             </select>
           </div>
           <div class="hax-opt-row">
-            <span>Çözünürlük Ölçeği:</span>
+            <span>Çözünürlük &amp; Görünüm Ölçeği:</span>
             <select id="set-res">
+              <option value="0.75">75%</option>
               <option value="1">100%</option>
+              <option value="1.25">125%</option>
               <option value="1.5">150%</option>
+              <option value="1.75">175%</option>
               <option value="2">200%</option>
+              <option value="2.5">250%</option>
+              <option value="3">300%</option>
             </select>
           </div>
           <label class="hax-check-row"><input type="checkbox" id="set-lowlatency" /><span>Düşük gecikmeli canvas (Low latency)</span></label>

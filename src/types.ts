@@ -33,7 +33,7 @@ export interface GameSettings {
   kickFlash: boolean;
   showHud: boolean;
   pauseOnBlur: boolean;
-  viewportMode?: 'dynamic' | 'restricted' | 'full';
+  viewportMode?: 'dynamic' | 'restricted' | 'full' | 'fullscreen';
   lowLatencyCanvas?: boolean;
   customTeamColors?: boolean;
   showChatIndicators?: boolean;

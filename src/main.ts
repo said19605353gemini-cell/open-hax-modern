@@ -1204,6 +1204,17 @@ class OpenHaxApp {
     bindSelect('set-roommaxfps', (v) => {
       if (!this.isMeAdmin()) return;
       const mf = Number(v) || 0;
+      el<HTMLSelectElement>('room-fps-select').value = String(mf);
+      if (this.peerMgr.getRole() === 'guest') {
+        this.dispatchAdminAction('set_roommaxfps', undefined, mf);
+        return;
+      }
+      this.updateSettings({ roomMaxFps: mf });
+    });
+    el<HTMLSelectElement>('room-fps-select').addEventListener('change', (e) => {
+      if (!this.isMeAdmin()) return;
+      const mf = Number((e.target as HTMLSelectElement).value) || 0;
+      el<HTMLSelectElement>('set-roommaxfps').value = String(mf);
       if (this.peerMgr.getRole() === 'guest') {
         this.dispatchAdminAction('set_roommaxfps', undefined, mf);
         return;
@@ -2181,8 +2192,10 @@ class OpenHaxApp {
       this.addChat('Sistem', list.length ? `Aktif Güçler: ${list.join(', ')}` : 'Süper Güçler kapatıldı.', true);
       this.peerMgr.broadcastChat('Sistem', list.length ? `Aktif Güçler: ${list.join(', ')}` : 'Süper Güçler kapatıldı.', undefined);
     } else if (cmd === 'set_roommaxfps' && typeof value === 'number') {
-      this.updateSettings({ roomMaxFps: Math.max(0, value) });
-      el<HTMLSelectElement>('set-roommaxfps').value = String(Math.max(0, value));
+      const mf = Math.max(0, value);
+      this.updateSettings({ roomMaxFps: mf });
+      el<HTMLSelectElement>('set-roommaxfps').value = String(mf);
+      el<HTMLSelectElement>('room-fps-select').value = String(mf);
     } else if (cmd === 'remove_team_bot' && (value === 'red' || value === 'blue')) {
       for (let i = this.players.length - 1; i >= 0; i--) {
         if (this.players[i].isBot && this.players[i].team === value) {
@@ -2215,9 +2228,17 @@ class OpenHaxApp {
     const rootStyle = document.documentElement.style;
     rootStyle.setProperty('--chat-opacity', String(this.settings.chatOpacity ?? 0.8));
     rootStyle.setProperty('--chat-focus-h', (this.settings.chatFocusHeight ?? 140) + 'px');
+    rootStyle.setProperty('--canvas-scale', String(this.settings.resolution || 1));
     document.body.classList.toggle('chat-full', this.settings.chatWidth === 'full');
-    document.body.classList.toggle('vp-full', this.settings.viewportMode === 'full');
+    document.body.classList.toggle('vp-full', this.settings.viewportMode === 'full' || this.settings.viewportMode === 'fullscreen');
     document.body.classList.toggle('vp-restricted', this.settings.viewportMode === 'restricted');
+    if (this.settings.viewportMode === 'fullscreen') {
+      if (!document.fullscreenElement) {
+        void document.documentElement.requestFullscreen?.().catch(() => {});
+      }
+    } else if (document.fullscreenElement) {
+      void document.exitFullscreen?.().catch(() => {});
+    }
   }
 
   private syncSettingsToUI(): void {
@@ -2248,6 +2269,7 @@ class OpenHaxApp {
     el<HTMLSelectElement>('set-physics').value = s.physicsProfile;
     el<HTMLSelectElement>('set-physicshz').value = String(s.physicsHz || 60);
     el<HTMLSelectElement>('set-roommaxfps').value = String(s.roomMaxFps || 0);
+    el<HTMLSelectElement>('room-fps-select').value = String(s.roomMaxFps || 0);
     el<HTMLSelectElement>('set-botdiff').value = s.botDifficulty;
     el<HTMLInputElement>('set-sound').checked = s.masterSound;
     el<HTMLInputElement>('set-volume').value = String(s.soundVolume);
@@ -2882,6 +2904,7 @@ class OpenHaxApp {
     if (typeof snap.mf === 'number' && snap.mf !== this.settings.roomMaxFps) {
       this.settings.roomMaxFps = snap.mf;
       el<HTMLSelectElement>('set-roommaxfps').value = String(snap.mf);
+      el<HTMLSelectElement>('room-fps-select').value = String(snap.mf);
     }
     if (typeof snap.sl === 'number') {
       this.roomScoreLimit = snap.sl;
