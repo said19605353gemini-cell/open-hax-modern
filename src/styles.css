@@ -207,6 +207,18 @@ body {
   color: #cbd5e1;
 }
 
+.auth-quote {
+  margin: 0 0 16px 0;
+  padding: 12px 14px;
+  border-left: 3px solid #facc15;
+  background: rgba(250, 204, 21, 0.08);
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #f8fafc;
+  font-style: italic;
+}
+
 .notice {
   background: rgba(75, 127, 63, 0.35);
   border: 1px solid #6ca85e;
