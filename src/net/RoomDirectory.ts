@@ -15,9 +15,12 @@ export interface PublicRoomInfo {
 
 const LOCAL_STORAGE_KEY = 'openhax_local_rooms_v1';
 const ROOM_TTL_MS = 22000;
-// GitHub Pages gibi statik sitelerde ortak oda listesi için Firebase Realtime Database URL'sini buraya yazın
-// Örnek: 'https://projeniz-default-rtdb.firebaseio.com'
+// GitHub Pages gibi statik sitelerde ortak oda listesi için Firebase, Supabase veya Upstash Redis kullanabilirsiniz
 const FIREBASE_DB_URL: string = 'https://haxturko-default-rtdb.europe-west1.firebasedatabase.app';
+const SUPABASE_URL: string = '';
+const SUPABASE_ANON_KEY: string = '';
+const UPSTASH_REDIS_REST_URL: string = '';
+const UPSTASH_REDIS_REST_TOKEN: string = '';
 
 export class RoomDirectory {
   private serverApiWorks: boolean | null = null;
@@ -38,8 +41,13 @@ export class RoomDirectory {
     }
   }
 
-  private useFirebase(): boolean {
-    if (!FIREBASE_DB_URL) return false;
+  private useCloudDb(): boolean {
+    const hasCloud = Boolean(
+      FIREBASE_DB_URL ||
+      (SUPABASE_URL && SUPABASE_ANON_KEY) ||
+      (UPSTASH_REDIS_REST_URL && UPSTASH_REDIS_REST_TOKEN)
+    );
+    if (!hasCloud) return false;
     const isGh = typeof window !== 'undefined' && window.location.hostname.endsWith('github.io');
     return isGh || this.serverApiWorks === false;
   }
@@ -51,25 +59,71 @@ export class RoomDirectory {
   async listRooms(): Promise<{ rooms: PublicRoomInfo[]; mode: 'server' | 'local' }> {
     const localRooms = this.readLocalRooms();
 
-    if (this.useFirebase()) {
-      try {
-        const res = await fetch(`${FIREBASE_DB_URL.replace(/\/$/, '')}/rooms.json`, { cache: 'no-store' });
-        if (res.ok) {
-          const data = (await res.json()) as Record<string, PublicRoomInfo> | null;
-          const now = Date.now();
-          const rooms: PublicRoomInfo[] = [];
-          if (data && typeof data === 'object') {
-            for (const r of Object.values(data)) {
-              if (r && r.code && now - (r.updatedAt || 0) < ROOM_TTL_MS) {
-                rooms.push({ ...r, source: 'server' });
+    if (this.useCloudDb()) {
+      if (UPSTASH_REDIS_REST_URL && UPSTASH_REDIS_REST_TOKEN) {
+        try {
+          const res = await fetch(`${UPSTASH_REDIS_REST_URL.replace(/\/$/, '')}/hgetall/openhax_rooms`, {
+            headers: { Authorization: `Bearer ${UPSTASH_REDIS_REST_TOKEN}` },
+            cache: 'no-store'
+          });
+          if (res.ok) {
+            const json = (await res.json()) as { result?: string[] };
+            const arr = json.result || [];
+            const now = Date.now();
+            const rooms: PublicRoomInfo[] = [];
+            for (let i = 1; i < arr.length; i += 2) {
+              try {
+                const r = JSON.parse(arr[i]) as PublicRoomInfo;
+                if (r && r.code && now - (r.updatedAt || 0) < ROOM_TTL_MS) {
+                  rooms.push({ ...r, source: 'server' });
+                }
+              } catch { /* ignore */ }
+            }
+            this.serverApiWorks = true;
+            return { rooms, mode: 'server' };
+          }
+        } catch { /* fall through */ }
+      }
+
+      if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+        try {
+          const cutoff = Date.now() - ROOM_TTL_MS;
+          const res = await fetch(
+            `${SUPABASE_URL.replace(/\/$/, '')}/rest/v1/rooms?updatedAt=gt.${cutoff}&select=*`,
+            {
+              headers: {
+                apikey: SUPABASE_ANON_KEY,
+                Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+              },
+              cache: 'no-store'
+            }
+          );
+          if (res.ok) {
+            const rows = (await res.json()) as PublicRoomInfo[];
+            this.serverApiWorks = true;
+            return { rooms: rows.map((r) => ({ ...r, source: 'server' })), mode: 'server' };
+          }
+        } catch { /* fall through */ }
+      }
+
+      if (FIREBASE_DB_URL) {
+        try {
+          const res = await fetch(`${FIREBASE_DB_URL.replace(/\/$/, '')}/rooms.json`, { cache: 'no-store' });
+          if (res.ok) {
+            const data = (await res.json()) as Record<string, PublicRoomInfo> | null;
+            const now = Date.now();
+            const rooms: PublicRoomInfo[] = [];
+            if (data && typeof data === 'object') {
+              for (const r of Object.values(data)) {
+                if (r && r.code && now - (r.updatedAt || 0) < ROOM_TTL_MS) {
+                  rooms.push({ ...r, source: 'server' });
+                }
               }
             }
+            this.serverApiWorks = true;
+            return { rooms, mode: 'server' };
           }
-          this.serverApiWorks = true;
-          return { rooms, mode: 'server' };
-        }
-      } catch {
-        // Fall through to local
+        } catch { /* fall through */ }
       }
     }
 
@@ -107,18 +161,47 @@ export class RoomDirectory {
     const now = Date.now();
     this.writeLocalRoom({ ...room, updatedAt: now, source: 'local' });
 
-    if (this.useFirebase()) {
-      try {
-        const res = await fetch(`${FIREBASE_DB_URL.replace(/\/$/, '')}/rooms/${encodeURIComponent(room.code)}.json`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...room, updatedAt: now })
-        });
-        this.serverApiWorks = res.ok;
-      } catch {
-        // Ignore
+    if (this.useCloudDb()) {
+      if (UPSTASH_REDIS_REST_URL && UPSTASH_REDIS_REST_TOKEN) {
+        try {
+          const payload = JSON.stringify({ ...room, updatedAt: now });
+          const res = await fetch(
+            `${UPSTASH_REDIS_REST_URL.replace(/\/$/, '')}/hset/openhax_rooms/${encodeURIComponent(room.code)}/${encodeURIComponent(payload)}`,
+            { method: 'POST', headers: { Authorization: `Bearer ${UPSTASH_REDIS_REST_TOKEN}` } }
+          );
+          this.serverApiWorks = res.ok;
+        } catch { /* ignore */ }
+        return;
       }
-      return;
+
+      if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+        try {
+          const res = await fetch(`${SUPABASE_URL.replace(/\/$/, '')}/rest/v1/rooms`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+              Prefer: 'resolution=merge-duplicates'
+            },
+            body: JSON.stringify({ ...room, updatedAt: now })
+          });
+          this.serverApiWorks = res.ok;
+        } catch { /* ignore */ }
+        return;
+      }
+
+      if (FIREBASE_DB_URL) {
+        try {
+          const res = await fetch(`${FIREBASE_DB_URL.replace(/\/$/, '')}/rooms/${encodeURIComponent(room.code)}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...room, updatedAt: now })
+          });
+          this.serverApiWorks = res.ok;
+        } catch { /* ignore */ }
+        return;
+      }
     }
 
     if (this.serverApiWorks === false) {
@@ -141,15 +224,38 @@ export class RoomDirectory {
   async removeRoom(code: string): Promise<void> {
     this.removeLocalRoom(code);
 
-    if (this.useFirebase()) {
-      try {
-        await fetch(`${FIREBASE_DB_URL.replace(/\/$/, '')}/rooms/${encodeURIComponent(code)}.json`, {
-          method: 'DELETE'
-        });
-      } catch {
-        // Ignore
+    if (this.useCloudDb()) {
+      if (UPSTASH_REDIS_REST_URL && UPSTASH_REDIS_REST_TOKEN) {
+        try {
+          await fetch(
+            `${UPSTASH_REDIS_REST_URL.replace(/\/$/, '')}/hdel/openhax_rooms/${encodeURIComponent(code)}`,
+            { method: 'POST', headers: { Authorization: `Bearer ${UPSTASH_REDIS_REST_TOKEN}` } }
+          );
+        } catch { /* ignore */ }
+        return;
       }
-      return;
+
+      if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+        try {
+          await fetch(`${SUPABASE_URL.replace(/\/$/, '')}/rest/v1/rooms?code=eq.${encodeURIComponent(code)}`, {
+            method: 'DELETE',
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+            }
+          });
+        } catch { /* ignore */ }
+        return;
+      }
+
+      if (FIREBASE_DB_URL) {
+        try {
+          await fetch(`${FIREBASE_DB_URL.replace(/\/$/, '')}/rooms/${encodeURIComponent(code)}.json`, {
+            method: 'DELETE'
+          });
+        } catch { /* ignore */ }
+        return;
+      }
     }
 
     if (this.serverApiWorks === false) {
