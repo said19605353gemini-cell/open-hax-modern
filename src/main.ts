@@ -360,8 +360,42 @@ class OpenHaxApp {
         void this.profileSvc.saveProfile(this.myProfile);
       }
     }, 15000);
-    this.switchScreen('auth');
-    this.authNick.focus();
+    let restored = false;
+    try {
+      const savedScreen = window.sessionStorage.getItem('openhax_active_screen');
+      const savedRoomRaw = window.sessionStorage.getItem('openhax_active_room');
+      if (!this.pendingInviteCode && this.settings.nickname.trim()) {
+        if (savedScreen === 'room' && savedRoomRaw) {
+          const sr = JSON.parse(savedRoomRaw) as {
+            role?: 'host' | 'guest';
+            kind?: 'public' | 'private' | 'offline' | 'local2p';
+            roomName?: string;
+            stadium?: string;
+            password?: string;
+            code?: string;
+          };
+          if (sr.role === 'guest' && sr.code) {
+            this.switchScreen('lobby');
+            this.joinRemoteRoom(sr.code, sr.password || '');
+            restored = true;
+          } else if (sr.role === 'host' && sr.kind) {
+            if (sr.roomName) this.createName.value = sr.roomName;
+            this.createType.value = sr.kind;
+            if (sr.stadium) this.createStadium.value = sr.stadium;
+            this.createPass.value = sr.password || '';
+            this.createAndEnterRoom();
+            restored = true;
+          }
+        } else if (savedScreen === 'lobby') {
+          this.switchScreen('lobby');
+          restored = true;
+        }
+      }
+    } catch { /* ignore */ }
+    if (!restored) {
+      this.switchScreen('auth');
+      this.authNick.focus();
+    }
 
     this.log('INFO', 'Boot', 'OpenHax Modern hazir (OpenHax mekanikleri + 60 FPS sabit).');
   }
@@ -420,6 +454,12 @@ class OpenHaxApp {
 
   private switchScreen(screen: ViewScreen): void {
     this.activeScreen = screen;
+    try {
+      window.sessionStorage.setItem('openhax_active_screen', screen);
+      if (screen !== 'room') {
+        window.sessionStorage.removeItem('openhax_active_room');
+      }
+    } catch { /* ignore */ }
 
     this.viewAuth.classList.toggle('hidden', screen !== 'auth');
     this.viewLobby.classList.toggle('hidden', screen !== 'lobby');
@@ -1574,6 +1614,12 @@ class OpenHaxApp {
     this.roomTitleLabel.textContent = roomName;
     this.hostBotBar.classList.toggle('hidden', kind === 'local2p');
     this.switchScreen('room');
+    try {
+      window.sessionStorage.setItem(
+        'openhax_active_room',
+        JSON.stringify({ role: 'host', kind, roomName, stadium: stadiumId, password })
+      );
+    } catch { /* ignore */ }
     this.updateRoomUI();
     this.addChat('Sistem', 'Oda kuruldu: ' + roomName, true);
   }
@@ -1585,6 +1631,9 @@ class OpenHaxApp {
     this.roomKind = 'public';
     this.pendingJoinCode = code;
     this.currentRoomPassword = password;
+    try {
+      window.sessionStorage.setItem('openhax_active_room', JSON.stringify({ role: 'guest', code, password }));
+    } catch { /* ignore */ }
     this.netStatusEl.textContent = 'Bağlanıyor...';
     this.peerMgr.joinRoom(code, this.settings.nickname, this.settings.avatar, password, this.settings.country || 'TR');
   }
