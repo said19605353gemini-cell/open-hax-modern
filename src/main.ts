@@ -110,6 +110,7 @@ class OpenHaxApp {
   private profileSvc = new ProfileService();
   private myProfile: PlayerProfile | null = null;
   private currentRoomPassword = '';
+  private pendingJoinCode = '';
 
   private debugLogs: DebugEntry[] = [];
   private debugErrors = 0;
@@ -215,6 +216,11 @@ class OpenHaxApp {
         this.switchScreen('room');
       },
       onAuthError: (reason) => {
+        if (this.pendingJoinCode && reason.includes('bulunamadi')) {
+          void this.directory.removeRoom(this.pendingJoinCode);
+          this.pendingJoinCode = '';
+          void this.refreshRoomList();
+        }
         this.showLobbyError(reason);
         this.switchScreen('lobby');
       },
@@ -830,6 +836,15 @@ class OpenHaxApp {
     bindCheck('set-hud', (v) => this.updateSettings({ showHud: v }));
     bindCheck('set-blurpause', (v) => this.updateSettings({ pauseOnBlur: v }));
     bindSelect('set-physics', (v) => this.updateSettings({ physicsProfile: v as GameSettings['physicsProfile'] }));
+    bindSelect('set-physicshz', (v) => {
+      if (!this.isMeAdmin()) return;
+      const hz = Math.max(60, Math.min(500, Number(v) || 60));
+      if (this.peerMgr.getRole() === 'guest') {
+        this.dispatchAdminAction('set_physicshz', undefined, hz);
+        return;
+      }
+      this.updateSettings({ physicsHz: hz });
+    });
     bindSelect('set-botdiff', (v) => {
       this.updateSettings({ botDifficulty: v as BotDifficulty });
       this.roomBotDiff.value = v;
@@ -884,7 +899,10 @@ class OpenHaxApp {
     const isLocked = await this.profileSvc.checkMemberLocked(guestNick);
     btnGuest.disabled = false;
     if (isLocked) {
-      guestNick = (guestNick.slice(0, 12) + '_Misafir').slice(0, 20);
+      this.authError.textContent =
+        'Bu kullanıcı adı şifre ile kayıtlı bir üyeye ait! Şifresini girerek giriş yapın veya başka bir ad seçin.';
+      this.authError.classList.remove('hidden');
+      return;
     }
 
     this.profileSvc.setGuestMode(true);
@@ -1246,6 +1264,7 @@ class OpenHaxApp {
     this.chatBox.innerHTML = '';
     this.players = [];
     this.roomKind = 'public';
+    this.pendingJoinCode = code;
     this.currentRoomPassword = password;
     this.netStatusEl.textContent = 'Bağlanıyor...';
     this.peerMgr.joinRoom(code, this.settings.nickname, this.settings.avatar, password, this.settings.country || 'TR');
@@ -1334,6 +1353,11 @@ class OpenHaxApp {
     const publishNow = () => {
       const humans = this.players.filter((p) => !p.isBot).length;
       const bots = this.players.filter((p) => p.isBot).length;
+      if (this.activeScreen !== 'room' || this.peerMgr.getRole() !== 'host' || humans <= 0) {
+        void this.directory.removeRoom(code);
+        this.stopRoomHeartbeat();
+        return;
+      }
       void this.directory.publishRoom({
         code,
         name: this.currentRoomName,
@@ -1349,7 +1373,7 @@ class OpenHaxApp {
 
     publishNow();
     try {
-      const blob = new Blob(['setInterval(() => postMessage(1), 8000);'], { type: 'application/javascript' });
+      const blob = new Blob(['setInterval(() => postMessage(1), 6000);'], { type: 'application/javascript' });
       const workerUrl = URL.createObjectURL(blob);
       const worker = new Worker(workerUrl);
       URL.revokeObjectURL(workerUrl);
@@ -1358,7 +1382,7 @@ class OpenHaxApp {
       };
       this.heartbeatWorker = worker;
     } catch {
-      this.heartbeatTimer = window.setInterval(publishNow, 8000);
+      this.heartbeatTimer = window.setInterval(publishNow, 6000);
     }
 
     const onPageExit = () => {
@@ -1438,7 +1462,7 @@ class OpenHaxApp {
     this.btnReset.classList.toggle('hidden', this.activeScreen !== 'room' || !isAdmin);
 
     // Lock physics controls for non-admin users while keeping graphics/FPS/sound unlocked
-    const lockIds = ['set-physics', 'set-ballctrl', 'set-balldamp', 'set-kickpwr', 'set-pspd', 'set-wallb'];
+    const lockIds = ['set-physics', 'set-physicshz', 'set-ballctrl', 'set-balldamp', 'set-kickpwr', 'set-pspd', 'set-wallb'];
     for (const id of lockIds) {
       const node = document.getElementById(id) as HTMLInputElement | HTMLSelectElement | null;
       if (node) node.disabled = !isAdmin;
@@ -1577,6 +1601,10 @@ class OpenHaxApp {
       this.updateSettings({ physicsProfile: value as PhysicsProfile });
       this.roomPhysics.value = value;
       el<HTMLSelectElement>('set-physics').value = value;
+    } else if (cmd === 'set_physicshz' && typeof value === 'number') {
+      const hz = Math.max(60, Math.min(500, value));
+      this.updateSettings({ physicsHz: hz });
+      el<HTMLSelectElement>('set-physicshz').value = String(hz);
     }
   }
 
@@ -1631,6 +1659,7 @@ class OpenHaxApp {
     el<HTMLInputElement>('set-hud').checked = s.showHud;
     el<HTMLInputElement>('set-blurpause').checked = s.pauseOnBlur;
     el<HTMLSelectElement>('set-physics').value = s.physicsProfile;
+    el<HTMLSelectElement>('set-physicshz').value = String(s.physicsHz || 60);
     el<HTMLSelectElement>('set-botdiff').value = s.botDifficulty;
     el<HTMLInputElement>('set-sound').checked = s.masterSound;
     el<HTMLInputElement>('set-volume').value = String(s.soundVolume);
@@ -1878,15 +1907,17 @@ class OpenHaxApp {
       if (me) me.inputBits = this.input.getSingleInputBits();
     }
 
+    const physicsHz = Math.max(30, Math.min(500, Number(this.settings.physicsHz) || 60));
+
     if (!this.goalPending) {
       this.tickInSecond++;
-      if (this.tickInSecond >= 60) {
+      if (this.tickInSecond >= physicsHz) {
         this.tickInSecond = 0;
         this.matchSeconds++;
         if (this.roomTimeLimit > 0 && this.matchSeconds >= this.roomTimeLimit && !this.matchEnded) {
           this.matchEnded = true;
           this.goalPending = true;
-          this.goalResetTicks = 210;
+          this.goalResetTicks = Math.round(3.5 * physicsHz);
           this.goalBannerTeam = this.scoreRed >= this.scoreBlue ? 'red' : 'blue';
           this.audio.play('end');
           const msg =
@@ -1917,7 +1948,8 @@ class OpenHaxApp {
       this.tick,
       this.goalPending,
       this.botAvoidMemory,
-      this.customTuningActive ? this.settings : undefined
+      this.customTuningActive ? this.settings : undefined,
+      physicsHz
     );
 
     if (res.touchedById) {
@@ -1929,7 +1961,7 @@ class OpenHaxApp {
     }
 
     if (res.savedById && !this.goalPending && this.tick >= this.saveCooldownTick) {
-      this.saveCooldownTick = this.tick + 90;
+      this.saveCooldownTick = this.tick + Math.round(1.5 * physicsHz);
       const saver = this.players.find((p) => p.id === res.savedById);
       if (saver && !saver.isBot) {
         this.dispatchStatToPlayer(saver.id, 'save');
@@ -1950,8 +1982,8 @@ class OpenHaxApp {
       if (res.goalTeam === 'red') this.scoreRed++;
       else this.scoreBlue++;
 
-      // Credit goal & assist to human players if touched within 5s
-      const scorer = this.lastTouchId && this.tick - this.lastTouchTick <= 360
+      // Credit goal & assist to human players if touched within 6s
+      const scorer = this.lastTouchId && this.tick - this.lastTouchTick <= Math.round(6 * physicsHz)
         ? this.players.find((p) => p.id === this.lastTouchId)
         : undefined;
       if (scorer && !scorer.isBot && scorer.team === res.goalTeam) {
@@ -1970,7 +2002,7 @@ class OpenHaxApp {
 
       if (reachedLimit) {
         this.matchEnded = true;
-        this.goalResetTicks = 210;
+        this.goalResetTicks = Math.round(3.5 * physicsHz);
         this.audio.play('end');
         this.addChat(
           'Sistem',
@@ -1986,7 +2018,7 @@ class OpenHaxApp {
           }
         }
       } else {
-        this.goalResetTicks = 96;
+        this.goalResetTicks = Math.round(1.6 * physicsHz);
         this.audio.playGoal();
       }
       this.spawnGoalParticles(res.goalTeam);
@@ -2019,6 +2051,7 @@ class OpenHaxApp {
       rn: this.currentRoomName,
       st: this.stadium.id,
       pf: this.settings.physicsProfile,
+      hz: this.settings.physicsHz || 60,
       sc: [this.scoreRed, this.scoreBlue],
       sl: this.roomScoreLimit,
       tl: this.roomTimeLimit,
@@ -2059,6 +2092,10 @@ class OpenHaxApp {
     }
     if (snap.pf && snap.pf !== this.settings.physicsProfile) {
       this.settings.physicsProfile = snap.pf;
+    }
+    if (snap.hz && snap.hz !== this.settings.physicsHz) {
+      this.settings.physicsHz = snap.hz;
+      el<HTMLSelectElement>('set-physicshz').value = String(snap.hz);
     }
     if (typeof snap.sl === 'number') {
       this.roomScoreLimit = snap.sl;

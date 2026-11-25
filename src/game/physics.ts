@@ -473,8 +473,11 @@ export function stepPhysicsTick(
   currentTick: number,
   goalPending: boolean,
   botAvoidMemory: Map<string, number>,
-  tuning?: Pick<GameSettings, 'ballControl' | 'ballDamping' | 'kickPower' | 'playerSpeed' | 'wallBounce'>
+  tuning?: Pick<GameSettings, 'ballControl' | 'ballDamping' | 'kickPower' | 'playerSpeed' | 'wallBounce'>,
+  physicsHz = 60
 ): StepResult {
+  const hz = Math.max(30, Math.min(500, physicsHz || 60));
+  const dtScale = 60 / hz;
   const cfg = getProfileParams(profile);
   if (tuning) {
     // ballControl 0..100 maps to playerBallRestitution 0.65..0.02 (higher control = tighter dribble)
@@ -564,7 +567,7 @@ export function stepPhysicsTick(
 
       const dot = dx * p.vx + dy * p.vy;
       const brakeMul = dot < -0.4 ? 1.25 : 1.0;
-      const accel = (p.kickArmed ? cfg.kickAccel : cfg.accel) * botSpeedScale * brakeMul;
+      const accel = (p.kickArmed ? cfg.kickAccel : cfg.accel) * botSpeedScale * brakeMul * dtScale;
       p.vx += dx * accel;
       p.vy += dy * accel;
     }
@@ -583,8 +586,8 @@ export function stepPhysicsTick(
         ball.vx += nx * cfg.kickImpulse;
         ball.vy += ny * cfg.kickImpulse;
         p.kickArmed = false;
-        p.nextKickTick = currentTick + 8;
-        p.kickFlashTicks = 8;
+        p.nextKickTick = currentTick + Math.max(4, Math.round(8 / dtScale));
+        p.kickFlashTicks = Math.max(4, Math.round(8 / dtScale));
         kicked = true;
         touchedById = p.id;
         if ((p.team === 'red' && redDanger && ball.vx > prevBallVx + 1.5) ||
@@ -618,11 +621,11 @@ export function stepPhysicsTick(
   for (let s = 0; s < SUBSTEPS; s++) {
     for (let i = 0; i < activePlayers.length; i++) {
       const p = activePlayers[i];
-      p.x += p.vx * subDt;
-      p.y += p.vy * subDt;
+      p.x += p.vx * subDt * dtScale;
+      p.y += p.vy * subDt * dtScale;
     }
-    ball.x += ball.vx * subDt;
-    ball.y += ball.vy * subDt;
+    ball.x += ball.vx * subDt * dtScale;
+    ball.y += ball.vy * subDt * dtScale;
 
     for (let i = 0; i < activePlayers.length; i++) {
       for (let j = i + 1; j < activePlayers.length; j++) {
@@ -685,12 +688,14 @@ export function stepPhysicsTick(
     clampArenaBounds(ball, stadium.canvasWidth, stadium.canvasHeight, cfg.ballWorldRestitution);
   }
 
+  const pDamp = Math.pow(cfg.playerDamping, dtScale);
+  const bDamp = Math.pow(cfg.ballDamping, dtScale);
   for (let i = 0; i < activePlayers.length; i++) {
-    activePlayers[i].vx *= cfg.playerDamping;
-    activePlayers[i].vy *= cfg.playerDamping;
+    activePlayers[i].vx *= pDamp;
+    activePlayers[i].vy *= pDamp;
   }
-  ball.vx *= cfg.ballDamping;
-  ball.vy *= cfg.ballDamping;
+  ball.vx *= bDamp;
+  ball.vy *= bDamp;
 
   let goalTeam: Team | null = null;
   if (!goalPending) {

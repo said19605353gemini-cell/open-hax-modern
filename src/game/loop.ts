@@ -45,7 +45,9 @@ export class GameLoop {
     if (this.bgTimer !== null) clearInterval(this.bgTimer);
     this.bgTimer = window.setInterval(() => {
       if (this.running && document.hidden) {
-        this.onStep();
+        const hz = Math.max(30, Math.min(500, Number(this.getSettings().physicsHz) || 60));
+        const steps = Math.max(1, Math.min(8, Math.round(hz / 60)));
+        for (let i = 0; i < steps; i++) this.onStep();
       }
     }, FIXED_STEP_MS);
   }
@@ -67,6 +69,9 @@ export class GameLoop {
 
     const settings = this.getSettings();
     const fpsLimit = Number(settings.fpsLimit) || 0;
+    const physicsHz = Math.max(30, Math.min(500, Number(settings.physicsHz) || 60));
+    const stepMs = 1000 / physicsHz;
+    const maxSteps = Math.max(3, Math.ceil(physicsHz / 20));
 
     if (fpsLimit !== this.lastFpsLimit) {
       this.nextFrameTime = 0;
@@ -106,22 +111,22 @@ export class GameLoop {
     this.lastTickTime = rafTime;
 
     let alpha = 1;
-    if (fpsLimit === 60) {
-      // Exact 1:1 60Hz deterministic step per frame when locked to 60 FPS
+    if (fpsLimit === physicsHz) {
+      // Exact 1:1 deterministic step per frame when display FPS matches physics Hz
       this.onStep();
       alpha = 1;
     } else {
       this.accumulator += elapsed;
       let steps = 0;
-      while (this.accumulator >= FIXED_STEP_MS && steps < 3) {
+      while (this.accumulator >= stepMs && steps < maxSteps) {
         this.onStep();
-        this.accumulator -= FIXED_STEP_MS;
+        this.accumulator -= stepMs;
         steps++;
       }
-      if (steps >= 3 && this.accumulator > FIXED_STEP_MS) {
+      if (steps >= maxSteps && this.accumulator > stepMs) {
         this.accumulator = 0;
       }
-      alpha = fpsLimit === 0 ? Math.max(0, Math.min(1, this.accumulator / FIXED_STEP_MS)) : 1;
+      alpha = fpsLimit === 0 ? Math.max(0, Math.min(1, this.accumulator / stepMs)) : 1;
     }
 
     this.onRender(alpha);

@@ -69,6 +69,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   chatWidth: 'compact',
   stadium: 'classic',
   physicsProfile: 'openhax',
+  physicsHz: 60,
   ballControl: 90,
   ballDamping: 0.9915,
   kickPower: 5.4,

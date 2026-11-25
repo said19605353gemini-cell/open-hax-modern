@@ -35,6 +35,7 @@ export interface GameSettings {
   chatWidth?: 'compact' | 'full';
   stadium: StadiumId;
   physicsProfile: PhysicsProfile;
+  physicsHz?: number;
   ballControl: number;       // 0..100 (higher = lower player-ball bounce = tighter dribble)
   ballDamping: number;       // 0.975..0.996 per 60Hz tick
   kickPower: number;         // 3.5..8.5 px/tick impulse
@@ -153,6 +154,7 @@ export interface MatchSnapshot {
   rn: string; // roomName
   st: StadiumId;
   pf: PhysicsProfile;
+  hz?: number;
   sc: [number, number];
   sl: number; // scoreLimit (0 = unlimited)
   tl: number; // timeLimitSeconds (0 = unlimited)

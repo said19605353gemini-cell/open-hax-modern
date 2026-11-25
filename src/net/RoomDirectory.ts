@@ -15,7 +15,7 @@ export interface PublicRoomInfo {
 }
 
 const LOCAL_STORAGE_KEY = 'openhax_local_rooms_v1';
-const ROOM_TTL_MS = 35000; // Heartbeat runs in Web Worker so background tabs never stall
+const ROOM_TTL_MS = 20000; // Heartbeat runs every 6s in Web Worker so ghost rooms purge in <=20s
 
 function emitDebug(tag: 'SYS' | 'NET' | 'ERR' | 'DUP', msg: string): void {
   if (typeof window !== 'undefined') {
