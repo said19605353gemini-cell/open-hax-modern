@@ -381,9 +381,11 @@
           <label class="field">
             <span>Bot Zorluğu</span>
             <select id="create-botdiff">
+              <option value="very_easy">Çok Kolay</option>
               <option value="easy">Kolay</option>
               <option value="medium" selected>Orta</option>
               <option value="hard">Zor</option>
+              <option value="pro">Pro (Efsane)</option>
             </select>
           </label>
         </div>
@@ -433,17 +435,20 @@
             </select>
           </label>
           <label class="field">
-            <span>Oda FPS Limiti</span>
-            <select id="create-roommaxfps">
-              <option value="0" selected>Sınırsız</option>
-              <option value="30">30 FPS</option>
-              <option value="60">60 FPS</option>
-              <option value="75">75 FPS</option>
-              <option value="120">120 FPS</option>
-              <option value="144">144 FPS</option>
-              <option value="240">240 FPS</option>
-              <option value="500">500 FPS</option>
-            </select>
+            <span>Oda FPS Limiti (Hazır / Elle)</span>
+            <div style="display:flex;gap:6px;">
+              <select id="create-roommaxfps" style="flex:1;">
+                <option value="0" selected>Sınırsız</option>
+                <option value="30">30 FPS</option>
+                <option value="60">60 FPS</option>
+                <option value="75">75 FPS</option>
+                <option value="120">120 FPS</option>
+                <option value="144">144 FPS</option>
+                <option value="240">240 FPS</option>
+                <option value="500">500 FPS</option>
+              </select>
+              <input type="number" id="create-roommaxfps-custom" min="0" max="1000" step="1" placeholder="Elle (0=∞)" style="width:92px;" title="Elle FPS gir (0 = Sınırsız)" />
+            </div>
           </label>
           <label class="field">
             <span>Özel Güç Modu</span>
@@ -490,11 +495,15 @@
         <button type="button" id="btn-add-blue-bot" class="btn team-btn blue">+ Mavi Bot</button>
         <button type="button" id="btn-remove-bot" class="btn">Son Botu Çıkar</button>
         <button type="button" id="btn-clear-bots" class="btn">Botları Temizle</button>
+        <button type="button" id="btn-botdiff-down" class="btn" title="Bot Zorluğunu Azalt">−</button>
         <select id="room-botdiff" title="Bot Zorluğu">
+          <option value="very_easy">Bot: Çok Kolay</option>
           <option value="easy">Bot: Kolay</option>
           <option value="medium">Bot: Orta</option>
           <option value="hard">Bot: Zor</option>
+          <option value="pro">Bot: Pro</option>
         </select>
+        <button type="button" id="btn-botdiff-up" class="btn" title="Bot Zorluğunu Çoğalt">+</button>
         <select id="room-stadium" title="Saha Boyutu">
           <option value="classic">OpenHax Klasik</option>
           <option value="big">Büyük Saha</option>
@@ -541,6 +550,7 @@
           <option value="60">Oda FPS: 60</option>
           <option value="30">Oda FPS: 30</option>
         </select>
+        <input type="number" id="room-fps-custom" min="0" max="1000" step="1" placeholder="FPS" style="width:60px;padding:3px 6px;" title="Elle Oda FPS Limiti (0 = Sınırsız)" />
       </div>
       <div id="roster-strip" class="roster-strip"></div>
     </section>
@@ -603,17 +613,20 @@
             </select>
           </div>
           <div class="hax-opt-row">
-            <span>FPS Limiti:</span>
-            <select id="set-fps">
-              <option value="0">Sınırsız (Önerilen)</option>
-              <option value="500">500 FPS</option>
-              <option value="240">240 FPS</option>
-              <option value="144">144 FPS</option>
-              <option value="120">120 FPS</option>
-              <option value="75">75 FPS</option>
-              <option value="60">60 FPS</option>
-              <option value="30">30 FPS (Güç Tasarrufu)</option>
-            </select>
+            <span>FPS Limiti (Hazır / Elle):</span>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <select id="set-fps">
+                <option value="0">Sınırsız (Önerilen)</option>
+                <option value="500">500 FPS</option>
+                <option value="240">240 FPS</option>
+                <option value="144">144 FPS</option>
+                <option value="120">120 FPS</option>
+                <option value="75">75 FPS</option>
+                <option value="60">60 FPS</option>
+                <option value="30">30 FPS (Güç Tasarrufu)</option>
+              </select>
+              <input type="number" id="set-fps-custom" min="0" max="1000" step="1" placeholder="Elle" class="hax-txt-in" style="width:68px;" title="Elle FPS gir (0 = Sınırsız)" />
+            </div>
           </div>
           <div class="hax-opt-row">
             <span>Çözünürlük &amp; Görünüm Ölçeği:</span>
@@ -716,9 +729,11 @@
           <label class="row">
             <span>Varsayılan Bot Zorluğu</span>
             <select id="set-botdiff">
+              <option value="very_easy">Çok Kolay</option>
               <option value="easy">Kolay</option>
               <option value="medium">Orta</option>
               <option value="hard">Zor</option>
+              <option value="pro">Pro (Efsane)</option>
             </select>
           </label>
           <hr class="hax-sep" />
@@ -793,15 +808,20 @@
             </select>
           </label>
           <label class="row">
-            <span>Oda Maks. FPS Limiti</span>
-            <select id="set-roommaxfps">
-              <option value="0" selected>Sınırsız (Oyuncuya Bağlı)</option>
-              <option value="60">60 FPS</option>
-              <option value="75">75 FPS</option>
-              <option value="120">120 FPS</option>
-              <option value="144">144 FPS</option>
-              <option value="240">240 FPS</option>
-            </select>
+            <span>Oda Maks. FPS Limiti (Hazır / Elle)</span>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <select id="set-roommaxfps">
+                <option value="0" selected>Sınırsız (Oyuncuya Bağlı)</option>
+                <option value="30">30 FPS</option>
+                <option value="60">60 FPS</option>
+                <option value="75">75 FPS</option>
+                <option value="120">120 FPS</option>
+                <option value="144">144 FPS</option>
+                <option value="240">240 FPS</option>
+                <option value="500">500 FPS</option>
+              </select>
+              <input type="number" id="set-roommaxfps-custom" min="0" max="1000" step="1" placeholder="Elle" class="hax-txt-in" style="width:68px;" title="Elle Oda FPS gir (0 = Sınırsız)" />
+            </div>
           </label>
           <label class="row">
             <span>Top Tutuşu (<span id="lbl-ballctrl">90%</span>)</span>
@@ -848,9 +868,11 @@
           <button type="button" id="btn-teams-rembluebot" class="btn team-btn blue">- Blue Bot</button>
           <select id="teams-botdiff" title="Bot Zorluğu"
             style="background:#244562;color:#fff;border:1px solid #356084;border-radius:4px;padding:4px;font-size:11px;">
+            <option value="very_easy">Bot: Çok Kolay</option>
             <option value="easy">Bot: Kolay</option>
             <option value="medium">Bot: Orta</option>
             <option value="hard">Bot: Zor</option>
+            <option value="pro">Bot: Pro</option>
           </select>
           <button type="button" id="btn-powerups-modal" class="btn primary">⚡ Süper Güçler</button>
           <div id="teams-kick-dropzone"

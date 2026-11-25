@@ -1178,7 +1178,21 @@ class OpenHaxApp {
       });
     };
 
-    bindSelect('set-fps', (v) => this.updateSettings({ fpsLimit: Number(v) }));
+    bindSelect('set-fps', (v) => {
+      const fps = Math.max(0, Math.min(1000, Number(v) || 0));
+      el<HTMLInputElement>('set-fps-custom').value = String(fps);
+      this.updateSettings({ fpsLimit: fps });
+    });
+    el<HTMLInputElement>('set-fps-custom').addEventListener('change', (e) => {
+      const raw = Number((e.target as HTMLInputElement).value);
+      const fps = !Number.isFinite(raw) || raw <= 0 ? 0 : Math.max(15, Math.min(1000, Math.round(raw)));
+      (e.target as HTMLInputElement).value = String(fps);
+      const sel = el<HTMLSelectElement>('set-fps');
+      if (Array.from(sel.options).some((o) => Number(o.value) === fps)) {
+        sel.value = String(fps);
+      }
+      this.updateSettings({ fpsLimit: fps });
+    });
     bindSelect('set-viewport', (v) => this.updateSettings({ viewportMode: v as GameSettings['viewportMode'] }));
     bindSelect('set-grass', (v) => this.updateSettings({ grassDetail: v as GameSettings['grassDetail'] }));
     bindSelect('set-ballstyle', (v) => this.updateSettings({ ballStyle: v as GameSettings['ballStyle'] }));
@@ -1225,26 +1239,54 @@ class OpenHaxApp {
       }
       this.updateSettings({ physicsHz: hz });
     });
-    bindSelect('set-roommaxfps', (v) => {
+    const applyRoomMaxFps = (rawVal: number) => {
       if (!this.isMeAdmin()) return;
-      const mf = Number(v) || 0;
-      el<HTMLSelectElement>('room-fps-select').value = String(mf);
-      if (this.peerMgr.getRole() === 'guest') {
-        this.dispatchAdminAction('set_roommaxfps', undefined, mf);
-        return;
-      }
-      this.updateSettings({ roomMaxFps: mf });
-    });
-    el<HTMLSelectElement>('room-fps-select').addEventListener('change', (e) => {
-      if (!this.isMeAdmin()) return;
-      const mf = Number((e.target as HTMLSelectElement).value) || 0;
+      const mf = !Number.isFinite(rawVal) || rawVal <= 0 ? 0 : Math.max(15, Math.min(1000, Math.round(rawVal)));
       el<HTMLSelectElement>('set-roommaxfps').value = String(mf);
+      el<HTMLSelectElement>('room-fps-select').value = String(mf);
+      el<HTMLInputElement>('set-roommaxfps-custom').value = String(mf);
+      el<HTMLInputElement>('room-fps-custom').value = String(mf);
       if (this.peerMgr.getRole() === 'guest') {
         this.dispatchAdminAction('set_roommaxfps', undefined, mf);
         return;
       }
       this.updateSettings({ roomMaxFps: mf });
+    };
+    bindSelect('set-roommaxfps', (v) => applyRoomMaxFps(Number(v)));
+    el<HTMLSelectElement>('room-fps-select').addEventListener('change', (e) => {
+      applyRoomMaxFps(Number((e.target as HTMLSelectElement).value));
     });
+    el<HTMLInputElement>('set-roommaxfps-custom').addEventListener('change', (e) => {
+      applyRoomMaxFps(Number((e.target as HTMLInputElement).value));
+    });
+    el<HTMLInputElement>('room-fps-custom').addEventListener('change', (e) => {
+      applyRoomMaxFps(Number((e.target as HTMLInputElement).value));
+    });
+    el<HTMLSelectElement>('create-roommaxfps').addEventListener('change', (e) => {
+      el<HTMLInputElement>('create-roommaxfps-custom').value = (e.target as HTMLSelectElement).value;
+    });
+    el<HTMLInputElement>('create-roommaxfps-custom').addEventListener('change', (e) => {
+      const raw = Number((e.target as HTMLInputElement).value);
+      const mf = !Number.isFinite(raw) || raw <= 0 ? 0 : Math.max(15, Math.min(1000, Math.round(raw)));
+      (e.target as HTMLInputElement).value = String(mf);
+      const sel = el<HTMLSelectElement>('create-roommaxfps');
+      if (Array.from(sel.options).some((o) => Number(o.value) === mf)) sel.value = String(mf);
+    });
+    const botOrder: BotDifficulty[] = ['very_easy', 'easy', 'medium', 'hard', 'pro'];
+    const stepBotDiff = (delta: number) => {
+      if (!this.isMeAdmin()) return;
+      const idx = botOrder.indexOf(this.settings.botDifficulty);
+      const next = botOrder[Math.max(0, Math.min(botOrder.length - 1, (idx === -1 ? 2 : idx) + delta))];
+      this.roomBotDiff.value = next;
+      if (this.peerMgr.getRole() === 'guest') {
+        this.dispatchAdminAction('set_botdiff', next);
+        return;
+      }
+      this.updateSettings({ botDifficulty: next });
+      el<HTMLSelectElement>('set-botdiff').value = next;
+    };
+    el<HTMLButtonElement>('btn-botdiff-down').addEventListener('click', () => stepBotDiff(-1));
+    el<HTMLButtonElement>('btn-botdiff-up').addEventListener('click', () => stepBotDiff(1));
     bindSelect('set-botdiff', (v) => {
       this.updateSettings({ botDifficulty: v as BotDifficulty });
       this.roomBotDiff.value = v;
@@ -1666,7 +1708,9 @@ class OpenHaxApp {
     const botDiff = this.createBotDiff.value as BotDifficulty;
     const physProfile = this.createPhysics.value as PhysicsProfile;
     const physHz = 60;
-    const roomMaxFps = Math.max(0, Number(el<HTMLSelectElement>('create-roommaxfps').value) || 0);
+    const rawCreateFps = el<HTMLInputElement>('create-roommaxfps-custom').value.trim();
+    const parsedCreateFps = rawCreateFps !== '' ? Number(rawCreateFps) : Number(el<HTMLSelectElement>('create-roommaxfps').value);
+    const roomMaxFps = !Number.isFinite(parsedCreateFps) || parsedCreateFps <= 0 ? 0 : Math.max(15, Math.min(1000, Math.round(parsedCreateFps)));
     const powerupMode = (el<HTMLSelectElement>('create-powerup').value as PowerupMode) || 'none';
     const scoreLimit = Number(this.createScoreLimit.value) || 0;
     const timeLimit = Number(this.createTimeLimit.value) || 0;
@@ -1699,6 +1743,7 @@ class OpenHaxApp {
     this.roomStadium.value = stadiumId;
     this.roomPhysics.value = physProfile;
     el<HTMLSelectElement>('room-fps-select').value = String(roomMaxFps);
+    el<HTMLInputElement>('room-fps-custom').value = String(roomMaxFps);
 
     this.myPlayerId = 'host';
     this.players = [
@@ -2281,6 +2326,7 @@ class OpenHaxApp {
   private syncSettingsToUI(): void {
     const s = this.settings;
     el<HTMLSelectElement>('set-fps').value = String(s.fpsLimit);
+    el<HTMLInputElement>('set-fps-custom').value = String(s.fpsLimit);
     el<HTMLSelectElement>('set-viewport').value = s.viewportMode || 'dynamic';
     el<HTMLSelectElement>('set-grass').value = s.grassDetail;
     el<HTMLSelectElement>('set-ballstyle').value = s.ballStyle;
@@ -2307,6 +2353,8 @@ class OpenHaxApp {
     el<HTMLSelectElement>('set-physicshz').value = String(s.physicsHz || 60);
     el<HTMLSelectElement>('set-roommaxfps').value = String(s.roomMaxFps || 0);
     el<HTMLSelectElement>('room-fps-select').value = String(s.roomMaxFps || 0);
+    el<HTMLInputElement>('set-roommaxfps-custom').value = String(s.roomMaxFps || 0);
+    el<HTMLInputElement>('room-fps-custom').value = String(s.roomMaxFps || 0);
     el<HTMLSelectElement>('set-botdiff').value = s.botDifficulty;
     el<HTMLInputElement>('set-sound').checked = s.masterSound;
     el<HTMLInputElement>('set-volume').value = String(s.soundVolume);
@@ -3272,16 +3320,41 @@ class OpenHaxApp {
       };
       rec.onstop = () => {
         const blob = new Blob(this.recordedChunks, { type: 'video/webm' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `openhax-${Date.now()}.webm`;
-        a.click();
-        URL.revokeObjectURL(url);
         if (this.ytAccessToken || this.settings.youtubeClientId) {
           void this.uploadVideoToYouTube(blob);
-        } else if (window.confirm('Maç videosu indirildi! Otomatik YouTube yayını için Ayarlar → Çeşitli bölümüne Google Client ID girebilir veya YouTube Studio\'yu açabilirsiniz. Açmak ister misiniz?')) {
-          window.open('https://studio.youtube.com/', '_blank', 'noopener');
+        } else {
+          this.addChat(
+            'Sistem',
+            '📺 Kayıt tamamlandı! Doğrudan YouTube\'a yüklemek için Ayarlar → Çeşitli bölümünden Google Client ID ile YouTube hesabını bağla.',
+            true
+          );
+          const row = document.createElement('div');
+          row.className = 'chat-msg system';
+          row.style.display = 'flex';
+          row.style.gap = '6px';
+          const btnYt = document.createElement('button');
+          btnYt.type = 'button';
+          btnYt.className = 'btn primary';
+          btnYt.textContent = '📺 YouTube Bağla & Ayarlar';
+          btnYt.addEventListener('click', () => {
+            this.settingsModal.classList.remove('hidden');
+            this.settingsModal.querySelector<HTMLButtonElement>('[data-tab="misc"]')?.click();
+          });
+          const btnDl = document.createElement('button');
+          btnDl.type = 'button';
+          btnDl.className = 'btn';
+          btnDl.textContent = '💾 İsteğe Bağlı İndir (.webm)';
+          btnDl.addEventListener('click', () => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `openhax-${Date.now()}.webm`;
+            a.click();
+            URL.revokeObjectURL(url);
+          });
+          row.append(btnYt, btnDl);
+          this.chatBox.appendChild(row);
+          this.chatBox.scrollTop = this.chatBox.scrollHeight;
         }
       };
       rec.start();
