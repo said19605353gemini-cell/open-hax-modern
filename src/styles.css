@@ -1094,3 +1094,12 @@ body.in-room.vp-restricted #game-canvas {
   max-width: 860px;
   max-height: 480px;
 }
+
+/* Fix white-on-white <select> dropdown options on Windows browsers */
+select {
+  color-scheme: dark;
+}
+select option {
+  background: #1f2933;
+  color: #f8fafc;
+}
