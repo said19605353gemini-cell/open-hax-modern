@@ -4,8 +4,10 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-6.0-646cff?style=for-the-badge&logo=vite)](https://vitejs.dev/)
 [![WebRTC](https://img.shields.io/badge/P2P-PeerJS%20WebRTC-orange?style=for-the-badge)](https://peerjs.com/)
+[![Built with Gemini Antigravity](https://img.shields.io/badge/Built%20with-Gemini%20Antigravity-8E75B2?style=for-the-badge&logo=googlegemini)](https://deepmind.google/)
 
-> [🇹🇷 Türkçe Açıklama](#-türkçe) · [🇬🇧 English Description](#-english)
+> [🇹🇷 Türkçe Açıklama](#-türkçe) · [🇬🇧 English Description](#-english)  
+> ✨ **Google Gemini Antigravity** ile geliştirilmiştir / Built with **Google Gemini Antigravity**.
 
 ## 🎮 Play Online / Canlı Oyna
 👉 **https://said19605353gemini-cell.github.io/open-hax-modern/**
@@ -14,7 +16,7 @@
 
 ## 🇹🇷 Türkçe
 
-Modern, tarayıcı tabanlı çok oyunculu 2D futbol (**HaxBall** tarzı) oyunu.  
+Modern, tarayıcı tabanlı çok oyunculu 2D futbol (**HaxBall** tarzı) oyunu. **Google Gemini Antigravity** ile geliştirilmiştir.  
 Hem doğrudan **GitHub Pages** üzerinde Firebase desteğiyle, hem de **PHP web hosting** üzerinde sunucu oda listesiyle çalışır.
 
 ### ✨ Öne Çıkan Özellikler
@@ -49,7 +51,7 @@ Hem doğrudan **GitHub Pages** üzerinde Firebase desteğiyle, hem de **PHP web 
 
 ## 🇬🇧 English
 
-**OpenHaxModern** is a modern, browser-based multiplayer 2D physics soccer game (**HaxBall-inspired**), built with TypeScript, HTML5 Canvas, PeerJS (WebRTC P2P), and Firebase / PHP room directory support.
+**OpenHaxModern** is a modern, browser-based multiplayer 2D physics soccer game (**HaxBall-inspired**), built with **Google Gemini Antigravity**, TypeScript, HTML5 Canvas, PeerJS (WebRTC P2P), and Firebase / PHP room directory support.
 
 ### ✨ Key Features
 - **36 Languages & 195+ Country SVG Flags:** Auto-detects browser language and country on first visit, with searchable dropdowns and crisp vector SVG flags (`flag-icons`) across leaderboards, chat, rooms, and player rosters.
