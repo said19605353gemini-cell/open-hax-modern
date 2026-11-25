@@ -355,11 +355,20 @@ class OpenHaxApp {
       );
     });
     window.setInterval(() => {
-      if (this.activeScreen === 'room' && this.myProfile) {
-        this.myProfile.playSeconds = (this.myProfile.playSeconds || 0) + 15;
-        void this.profileSvc.saveProfile(this.myProfile);
+      if (this.activeScreen === 'room') {
+        this.saveMatchSnapshot();
+        if (this.myProfile) {
+          this.myProfile.playSeconds = (this.myProfile.playSeconds || 0) + 15;
+          void this.profileSvc.saveProfile(this.myProfile);
+        }
       }
     }, 15000);
+    window.setInterval(() => {
+      if (this.activeScreen === 'room') this.saveMatchSnapshot();
+    }, 1000);
+    window.addEventListener('beforeunload', () => {
+      if (this.activeScreen === 'room') this.saveMatchSnapshot();
+    });
     let restored = false;
     try {
       const savedScreen = window.sessionStorage.getItem('openhax_active_screen');
@@ -383,7 +392,7 @@ class OpenHaxApp {
             this.createType.value = sr.kind;
             if (sr.stadium) this.createStadium.value = sr.stadium;
             this.createPass.value = sr.password || '';
-            this.createAndEnterRoom();
+            this.createAndEnterRoom(true);
             restored = true;
           }
         } else if (savedScreen === 'lobby') {
@@ -458,6 +467,7 @@ class OpenHaxApp {
       window.sessionStorage.setItem('openhax_active_screen', screen);
       if (screen !== 'room') {
         window.sessionStorage.removeItem('openhax_active_room');
+        window.sessionStorage.removeItem('openhax_match_state');
       }
     } catch { /* ignore */ }
 
@@ -1540,7 +1550,52 @@ class OpenHaxApp {
     }
   }
 
-  private createAndEnterRoom(): void {
+  private saveMatchSnapshot(): void {
+    if (this.activeScreen !== 'room' || this.peerMgr.getRole() === 'guest') return;
+    try {
+      const state = {
+        scoreRed: this.scoreRed,
+        scoreBlue: this.scoreBlue,
+        matchSeconds: this.matchSeconds,
+        tick: this.tick,
+        tickInSecond: this.tickInSecond,
+        paused: this.paused,
+        matchEnded: this.matchEnded,
+        teamsLocked: this.teamsLocked,
+        roomEntryLocked: this.roomEntryLocked,
+        enabledPowerups: this.enabledPowerups,
+        fieldPowerup: this.fieldPowerup,
+        ballFireType: this.ballFireType,
+        botCounter: this.botCounter,
+        ball: {
+          x: this.ball.x,
+          y: this.ball.y,
+          vx: this.ball.vx,
+          vy: this.ball.vy,
+          radius: this.ball.radius
+        },
+        players: this.players
+          .filter((p) => p.id === 'host' || p.id === 'local-p2' || p.isBot)
+          .map((p) => ({
+            id: p.id,
+            name: p.name,
+            avatar: p.avatar,
+            team: p.team,
+            isBot: p.isBot,
+            isAdmin: p.isAdmin,
+            country: p.country,
+            x: p.x,
+            y: p.y,
+            vx: p.vx,
+            vy: p.vy,
+            radius: p.radius
+          }))
+      };
+      window.sessionStorage.setItem('openhax_match_state', JSON.stringify(state));
+    } catch { /* ignore */ }
+  }
+
+  private createAndEnterRoom(restoreSaved = false): void {
     const kind = this.createType.value as 'public' | 'private' | 'offline' | 'local2p';
     const rawRoomName = this.createName.value.trim() || (this.settings.nickname + "'nun Odasi");
     const roomName = censorText(rawRoomName);
@@ -1597,7 +1652,95 @@ class OpenHaxApp {
       this.players.push(this.createPlayer('bot-' + this.botCounter++, 'Bot-M2', 'AI', 'blue', true));
     }
 
-    this.resetMatch();
+    let restoredMatch = false;
+    if (restoreSaved) {
+      try {
+        const rawState = window.sessionStorage.getItem('openhax_match_state');
+        if (rawState) {
+          const st = JSON.parse(rawState) as {
+            scoreRed?: number;
+            scoreBlue?: number;
+            matchSeconds?: number;
+            tick?: number;
+            tickInSecond?: number;
+            paused?: boolean;
+            matchEnded?: boolean;
+            teamsLocked?: boolean;
+            roomEntryLocked?: boolean;
+            enabledPowerups?: PowerupType[];
+            fieldPowerup?: FieldPowerup | null;
+            ballFireType?: PowerupType | null;
+            botCounter?: number;
+            ball?: { x: number; y: number; vx: number; vy: number; radius?: number };
+            players?: Array<{
+              id: string;
+              name: string;
+              avatar: string;
+              team: Team;
+              isBot: boolean;
+              isAdmin?: boolean;
+              country?: string;
+              x: number;
+              y: number;
+              vx: number;
+              vy: number;
+              radius?: number;
+            }>;
+          };
+          this.scoreRed = Number(st.scoreRed) || 0;
+          this.scoreBlue = Number(st.scoreBlue) || 0;
+          this.matchSeconds = Number(st.matchSeconds) || 0;
+          this.tick = Number(st.tick) || 0;
+          this.tickInSecond = Number(st.tickInSecond) || 0;
+          this.paused = Boolean(st.paused);
+          this.matchEnded = Boolean(st.matchEnded);
+          this.teamsLocked = Boolean(st.teamsLocked);
+          this.roomEntryLocked = Boolean(st.roomEntryLocked);
+          if (Array.isArray(st.enabledPowerups)) this.enabledPowerups = st.enabledPowerups;
+          this.fieldPowerup = st.fieldPowerup || null;
+          this.ballFireType = st.ballFireType || null;
+          this.botCounter = Number(st.botCounter) || 1;
+          if (st.ball) {
+            this.ball.x = st.ball.x;
+            this.ball.y = st.ball.y;
+            this.ball.prevX = st.ball.x;
+            this.ball.prevY = st.ball.y;
+            this.ball.vx = st.ball.vx;
+            this.ball.vy = st.ball.vy;
+            if (st.ball.radius) this.ball.radius = st.ball.radius;
+          }
+          if (Array.isArray(st.players) && st.players.length > 0) {
+            this.players = st.players.map((sp) => {
+              const p = this.createPlayer(
+                sp.id,
+                sp.name,
+                sp.avatar,
+                sp.team,
+                sp.isBot,
+                Boolean(sp.isAdmin),
+                sp.country || 'TR',
+                sp.id === 'host' ? 0 : undefined
+              );
+              p.x = sp.x;
+              p.y = sp.y;
+              p.prevX = sp.x;
+              p.prevY = sp.y;
+              p.vx = sp.vx;
+              p.vy = sp.vy;
+              if (sp.radius) p.radius = sp.radius;
+              return p;
+            });
+          }
+          this.goalPending = false;
+          this.goalBannerTeam = null;
+          this.goalResetTicks = 0;
+          restoredMatch = true;
+        }
+      } catch { /* ignore */ }
+    }
+    if (!restoredMatch) {
+      this.resetMatch();
+    }
 
     if (kind === 'public' || kind === 'private') {
       const code = this.peerMgr.hostRoom({ roomName, password });

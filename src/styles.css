@@ -872,8 +872,11 @@ body.in-room .topbar {
 
 body.in-room .topbar-inner {
   max-width: 100%;
-  justify-content: center;
-  height: 42px;
+  justify-content: space-between;
+  padding: 0 10px;
+  height: auto;
+  min-height: 42px;
+  gap: 8px;
 }
 
 body.in-room #topbar-brand {
@@ -883,23 +886,24 @@ body.in-room #topbar-brand {
 body.in-room #topbar-score {
   pointer-events: auto;
   background: rgba(20, 26, 30, 0.92);
-  padding: 4px 16px;
+  padding: 4px 14px;
   border-radius: 0 0 6px 6px;
-  font-size: 20px;
+  font-size: 19px;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  flex-shrink: 0;
 }
 
 body.in-room #topbar-score .timer {
-  font-size: 17px;
-  margin-left: 16px;
+  font-size: 16px;
+  margin-left: 12px;
 }
 
 body.in-room .topbar-actions {
-  position: fixed;
-  top: 6px;
-  right: 8px;
+  position: static;
   pointer-events: auto;
-  gap: 5px;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 body.in-room .topbar-actions .btn,
