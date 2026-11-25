@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenHax Modern - Haxball</title>
+  <link rel="icon" type="image/png" href="./favicon.png" />
+</head>
+
+<body>
+  <!-- Global Top Bar -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand-or-score">
+        <div id="topbar-brand" class="brand">
+          <span class="brand-ball"></span>
+          <span>OpenHax</span>
+          <span id="user-pill" class="user-pill hidden"></span>
+        </div>
+        <div id="topbar-score" class="scoreboard hidden">
+          <div class="team red"><span class="shirt red"></span><span id="score-red">0</span></div>
+          <span class="sep">-</span>
+          <div class="team blue"><span class="shirt blue"></span><span id="score-blue">0</span></div>
+          <span id="match-timer" class="timer">00:00</span>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <button type="button" id="btn-change-name" class="btn hidden">Ad Değiştir</button>
+        <button type="button" id="btn-pause" class="btn hidden">Duraklat (P)</button>
+        <button type="button" id="btn-reset" class="btn hidden">Sıfırla (R)</button>
+        <button type="button" id="btn-mute" class="btn">Ses: Açık</button>
+        <select id="select-lang" class="btn" title="Dil / Language">
+          <option value="tr">TR</option>
+          <option value="en">EN</option>
+        </select>
+        <button type="button" id="btn-settings" class="btn primary">Performans & Ayarlar (60 FPS)</button>
+        <button type="button" id="btn-debug" class="btn">Debug</button>
+        <button type="button" id="btn-leave-room" class="btn danger hidden">Odadan Çık</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- SCREEN 1: Username Creation -->
+  <section id="view-auth" class="screen center-screen">
+    <div class="card auth-card">
+      <h1>OpenHax'e Hoş Geldin</h1>
+      <p class="subtitle">Sahaya çıkmadan önce oyuncu adını ve avatarını belirle.</p>
+      <div id="invite-notice" class="notice hidden"></div>
+
+      <label class="field">
+        <span>Kullanıcı Adı</span>
+        <input type="text" id="auth-nick" maxlength="16" placeholder="Örn: Kaptan10" autocomplete="nickname" />
+      </label>
+
+      <label class="field">
+        <span>Avatar (Kısa Simge)</span>
+        <div class="avatar-row">
+          <input type="text" id="auth-avatar" maxlength="3" value=":)" class="short" />
+          <div class="avatar-picks">
+            <button type="button" class="btn av-pick" data-av=":)">:)</button>
+            <button type="button" class="btn av-pick" data-av="10">10</button>
+            <button type="button" class="btn av-pick" data-av="★">★</button>
+            <button type="button" class="btn av-pick" data-av="🔥">🔥</button>
+            <button type="button" class="btn av-pick" data-av="⚽">⚽</button>
+          </div>
+        </div>
+      </label>
+
+      <div id="auth-error" class="error-text hidden"></div>
+      <button type="button" id="btn-auth-enter" class="btn primary lg full">Lobiye Gir</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 2: Server / Room Browser & Room Creator -->
+  <section id="view-lobby" class="screen lobby-screen hidden">
+    <div class="lobby-grid">
+      <!-- Left: Room List & Direct Join -->
+      <div class="card lobby-list-card">
+        <div class="card-head">
+          <h2>Odalar / Sunucular</h2>
+          <div class="head-actions">
+            <span id="dir-mode-badge" class="badge">Kontrol ediliyor...</span>
+            <button type="button" id="btn-refresh-rooms" class="btn">Yenile</button>
+          </div>
+        </div>
+
+        <div class="join-direct-bar">
+          <input type="text" id="lobby-search" placeholder="Oda ara..." />
+          <input type="text" id="join-code-input" placeholder="Oda kodu veya davet linki..." />
+          <input type="password" id="join-pass-input" placeholder="Şifre (varsa)" class="short-pass" />
+          <button type="button" id="btn-join-code" class="btn primary">Katıl</button>
+        </div>
+
+        <div id="lobby-error" class="error-text hidden"></div>
+
+        <div class="rooms-table-wrap">
+          <table class="rooms-table">
+            <thead>
+              <tr>
+                <th>Oda Adı</th>
+                <th>Kurucu</th>
+                <th>Saha</th>
+                <th>Oyuncu</th>
+                <th>Durum</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="rooms-tbody"></tbody>
+          </table>
+          <div id="rooms-empty" class="rooms-empty">Henüz açık oda yok. Sağ taraftan yeni bir oda kurabilir veya oda
+            koduyla katılabilirsin.</div>
+        </div>
+      </div>
+
+      <!-- Right: Create Room -->
+      <div class="card lobby-create-card">
+        <div class="card-head">
+          <h2>Yeni Oda Oluştur</h2>
+        </div>
+
+        <label class="field">
+          <span>Oda Adı</span>
+          <input type="text" id="create-name" maxlength="32" placeholder="Dostluk Maçı" />
+        </label>
+
+        <label class="field">
+          <span>Oda Türü</span>
+          <select id="create-type">
+            <option value="public">Online Oda (Listede Görünür · P2P)</option>
+            <option value="private">Özel Online Oda (Sadece Kod/Link · P2P)</option>
+            <option value="offline">Çevrimdışı Oda (Tek PC / Bot)</option>
+            <option value="local2p">2 Kişilik Yerel (Aynı Klavyede)</option>
+          </select>
+        </label>
+
+        <label class="field" id="create-pass-wrap">
+          <span>Şifre (İsteğe Bağlı)</span>
+          <input type="password" id="create-pass" maxlength="20" placeholder="Şifresiz için boş bırak" />
+        </label>
+
+        <div class="two-col">
+          <label class="field">
+            <span>Saha</span>
+            <select id="create-stadium">
+              <option value="classic">OpenHax Klasik (860x460)</option>
+              <option value="big">Büyük Saha (1040x540)</option>
+              <option value="futsal">Futsal (760x400)</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Maks. Oyuncu</span>
+            <select id="create-max">
+              <option value="2">2 Kişi (1v1)</option>
+              <option value="4">4 Kişi (2v2)</option>
+              <option value="6">6 Kişi (3v3)</option>
+              <option value="8" selected>8 Kişi (4v4)</option>
+              <option value="10">10 Kişi (5v5)</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="two-col" id="create-bot-row">
+          <label class="field">
+            <span>Başlangıç Yapay Zeka</span>
+            <select id="create-bots">
+              <option value="1blue">1 Mavi Bot (1v1)</option>
+              <option value="2v2">2v2 (1 Kırmızı + 2 Mavi Bot)</option>
+              <option value="none">Botsuz (0)</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Bot Zorluğu</span>
+            <select id="create-botdiff">
+              <option value="easy">Kolay</option>
+              <option value="medium" selected>Orta</option>
+              <option value="hard">Zor</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="two-col">
+          <label class="field">
+            <span>Oda Fizik Profili</span>
+            <select id="create-physics">
+              <option value="openhax">OpenHax Orijinal (60Hz)</option>
+              <option value="classic_hax">Klasik Haxball (Çevik)</option>
+              <option value="pro_control">Pro Kontrol / Pas</option>
+              <option value="futsal">Futsal / Salon</option>
+              <option value="big_arena">Büyük Saha (4v4)</option>
+              <option value="turbo">Hızlı Arcade</option>
+              <option value="low_gravity">Düşük Sürtünme (Kayan)</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Skor Limiti</span>
+            <select id="create-scorelimit">
+              <option value="0">Limitsiz</option>
+              <option value="3">3 Gol</option>
+              <option value="5" selected>5 Gol</option>
+              <option value="7">7 Gol</option>
+              <option value="10">10 Gol</option>
+            </select>
+          </label>
+        </div>
+
+        <button type="button" id="btn-create-room" class="btn primary lg full">Oda Oluştur ve Oyuna Gir</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREEN 3: Active Room / Match -->
+  <main id="view-room" class="shell hidden">
+    <section class="room-info-bar">
+      <div class="room-meta">
+        <strong id="room-title-label">OpenHax Oda</strong>
+        <span id="room-code-badge" class="net-badge hidden"></span>
+        <span id="net-status" class="net-badge">Yerel</span>
+        <button type="button" id="btn-copy-link" class="btn hidden">Davet Linki Kopyala</button>
+      </div>
+
+      <div class="room-team-controls">
+        <span>Takım:</span>
+        <button type="button" data-team="red" class="btn team-btn red">Kırmızı</button>
+        <button type="button" data-team="blue" class="btn team-btn blue">Mavi</button>
+        <button type="button" data-team="spec" class="btn team-btn">İzleyici</button>
+      </div>
+    </section>
+
+    <section id="host-bot-bar" class="bot-bar">
+      <div class="bot-controls">
+        <span class="bar-label">Yapay Zeka (AI):</span>
+        <button type="button" id="btn-add-red-bot" class="btn team-btn red">+ Kırmızı Bot</button>
+        <button type="button" id="btn-add-blue-bot" class="btn team-btn blue">+ Mavi Bot</button>
+        <button type="button" id="btn-remove-bot" class="btn">Son Botu Çıkar</button>
+        <button type="button" id="btn-clear-bots" class="btn">Botları Temizle</button>
+        <select id="room-botdiff" title="Bot Zorluğu">
+          <option value="easy">Bot: Kolay</option>
+          <option value="medium">Bot: Orta</option>
+          <option value="hard">Bot: Zor</option>
+        </select>
+        <select id="room-stadium" title="Saha Boyutu">
+          <option value="classic">OpenHax Klasik</option>
+          <option value="big">Büyük Saha</option>
+          <option value="futsal">Futsal</option>
+        </select>
+        <select id="room-physics" title="Oda Fizik Profili">
+          <option value="openhax">Fizik: OpenHax</option>
+          <option value="classic_hax">Fizik: Klasik</option>
+          <option value="pro_control">Fizik: Pro Kontrol</option>
+          <option value="futsal">Fizik: Futsal</option>
+          <option value="big_arena">Fizik: Büyük Saha</option>
+          <option value="turbo">Fizik: Turbo</option>
+          <option value="low_gravity">Fizik: Düşük Sürtünme</option>
+        </select>
+      </div>
+      <div id="roster-strip" class="roster-strip"></div>
+    </section>
+
+    <section class="stage-wrap">
+      <canvas id="game-canvas" width="860" height="460"></canvas>
+      <div id="fps-hud" class="fps-hud">60 FPS | 16.7 ms | CPU 0.0 ms</div>
+      <div id="goal-banner" class="overlay-banner hidden"></div>
+      <div id="pause-banner" class="overlay-banner pause hidden"><span>OYUN DURAKLATILDI (P)</span></div>
+    </section>
+
+    <div class="controls-strip">
+      <span id="controls-hint">Ok Tuşları veya W A S D + X / Boşluk</span>
+      <span>R: Sıfırla · P: Duraklat</span>
+    </div>
+
+    <section class="chat-panel">
+      <div id="chat-box" class="chat-box"></div>
+      <div class="chat-row">
+        <input type="text" id="chat-input" placeholder="Odaya mesaj yaz (Enter ile gönder)..." maxlength="140" />
+        <button type="button" id="btn-chat-send" class="btn primary">Gönder</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Performans & Oyun Ayarları Modal -->
+  <div id="settings-modal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>Performans ve Oyun Ayarları</h2>
+        <button type="button" id="btn-settings-close" class="btn">Kapat</button>
+      </div>
+      <div class="modal-body">
+        <div class="presets-bar">
+          <span>Hızlı Profil:</span>
+          <button type="button" data-preset="balanced" class="btn primary">Dengeli (Sınırsız FPS)</button>
+          <button type="button" data-preset="proControl" class="btn primary">Çok Kontrollü (Pro)</button>
+          <button type="button" data-preset="ultraPerformance" class="btn">Maksimum Performans</button>
+          <button type="button" data-preset="powerSaver" class="btn">Güç Tasarrufu (30 FPS)</button>
+          <button type="button" id="btn-settings-reset" class="btn">Varsayılan</button>
+        </div>
+
+        <div class="settings-grid">
+          <div class="settings-col">
+            <h3>FPS ve Görüntü</h3>
+            <label class="row">
+              <span>FPS Limiti</span>
+              <select id="set-fps">
+                <option value="0">Sınırsız (Maksimum FPS)</option>
+                <option value="500">500 FPS</option>
+                <option value="240">240 FPS</option>
+                <option value="144">144 FPS</option>
+                <option value="120">120 FPS</option>
+                <option value="75">75 FPS</option>
+                <option value="60">60 FPS</option>
+                <option value="30">30 FPS (Güç Tasarrufu)</option>
+              </select>
+            </label>
+            <label class="row">
+              <span>Saha Dokusu</span>
+              <select id="set-grass">
+                <option value="hd_stadium">HD Stadyum (Önerilen)</option>
+                <option value="night_neon">Gece Stadyumu (Neon)</option>
+                <option value="standard">Standart Çim (Klasik)</option>
+                <option value="flat">Düz Çizgili Saha (Ultra Hızlı)</option>
+              </select>
+            </label>
+            <label class="row">
+              <span>Top Görünümü</span>
+              <select id="set-ballstyle">
+                <option value="soccer">Gerçekçi Futbol Topu (3D)</option>
+                <option value="classic">Klasik Beyaz Top</option>
+              </select>
+            </label>
+            <label class="row"><span>Top İz Efekti</span><input type="checkbox" id="set-balltrail" /></label>
+            <label class="row">
+              <span>Çözünürlük Ölçeği</span>
+              <select id="set-res">
+                <option value="1">1x (Performans)</option>
+                <option value="2">Yüksek DPI (Retina)</option>
+              </select>
+            </label>
+            <label class="row"><span>Kenar Yumuşatma</span><input type="checkbox" id="set-aa" /></label>
+            <label class="row"><span>Yumuşak Gölgeler</span><input type="checkbox" id="set-shadows" /></label>
+            <label class="row"><span>Gol Parçacıkları</span><input type="checkbox" id="set-particles" /></label>
+            <label class="row"><span>Şut Halkası Efekti</span><input type="checkbox" id="set-kickflash" /></label>
+            <label class="row"><span>FPS / Ping HUD</span><input type="checkbox" id="set-hud" /></label>
+            <label class="row"><span>Arka Planda Duraklat</span><input type="checkbox" id="set-blurpause" /></label>
+          </div>
+
+          <div class="settings-col">
+            <h3>Fizik, Top Kontrolü ve Ses</h3>
+            <label class="row">
+              <span>Fizik Profili</span>
+              <select id="set-physics">
+                <option value="openhax">OpenHax Orijinal (60Hz)</option>
+                <option value="classic_hax">Klasik Haxball (Çevik)</option>
+                <option value="pro_control">Pro Kontrol / Pas</option>
+                <option value="futsal">Futsal / Salon</option>
+                <option value="big_arena">Büyük Saha (4v4)</option>
+                <option value="turbo">Hızlı Arcade</option>
+                <option value="low_gravity">Düşük Sürtünme (Kayan)</option>
+              </select>
+            </label>
+            <label class="row">
+              <span>Top Tutuşu (<span id="lbl-ballctrl">90%</span>)</span>
+              <input type="range" id="set-ballctrl" min="20" max="100" step="2" />
+            </label>
+            <label class="row">
+              <span>Top Kayganlığı (<span id="lbl-balldamp">0.992</span>)</span>
+              <input type="range" id="set-balldamp" min="0.975" max="0.996" step="0.001" />
+            </label>
+            <label class="row">
+              <span>Şut Gücü (<span id="lbl-kickpwr">5.4</span>)</span>
+              <input type="range" id="set-kickpwr" min="3.5" max="8.5" step="0.1" />
+            </label>
+            <label class="row">
+              <span>Oyuncu Hızı (<span id="lbl-pspd">3.3</span>)</span>
+              <input type="range" id="set-pspd" min="2.8" max="5.5" step="0.1" />
+            </label>
+            <label class="row">
+              <span>Duvar Sekmesi (<span id="lbl-wallb">0.78</span>)</span>
+              <input type="range" id="set-wallb" min="0.40" max="0.95" step="0.02" />
+            </label>
+            <label class="row">
+              <span>Varsayılan Bot Zorluğu</span>
+              <select id="set-botdiff">
+                <option value="easy">Kolay</option>
+                <option value="medium">Orta</option>
+                <option value="hard">Zor</option>
+              </select>
+            </label>
+            <label class="row"><span>Ses Efektleri</span><input type="checkbox" id="set-sound" /></label>
+            <label class="row">
+              <span>Ses Seviyesi (<span id="vol-label">60%</span>)</span>
+              <input type="range" id="set-volume" min="0" max="1" step="0.05" />
+            </label>
+            <div class="help-box">
+              <strong>Kontroller:</strong><br />
+              Tek / Online: Ok Tuşları veya W A S D + X / Boşluk<br />
+              2 Kişilik Yerel: Kırmızı W A S D + Boşluk · Mavi Ok Tuşları + X
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Debug Log Modal -->
+  <div id="debug-modal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>Debug ve Hata Kayıtları</h2>
+        <div class="debug-btns">
+          <button type="button" id="btn-debug-copy" class="btn">Kopyala</button>
+          <button type="button" id="btn-debug-clear" class="btn">Temizle</button>
+          <button type="button" id="btn-debug-close" class="btn">Kapat</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div id="debug-log-box" class="debug-log-box"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.ts"></script>
+</body>
+
+</html>
