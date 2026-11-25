@@ -38,6 +38,12 @@ export class RoomDirectory {
     }
   }
 
+  private useFirebase(): boolean {
+    if (!FIREBASE_DB_URL) return false;
+    const isGh = typeof window !== 'undefined' && window.location.hostname.endsWith('github.io');
+    return isGh || this.serverApiWorks === false;
+  }
+
   isServerDirectoryActive(): boolean | null {
     return this.serverApiWorks;
   }
@@ -45,7 +51,7 @@ export class RoomDirectory {
   async listRooms(): Promise<{ rooms: PublicRoomInfo[]; mode: 'server' | 'local' }> {
     const localRooms = this.readLocalRooms();
 
-    if (FIREBASE_DB_URL) {
+    if (this.useFirebase()) {
       try {
         const res = await fetch(`${FIREBASE_DB_URL.replace(/\/$/, '')}/rooms.json`, { cache: 'no-store' });
         if (res.ok) {
@@ -101,7 +107,7 @@ export class RoomDirectory {
     const now = Date.now();
     this.writeLocalRoom({ ...room, updatedAt: now, source: 'local' });
 
-    if (FIREBASE_DB_URL) {
+    if (this.useFirebase()) {
       try {
         const res = await fetch(`${FIREBASE_DB_URL.replace(/\/$/, '')}/rooms/${encodeURIComponent(room.code)}.json`, {
           method: 'PUT',
@@ -135,7 +141,7 @@ export class RoomDirectory {
   async removeRoom(code: string): Promise<void> {
     this.removeLocalRoom(code);
 
-    if (FIREBASE_DB_URL) {
+    if (this.useFirebase()) {
       try {
         await fetch(`${FIREBASE_DB_URL.replace(/\/$/, '')}/rooms/${encodeURIComponent(code)}.json`, {
           method: 'DELETE'
