@@ -128,6 +128,74 @@ function getProfileParams(profile: PhysicsProfile): PhysicsParams {
       maxBallSpeed: 13.0
     };
   }
+  if (profile === 'real_soccer') {
+    return {
+      playerInvMass: 0.7,
+      ballInvMass: 0.85,
+      playerDamping: 0.962,
+      ballDamping: 0.986,
+      playerPlayerRestitution: 0.45,
+      playerBallRestitution: 0.28,
+      playerWorldRestitution: 0.0,
+      ballWorldRestitution: 0.68,
+      accel: 0.145,
+      kickAccel: 0.1,
+      kickImpulse: 6.1,
+      maxPlayerSpeed: 3.65,
+      maxBallSpeed: 11.8
+    };
+  }
+  if (profile === 'ice_hockey') {
+    return {
+      playerInvMass: 0.65,
+      ballInvMass: 1.3,
+      playerDamping: 0.992,
+      ballDamping: 0.997,
+      playerPlayerRestitution: 0.85,
+      playerBallRestitution: 0.45,
+      playerWorldRestitution: 0.25,
+      ballWorldRestitution: 0.9,
+      accel: 0.11,
+      kickAccel: 0.08,
+      kickImpulse: 7.0,
+      maxPlayerSpeed: 4.9,
+      maxBallSpeed: 13.8
+    };
+  }
+  if (profile === 'pinball') {
+    return {
+      playerInvMass: 0.8,
+      ballInvMass: 1.5,
+      playerDamping: 0.97,
+      ballDamping: 0.996,
+      playerPlayerRestitution: 1.15,
+      playerBallRestitution: 0.75,
+      playerWorldRestitution: 0.4,
+      ballWorldRestitution: 1.05,
+      accel: 0.19,
+      kickAccel: 0.14,
+      kickImpulse: 6.6,
+      maxPlayerSpeed: 4.3,
+      maxBallSpeed: 13.5
+    };
+  }
+  if (profile === 'heavy_tank') {
+    return {
+      playerInvMass: 0.35,
+      ballInvMass: 0.75,
+      playerDamping: 0.945,
+      ballDamping: 0.984,
+      playerPlayerRestitution: 1.05,
+      playerBallRestitution: 0.22,
+      playerWorldRestitution: 0.0,
+      ballWorldRestitution: 0.72,
+      accel: 0.115,
+      kickAccel: 0.075,
+      kickImpulse: 6.9,
+      maxPlayerSpeed: 2.85,
+      maxBallSpeed: 11.5
+    };
+  }
   if (profile === 'classic_hax') {
     return {
       playerInvMass: 0.5,

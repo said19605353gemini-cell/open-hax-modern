@@ -76,7 +76,11 @@ export const STADIUMS: Record<StadiumId, StadiumConfig> = {
   huge: buildStadium('huge', 'Dev Stadyum 4v4 (1160x600)', 1160, 600, 44, 36, 94, 28, 96),
   futsal: buildStadium('futsal', 'Futsal (760x400)', 760, 400, 30, 28, 62, 22, 62),
   tiny: buildStadium('tiny', 'Mini 1v1 (660x350)', 660, 350, 28, 26, 54, 20, 52),
-  long: buildStadium('long', 'Uzun Koridor (1080x420)', 1080, 420, 36, 28, 68, 24, 70)
+  long: buildStadium('long', 'Uzun Koridor (1080x420)', 1080, 420, 36, 28, 68, 24, 70),
+  arena_3v3: buildStadium('arena_3v3', '3v3 Orta Arena (960x500)', 960, 500, 36, 32, 78, 24, 80),
+  mini_fast: buildStadium('mini_fast', 'Hızlı 2v2 (720x380)', 720, 380, 28, 26, 60, 20, 58),
+  wide_wing: buildStadium('wide_wing', 'Geniş Kanat (980x580)', 980, 580, 38, 34, 88, 26, 84),
+  penalty_box: buildStadium('penalty_box', 'Ceza Sahası / Şut (640x440)', 640, 440, 28, 28, 86, 22, 56)
 };
 
 export function getStadium(id: StadiumId): StadiumConfig {
