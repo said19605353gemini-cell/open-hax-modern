@@ -4,6 +4,7 @@ const FIXED_STEP_MS = 1000 / 60;
 
 export class GameLoop {
   private rafId: number | null = null;
+  private bgTimer: number | null = null;
   private running = false;
   private lastTickTime = 0;
   private nextFrameTime = 0;
@@ -41,6 +42,12 @@ export class GameLoop {
     this.workMsAccum = 0;
     this.telemetryStart = 0;
     this.rafId = window.requestAnimationFrame(this.frame);
+    if (this.bgTimer !== null) clearInterval(this.bgTimer);
+    this.bgTimer = window.setInterval(() => {
+      if (this.running && document.hidden) {
+        this.onStep();
+      }
+    }, FIXED_STEP_MS);
   }
 
   stop(): void {
@@ -48,6 +55,10 @@ export class GameLoop {
     if (this.rafId !== null) {
       window.cancelAnimationFrame(this.rafId);
       this.rafId = null;
+    }
+    if (this.bgTimer !== null) {
+      clearInterval(this.bgTimer);
+      this.bgTimer = null;
     }
   }
 
