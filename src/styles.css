@@ -1132,3 +1132,36 @@ select option {
   font-size: 11px;
   color: #cbd5e1;
 }
+
+/* HaxBall Topbar Navigation & Diagonal Background */
+body:not(.in-room) {
+  background: repeating-linear-gradient(
+    -45deg,
+    #718c5a,
+    #718c5a 32px,
+    #688251 32px,
+    #688251 64px
+  );
+  min-height: 100vh;
+}
+.topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 10px;
+}
+.nav-link {
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 9px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.nav-link:hover,
+.nav-link.active {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+}

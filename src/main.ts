@@ -454,6 +454,43 @@ class OpenHaxApp {
     el<HTMLButtonElement>('btn-profile-close').addEventListener('click', () => {
       this.profileModal.classList.add('hidden');
     });
+    const infoModal = el<HTMLDivElement>('info-modal');
+    el<HTMLButtonElement>('btn-info-close').addEventListener('click', () => infoModal.classList.add('hidden'));
+    infoModal.addEventListener('click', (e) => {
+      if (e.target === infoModal) infoModal.classList.add('hidden');
+    });
+    document.querySelectorAll<HTMLButtonElement>('[data-nav]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const nav = btn.dataset.nav || 'play';
+        document.querySelectorAll('.nav-link').forEach((n) => n.classList.toggle('active', n === btn));
+        if (nav === 'play') {
+          infoModal.classList.add('hidden');
+          if (this.activeScreen === 'auth') this.authNick.focus();
+          return;
+        }
+        const title = el<HTMLElement>('info-modal-title');
+        const body = el<HTMLDivElement>('info-modal-body');
+        if (nav === 'news') {
+          title.textContent = '📰 Haberler & Güncellemeler';
+          body.textContent =
+            '• Yeni Özel Güç Modları eklendi: Şahin Vuruşu (1.95x), Alevli Şut (1.55x), Hızlı Koşu, Mıknatıs ve Dev Oyuncu!\n' +
+            '• RaidCall tarzı oyunda kalma süresine bağlı rozet sistemi ve canlı Liderlik Tablosu aktif.\n' +
+            '• 60 Hz - 500 Hz arası ayarlanabilir fizik motoru ve 17 farklı saha (.hbs dahil) eklendi.';
+        } else if (nav === 'about') {
+          title.textContent = '⚽ OpenHax Hakkında';
+          body.textContent =
+            'OpenHaxModern, tarayıcı üzerinden kurulumsuz oynanabilen modern, açık kaynaklı 2D çok oyunculu futbol oyunudur. ' +
+            'WebRTC (P2P) altyapısı ile düşük ping sunar ve oda kurucusu ayrıldığında sahipliği otomatik olarak sıradaki oyuncuya devreder.';
+        } else {
+          title.textContent = '🌐 Topluluk & Bağlantılar';
+          body.textContent =
+            'GitHub Deposu: https://github.com/said19605353gemini-cell/open-hax-modern — ' +
+            'Arkadaşlarınızı davet linkiyle odanıza çağırabilir, üye profili açarak gol ve kurtarma sıralamasında yarışabilirsiniz.';
+        }
+        body.style.whiteSpace = 'pre-line';
+        infoModal.classList.remove('hidden');
+      });
+    });
     this.profileModal.addEventListener('click', (e) => {
       if (e.target === this.profileModal) this.profileModal.classList.add('hidden');
     });
