@@ -19,6 +19,7 @@ import {
 import {
   ALL_COUNTRY_CODES,
   createFlagEl,
+  DEFAULT_YOUTUBE_CLIENT_ID,
   getCountryLabel,
   LANG_TO_FLAG,
   loadSettings,
@@ -504,6 +505,7 @@ class OpenHaxApp {
     el<HTMLButtonElement>('btn-topbar-menu').classList.toggle('hidden', !inRoom);
     el<HTMLButtonElement>('btn-toggle-roombars').classList.toggle('hidden', !inRoom);
     el<HTMLButtonElement>('btn-record').classList.toggle('hidden', !inRoom);
+    el<HTMLButtonElement>('btn-room-yt-connect').classList.toggle('hidden', !inRoom);
     el<HTMLSelectElement>('room-yt-privacy').classList.toggle('hidden', !inRoom);
     if (!inRoom) {
       el<HTMLButtonElement>('btn-record-pause').classList.add('hidden');
@@ -962,6 +964,7 @@ class OpenHaxApp {
     });
     el<HTMLButtonElement>('btn-record').addEventListener('click', () => this.toggleMatchRecording());
     el<HTMLButtonElement>('btn-record-pause').addEventListener('click', () => this.togglePauseRecording());
+    el<HTMLButtonElement>('btn-room-yt-connect').addEventListener('click', () => void this.connectYouTube());
     el<HTMLSelectElement>('room-yt-privacy').addEventListener('change', (e) => {
       const pv = (e.target as HTMLSelectElement).value as GameSettings['youtubePrivacy'];
       el<HTMLSelectElement>('set-yt-privacy').value = pv || 'unlisted';
@@ -3207,11 +3210,20 @@ class OpenHaxApp {
 
   private connectYouTube(): Promise<string | null> {
     return new Promise((resolve) => {
-      const clientId = (this.settings.youtubeClientId || '').trim();
+      const clientId = (this.settings.youtubeClientId || DEFAULT_YOUTUBE_CLIENT_ID).trim();
       const statusEl = el<HTMLSpanElement>('yt-auth-status');
+      const roomBtn = el<HTMLButtonElement>('btn-room-yt-connect');
       if (!clientId) {
         statusEl.textContent = 'Client ID gerekli';
-        window.alert('Önce Ayarlar → Çeşitli bölümüne Google Cloud YouTube OAuth Client ID girin.');
+        const entered = window.prompt(
+          'YouTube hesabını bağlayıp onaylamak için sitenin Google OAuth Client ID bilgisini girin\n(Google Cloud Console → APIs & Services → Credentials → Web Client ID):'
+        );
+        if (entered && entered.trim()) {
+          this.updateSettings({ youtubeClientId: entered.trim() });
+          el<HTMLInputElement>('set-yt-clientid').value = entered.trim();
+          void this.connectYouTube().then(resolve);
+          return;
+        }
         resolve(null);
         return;
       }
@@ -3223,7 +3235,7 @@ class OpenHaxApp {
                 client_id: string;
                 scope: string;
                 callback: (resp: { access_token?: string; error?: string }) => void;
-              }) => { requestAccessToken: () => void };
+              }) => { requestAccessToken: (opts?: { prompt?: string }) => void };
             };
           };
         };
@@ -3240,6 +3252,8 @@ class OpenHaxApp {
           if (resp && resp.access_token) {
             this.ytAccessToken = resp.access_token;
             statusEl.textContent = 'Bağlı ✓';
+            roomBtn.textContent = '📺 YT Bağlı ✓';
+            roomBtn.classList.add('primary');
             resolve(resp.access_token);
           } else {
             statusEl.textContent = 'Bağlantı başarısız';
@@ -3247,13 +3261,14 @@ class OpenHaxApp {
           }
         }
       });
-      client.requestAccessToken();
+      client.requestAccessToken({ prompt: 'consent select_account' });
     });
   }
 
   private async uploadVideoToYouTube(blob: Blob): Promise<void> {
     let token = this.ytAccessToken;
-    if (!token && this.settings.youtubeClientId) {
+    const hasClientId = Boolean((this.settings.youtubeClientId || DEFAULT_YOUTUBE_CLIENT_ID).trim());
+    if (!token && hasClientId) {
       token = await this.connectYouTube();
     }
     if (!token) return;
@@ -3344,7 +3359,8 @@ class OpenHaxApp {
       };
       rec.onstop = () => {
         const blob = new Blob(this.recordedChunks, { type: 'video/webm' });
-        if (this.ytAccessToken || this.settings.youtubeClientId) {
+        const hasClientId = Boolean((this.settings.youtubeClientId || DEFAULT_YOUTUBE_CLIENT_ID).trim());
+        if (this.ytAccessToken || hasClientId) {
           void this.uploadVideoToYouTube(blob);
         } else {
           this.addChat(

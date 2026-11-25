@@ -3,6 +3,9 @@ import { Lang } from '../i18n';
 
 const STORAGE_KEY = 'openhax_modern_settings_v2';
 
+// Site-wide Google OAuth Web Client ID for YouTube Data API v3 (public identifier, each player signs into their own YouTube account)
+export const DEFAULT_YOUTUBE_CLIENT_ID = '';
+
 export const LANG_TO_FLAG: Record<Lang, string> = {
   tr: 'TR', en: 'GB', az: 'AZ', de: 'DE', fr: 'FR', es: 'ES', pt: 'BR', it: 'IT', nl: 'NL', pl: 'PL', ru: 'RU', ar: 'SA',
   uk: 'UA', ro: 'RO', el: 'GR', cs: 'CZ', hu: 'HU', sv: 'SE', no: 'NO', da: 'DK', fi: 'FI', bg: 'BG', sr: 'RS', hr: 'HR',
