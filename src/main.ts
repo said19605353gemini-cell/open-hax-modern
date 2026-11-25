@@ -2446,7 +2446,7 @@ class OpenHaxApp {
         cur.isAdmin = Boolean(sp.adm);
         cur.country = sp.ct;
         cur.ping = sp.pg;
-        cur.customColor = sp.cc;
+        cur.customColor = sp.cc && /^#[0-9a-f]{6}$/i.test(sp.cc) ? sp.cc : undefined;
         cur.powerup = sp.pw || null;
         cur.kickFlashTicks = sp.kf;
         updated.push(cur);
