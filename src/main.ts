@@ -1,3 +1,4 @@
+import 'flag-icons/css/flag-icons.min.css';
 import './styles.css';
 import {
   BallEntity,
@@ -15,7 +16,15 @@ import {
   StadiumId,
   Team
 } from './types';
-import { countryFlag, loadSettings, PERFORMANCE_PRESETS, saveSettings } from './game/settings';
+import {
+  ALL_COUNTRY_CODES,
+  createFlagEl,
+  getCountryLabel,
+  LANG_TO_FLAG,
+  loadSettings,
+  PERFORMANCE_PRESETS,
+  saveSettings
+} from './game/settings';
 import { censorText } from './game/profanity';
 import { getStadium } from './game/stadiums';
 import { resetPositionsForKickoff, stepPhysicsTick } from './game/physics';
@@ -153,6 +162,8 @@ class OpenHaxApp {
   private authNick = el<HTMLInputElement>('auth-nick');
   private authAvatar = el<HTMLInputElement>('auth-avatar');
   private authCountry = el<HTMLSelectElement>('auth-country');
+  private syncLangSelectUi?: () => void;
+  private syncCountrySelectUi?: () => void;
   private authPass = el<HTMLInputElement>('auth-pass');
   private authError = el<HTMLDivElement>('auth-error');
   private btnProfile = el<HTMLButtonElement>('btn-profile');
@@ -277,7 +288,20 @@ class OpenHaxApp {
 
     this.authNick.value = this.settings.nickname || '';
     this.authAvatar.value = this.settings.avatar || ':)';
+    this.populateCountrySelect(this.settings.lang || 'tr');
     this.authCountry.value = this.settings.country || 'TR';
+    this.syncLangSelectUi = this.enhanceFlagSelect(
+      el<HTMLSelectElement>('select-lang'),
+      (val) => LANG_TO_FLAG[val as Lang] || 'TR',
+      false,
+      false
+    );
+    this.syncCountrySelectUi = this.enhanceFlagSelect(
+      this.authCountry,
+      (val) => val,
+      true,
+      true
+    );
     this.myProfile = this.profileSvc.loadLocal();
     void this.profileSvc.fetchLeaderboard(30).then((all) => {
       const box = el<HTMLDivElement>('auth-top-stats');
@@ -294,26 +318,41 @@ class OpenHaxApp {
       byGoals.forEach((p, idx) => {
         const tr = document.createElement('tr');
         const bdg = getTimeBadge(p.playSeconds || 0);
-        [String(idx + 1), `${bdg.icon} ${countryFlag(p.country)} ${p.username}`, String(p.goals || 0), String(p.saves || 0)].forEach((txt) => {
-          const td = document.createElement('td');
-          td.textContent = txt;
-          tr.appendChild(td);
-        });
+        const tdRank = document.createElement('td');
+        tdRank.textContent = String(idx + 1);
+        const tdPlayer = document.createElement('td');
+        tdPlayer.append(bdg.icon + ' ', createFlagEl(p.country), ' ' + p.username);
+        const tdGoals = document.createElement('td');
+        tdGoals.textContent = String(p.goals || 0);
+        const tdSaves = document.createElement('td');
+        tdSaves.textContent = String(p.saves || 0);
+        tr.append(tdRank, tdPlayer, tdGoals, tdSaves);
         goalsBody.appendChild(tr);
       });
       byTime.forEach((p, idx) => {
         const tr = document.createElement('tr');
         const bdg = getTimeBadge(p.playSeconds || 0);
-        [String(idx + 1), `${countryFlag(p.country)} ${p.username}`, bdg.icon, formatPlayTime(p.playSeconds || 0)].forEach((txt) => {
-          const td = document.createElement('td');
-          td.textContent = txt;
-          tr.appendChild(td);
-        });
+        const tdRank = document.createElement('td');
+        tdRank.textContent = String(idx + 1);
+        const tdPlayer = document.createElement('td');
+        tdPlayer.append(createFlagEl(p.country), ' ' + p.username);
+        const tdBdg = document.createElement('td');
+        tdBdg.textContent = bdg.icon;
+        const tdTime = document.createElement('td');
+        tdTime.textContent = formatPlayTime(p.playSeconds || 0);
+        tr.append(tdRank, tdPlayer, tdBdg, tdTime);
         timeBody.appendChild(tr);
       });
       const bestGoal = byGoals[0];
       const bestTime = byTime[0];
-      box.textContent = `🏆 Gol Kralı: ${countryFlag(bestGoal.country)} ${bestGoal.username} (${bestGoal.goals || 0})  ·  ⏱️ En Çok Süre: ${countryFlag(bestTime.country)} ${bestTime.username} (${formatPlayTime(bestTime.playSeconds || 0)})`;
+      box.textContent = '';
+      box.append(
+        '🏆 Gol Kralı: ',
+        createFlagEl(bestGoal.country),
+        ` ${bestGoal.username} (${bestGoal.goals || 0})  ·  ⏱️ En Çok Süre: `,
+        createFlagEl(bestTime.country),
+        ` ${bestTime.username} (${formatPlayTime(bestTime.playSeconds || 0)})`
+      );
     });
     window.setInterval(() => {
       if (this.activeScreen === 'room' && this.myProfile) {
@@ -561,7 +600,8 @@ class OpenHaxApp {
           div.className = 'chat-msg';
           const nickSpan = document.createElement('span');
           nickSpan.className = 'nick';
-          nickSpan.textContent = `${m.badge || ''} ${countryFlag(m.country)} ${censorText(String(m.author || 'Oyuncu').slice(0, 20))}: `;
+          if (m.badge) nickSpan.append(m.badge + ' ');
+          nickSpan.append(createFlagEl(m.country), ` ${censorText(String(m.author || 'Oyuncu').slice(0, 20))}: `);
           const msgSpan = document.createElement('span');
           msgSpan.textContent = censorText(String(m.text).slice(0, 160));
           div.appendChild(nickSpan);
@@ -671,8 +711,11 @@ class OpenHaxApp {
           });
         }
         const label = document.createElement('span');
-        const flag = p.isBot ? '🤖' : countryFlag(p.country);
-        label.textContent = flag + ' ' + (p.isAdmin ? '★ ' : '') + p.avatar + ' ' + p.name;
+        if (p.isBot) {
+          label.textContent = '🤖 ' + (p.isAdmin ? '★ ' : '') + p.avatar + ' ' + p.name;
+        } else {
+          label.append(createFlagEl(p.country), ' ' + (p.isAdmin ? '★ ' : '') + p.avatar + ' ' + p.name);
+        }
         const pingSpan = document.createElement('span');
         pingSpan.style.opacity = '0.75';
         pingSpan.style.fontSize = '12px';
@@ -1229,7 +1272,7 @@ class OpenHaxApp {
     const title = document.createElement('strong');
     title.style.fontSize = '16px';
     const timeBadge = getTimeBadge(profile.playSeconds || 0);
-    title.textContent = `${timeBadge.icon} ${countryFlag(profile.country)} ${profile.avatar} ${profile.username}`;
+    title.append(timeBadge.icon + ' ', createFlagEl(profile.country), ` ${profile.avatar} ${profile.username}`);
     const badge = document.createElement('span');
     badge.style.fontSize = '11px';
     badge.style.color = profile.passHash ? '#7ee787' : '#cbd5e1';
@@ -1279,10 +1322,10 @@ class OpenHaxApp {
       const tr = document.createElement('tr');
       const favM = topRecordKey(p.modes);
       const bdg = getTimeBadge(p.playSeconds || 0);
-      const cells = [
+      const cells: Array<string | HTMLElement[]> = [
         String(idx + 1),
         bdg.icon,
-        `${countryFlag(p.country)} ${p.username}`,
+        [createFlagEl(p.country), document.createTextNode(' ' + p.username) as unknown as HTMLElement],
         String(p.goals || 0),
         String(p.saves || 0),
         formatPlayTime(p.playSeconds || 0),
@@ -1290,7 +1333,11 @@ class OpenHaxApp {
       ];
       cells.forEach((c) => {
         const td = document.createElement('td');
-        td.textContent = c;
+        if (Array.isArray(c)) {
+          td.append(...c);
+        } else {
+          td.textContent = c;
+        }
         tr.appendChild(td);
       });
       tr.style.cursor = 'pointer';
@@ -1384,7 +1431,7 @@ class OpenHaxApp {
 
       const tdFlag = document.createElement('td');
       const roomCountry = (r.country || 'TR').toUpperCase();
-      tdFlag.textContent = countryFlag(roomCountry) + ' ' + roomCountry;
+      tdFlag.append(createFlagEl(roomCountry), ' ' + roomCountry);
 
       const tdName = document.createElement('td');
       tdName.textContent = r.name;
@@ -1739,9 +1786,13 @@ class OpenHaxApp {
       const p = this.players[i];
       const chip = document.createElement('span');
       chip.className = 'roster-chip ' + p.team + (p.isAdmin ? ' admin' : '');
-      const flagPrefix = p.isBot ? '🤖 ' : countryFlag(p.country) + ' ';
       const pingSuffix = !p.isBot && typeof p.ping === 'number' ? ' (' + p.ping + 'ms)' : '';
-      chip.textContent = flagPrefix + (p.isAdmin ? '★ ' : '') + (p.isBot ? '[BOT] ' : '') + p.name + pingSuffix;
+      const restText = (p.isAdmin ? '★ ' : '') + (p.isBot ? '[BOT] ' : '') + p.name + pingSuffix;
+      if (p.isBot) {
+        chip.textContent = '🤖 ' + restText;
+      } else {
+        chip.append(createFlagEl(p.country), ' ' + restText);
+      }
       if (isAdmin && p.id !== 'host') {
         chip.title = 'Sağ tıkla: Admin / Takım / At';
         chip.style.cursor = 'context-menu';
@@ -1983,8 +2034,109 @@ class OpenHaxApp {
     this.applyLanguage();
   }
 
+  private populateCountrySelect(lang: Lang): void {
+    const prev = this.authCountry.value || this.settings.country || 'TR';
+    this.authCountry.textContent = '';
+    for (const code of ALL_COUNTRY_CODES) {
+      const opt = document.createElement('option');
+      opt.value = code;
+      opt.textContent = getCountryLabel(code, lang);
+      this.authCountry.appendChild(opt);
+    }
+    this.authCountry.value = ALL_COUNTRY_CODES.includes(prev) ? prev : 'TR';
+  }
+
+  private enhanceFlagSelect(
+    selectEl: HTMLSelectElement,
+    getFlagCode: (value: string) => string,
+    fullWidth: boolean,
+    searchable: boolean
+  ): () => void {
+    const wrap = document.createElement('div');
+    wrap.className = 'flag-select' + (fullWidth ? ' full' : '');
+    selectEl.parentNode?.insertBefore(wrap, selectEl);
+    wrap.appendChild(selectEl);
+    selectEl.classList.add('sr-only-select');
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'flag-select-btn';
+    const mainSpan = document.createElement('span');
+    mainSpan.className = 'flag-select-main';
+    const arrow = document.createElement('span');
+    arrow.textContent = '▾';
+    btn.append(mainSpan, arrow);
+
+    const menu = document.createElement('div');
+    menu.className = 'flag-select-menu hidden';
+
+    wrap.append(btn, menu);
+
+    let searchInput: HTMLInputElement | null = null;
+    const renderOptions = (filter = '') => {
+      menu.textContent = '';
+      if (searchable) {
+        if (!searchInput) {
+          searchInput = document.createElement('input');
+          searchInput.type = 'text';
+          searchInput.className = 'flag-select-search';
+          searchInput.placeholder = '🔍 ...';
+          searchInput.addEventListener('click', (e) => e.stopPropagation());
+          searchInput.addEventListener('input', () => renderOptions(searchInput?.value || ''));
+        }
+        menu.appendChild(searchInput);
+      }
+      const q = filter.trim().toLowerCase();
+      for (const opt of Array.from(selectEl.options)) {
+        const txt = opt.textContent || opt.value;
+        if (q && !txt.toLowerCase().includes(q) && !opt.value.toLowerCase().includes(q)) continue;
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'flag-select-opt' + (opt.value === selectEl.value ? ' selected' : '');
+        item.append(createFlagEl(getFlagCode(opt.value)), document.createTextNode(txt));
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectEl.value = opt.value;
+          selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+          menu.classList.add('hidden');
+          sync();
+        });
+        menu.appendChild(item);
+      }
+      if (searchable && searchInput) {
+        window.setTimeout(() => searchInput?.focus(), 0);
+      }
+    };
+
+    const sync = () => {
+      const selected = selectEl.selectedOptions[0] || selectEl.options[0];
+      mainSpan.textContent = '';
+      if (selected) {
+        mainSpan.append(createFlagEl(getFlagCode(selected.value)), document.createTextNode(selected.textContent || selected.value));
+      }
+    };
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const willOpen = menu.classList.contains('hidden');
+      document.querySelectorAll('.flag-select-menu').forEach((m) => m.classList.add('hidden'));
+      if (willOpen) {
+        if (searchInput) searchInput.value = '';
+        renderOptions('');
+        menu.classList.remove('hidden');
+      }
+    });
+    document.addEventListener('click', () => menu.classList.add('hidden'));
+    selectEl.addEventListener('change', sync);
+    sync();
+    return sync;
+  }
+
   private applyLanguage(): void {
     const l = this.settings.lang || 'tr';
+    this.populateCountrySelect(l);
+    this.syncLangSelectUi?.();
+    this.syncCountrySelectUi?.();
     const setText = (sel: string, key: string) => {
       const node = document.querySelector(sel);
       if (node) node.textContent = t(l, key);

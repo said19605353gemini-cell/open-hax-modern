@@ -1217,3 +1217,103 @@ body:not(.in-room) {
   margin: 0 0 10px 0;
   font-size: 17px;
 }
+
+.flag-badge {
+  display: inline-block;
+  width: 1.33em;
+  height: 1em;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.22);
+  vertical-align: -0.14em;
+  flex-shrink: 0;
+}
+.flag-globe {
+  display: inline-block;
+  line-height: 1;
+  vertical-align: -0.1em;
+  flex-shrink: 0;
+}
+.sr-only-select {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.flag-select {
+  position: relative;
+  display: inline-block;
+}
+.flag-select.full {
+  display: block;
+  width: 100%;
+}
+.flag-select-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  justify-content: space-between;
+  text-align: left;
+  cursor: pointer;
+  background: rgba(15, 23, 42, 0.72);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+.flag-select-btn .flag-select-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.flag-select-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 100%;
+  width: max-content;
+  max-width: 300px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: #1e1916;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 6px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+  z-index: 9999;
+  padding: 4px;
+}
+.flag-select-search {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 4px;
+  padding: 6px 8px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+}
+.flag-select-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #f1f5f9;
+  font-size: 13px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: left;
+}
+.flag-select-opt:hover,
+.flag-select-opt.selected {
+  background: rgba(59, 130, 246, 0.28);
+}
