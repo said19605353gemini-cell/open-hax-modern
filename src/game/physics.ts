@@ -533,6 +533,7 @@ export function stepPhysicsTick(
         p,
         Math.max(0, botIndex),
         teamList.length,
+        activePlayers,
         ball,
         stadium,
         botDifficulty,
