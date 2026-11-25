@@ -70,6 +70,8 @@ export class PeerManager {
   private hostConn: DataConnection | null = null;
   private clientConns = new Map<string, DataConnection>();
   private clientNames = new Map<string, string>();
+  private clientLastChat = new Map<string, number>();
+  private clientLastTeam = new Map<string, number>();
   private pingTimer: number | null = null;
   private lastGuestRtt: number | null = null;
   private role: PeerRole = 'offline';
@@ -128,6 +130,7 @@ export class PeerManager {
         const pkt = raw as NetPacket;
         if (!pkt || typeof pkt !== 'object') return;
         if (pkt.type === 'join') {
+          if (this.clientConns.has(conn.peer)) return;
           if (this.roomPassword && (pkt.password || '').trim() !== this.roomPassword) {
             conn.send({ type: 'auth_error', reason: 'Oda sifresi yanlis!' } satisfies NetPacket);
             setTimeout(() => {
@@ -162,10 +165,16 @@ export class PeerManager {
           if (pkt.type === 'input') {
             this.cb.onPeerInput(conn.peer, (Number(pkt.bits) || 0) & 31);
           } else if (pkt.type === 'team') {
+            const now = performance.now();
+            if (now - (this.clientLastTeam.get(conn.peer) || 0) < 400) return;
+            this.clientLastTeam.set(conn.peer, now);
             if (pkt.team === 'red' || pkt.team === 'blue' || pkt.team === 'spec') {
               this.cb.onPeerTeam(conn.peer, pkt.team);
             }
           } else if (pkt.type === 'chat') {
+            const now = performance.now();
+            if (now - (this.clientLastChat.get(conn.peer) || 0) < 600) return;
+            this.clientLastChat.set(conn.peer, now);
             const verifiedAuthor = this.clientNames.get(conn.peer) || 'Misafir';
             const cleanText = censorText(String(pkt.text || '').trim().slice(0, 180));
             if (!cleanText) return;
@@ -182,6 +191,8 @@ export class PeerManager {
         if (this.clientConns.has(conn.peer)) {
           this.clientConns.delete(conn.peer);
           this.clientNames.delete(conn.peer);
+          this.clientLastChat.delete(conn.peer);
+          this.clientLastTeam.delete(conn.peer);
           this.cb.onPeerLeave(conn.peer);
           this.cb.onStatus('host', 'Oda acik (' + (this.clientConns.size + 1) + ' kisi)', this.roomCode);
         }
@@ -383,6 +394,8 @@ export class PeerManager {
     });
     this.clientConns.clear();
     this.clientNames.clear();
+    this.clientLastChat.clear();
+    this.clientLastTeam.clear();
     if (this.hostConn) {
       try { this.hostConn.close(); } catch {}
       this.hostConn = null;
