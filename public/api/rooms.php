@@ -5,7 +5,7 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 
 $storeFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'openhax_modern_rooms.json';
-$ttlSeconds = 25;
+$ttlSeconds = 90;
 $now = time();
 
 function loadRooms(string $file, int $now, int $ttl): array {

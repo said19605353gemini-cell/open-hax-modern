@@ -88,6 +88,7 @@ class OpenHaxApp {
   private pendingNetEvents = 0;
 
   private roomsCache: PublicRoomInfo[] = [];
+  private refreshingRooms = false;
   private lobbyPollTimer: number | null = null;
   private heartbeatTimer: number | null = null;
 
@@ -779,13 +780,19 @@ class OpenHaxApp {
   }
 
   private async refreshRoomList(): Promise<void> {
-    const { rooms, mode } = await this.directory.listRooms();
-    this.roomsCache = rooms;
-    this.dirModeBadge.textContent =
-      mode === 'server'
-        ? 'Canlı Sunucu Listesi (Hosting)'
-        : 'Yerel Liste / Davet Linki Modu';
-    this.renderRoomsTable();
+    if (this.refreshingRooms) return;
+    this.refreshingRooms = true;
+    try {
+      const { rooms, mode } = await this.directory.listRooms();
+      this.roomsCache = rooms;
+      this.dirModeBadge.textContent =
+        mode === 'server'
+          ? 'Canlı Sunucu Listesi (Hosting)'
+          : 'Yerel Liste / Davet Linki Modu';
+      this.renderRoomsTable();
+    } finally {
+      this.refreshingRooms = false;
+    }
   }
 
   private renderRoomsTable(): void {
@@ -952,6 +959,13 @@ class OpenHaxApp {
 
     publishNow();
     this.heartbeatTimer = window.setInterval(publishNow, 8000);
+    const onPageExit = () => {
+      if (this.peerMgr.getRole() === 'host' && this.peerMgr.getRoomCode() === code) {
+        void this.directory.removeRoom(code);
+      }
+    };
+    window.addEventListener('pagehide', onPageExit, { once: true });
+    window.addEventListener('beforeunload', onPageExit, { once: true });
   }
 
   private stopRoomHeartbeat(): void {
