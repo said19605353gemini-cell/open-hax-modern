@@ -735,10 +735,36 @@ class OpenHaxApp {
     };
 
     bindSelect('set-fps', (v) => this.updateSettings({ fpsLimit: Number(v) }));
+    bindSelect('set-viewport', (v) => this.updateSettings({ viewportMode: v as GameSettings['viewportMode'] }));
     bindSelect('set-grass', (v) => this.updateSettings({ grassDetail: v as GameSettings['grassDetail'] }));
     bindSelect('set-ballstyle', (v) => this.updateSettings({ ballStyle: v as GameSettings['ballStyle'] }));
     bindCheck('set-balltrail', (v) => this.updateSettings({ ballTrail: v }));
     bindSelect('set-res', (v) => this.updateSettings({ resolution: Number(v) }));
+    bindCheck('set-lowlatency', (v) => this.updateSettings({ lowLatencyCanvas: v }));
+    bindCheck('set-customcolors', (v) => this.updateSettings({ customTeamColors: v }));
+    bindCheck('set-chatind', (v) => this.updateSettings({ showChatIndicators: v }));
+    bindCheck('set-avatars', (v) => this.updateSettings({ showPlayerAvatars: v }));
+    el<HTMLInputElement>('set-chatopacity').addEventListener('input', (e) => {
+      const val = Number((e.target as HTMLInputElement).value);
+      el<HTMLSpanElement>('lbl-chatopacity').textContent = val.toFixed(1);
+      this.updateSettings({ chatOpacity: val });
+    });
+    el<HTMLInputElement>('set-chatheight').addEventListener('input', (e) => {
+      const val = Number((e.target as HTMLInputElement).value);
+      el<HTMLSpanElement>('lbl-chatheight').textContent = String(val);
+      this.updateSettings({ chatFocusHeight: val });
+    });
+    bindSelect('set-chatwidth', (v) => this.updateSettings({ chatWidth: v as GameSettings['chatWidth'] }));
+
+    this.settingsModal.querySelectorAll<HTMLButtonElement>('.hax-tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const key = tab.dataset.tab || 'video';
+        this.settingsModal.querySelectorAll('.hax-tab').forEach((btn) => btn.classList.toggle('active', btn === tab));
+        this.settingsModal.querySelectorAll<HTMLElement>('.hax-tab-pane').forEach((pane) => {
+          pane.classList.toggle('hidden', pane.dataset.pane !== key);
+        });
+      });
+    });
     bindCheck('set-aa', (v) => this.updateSettings({ antialias: v }));
     bindCheck('set-shadows', (v) => this.updateSettings({ shadows: v }));
     bindCheck('set-particles', (v) => this.updateSettings({ particles: v }));
@@ -1243,15 +1269,33 @@ class OpenHaxApp {
     if (this.peerMgr.getRole() !== 'guest') {
       this.stadium = getStadium(this.settings.stadium);
     }
+    const rootStyle = document.documentElement.style;
+    rootStyle.setProperty('--chat-opacity', String(this.settings.chatOpacity ?? 0.8));
+    rootStyle.setProperty('--chat-focus-h', (this.settings.chatFocusHeight ?? 140) + 'px');
+    document.body.classList.toggle('chat-full', this.settings.chatWidth === 'full');
+    document.body.classList.toggle('vp-full', this.settings.viewportMode === 'full');
+    document.body.classList.toggle('vp-restricted', this.settings.viewportMode === 'restricted');
   }
 
   private syncSettingsToUI(): void {
     const s = this.settings;
     el<HTMLSelectElement>('set-fps').value = String(s.fpsLimit);
+    el<HTMLSelectElement>('set-viewport').value = s.viewportMode || 'dynamic';
     el<HTMLSelectElement>('set-grass').value = s.grassDetail;
     el<HTMLSelectElement>('set-ballstyle').value = s.ballStyle;
     el<HTMLInputElement>('set-balltrail').checked = s.ballTrail;
     el<HTMLSelectElement>('set-res').value = String(s.resolution);
+    el<HTMLInputElement>('set-lowlatency').checked = s.lowLatencyCanvas !== false;
+    el<HTMLInputElement>('set-customcolors').checked = s.customTeamColors !== false;
+    el<HTMLInputElement>('set-chatind').checked = s.showChatIndicators !== false;
+    el<HTMLInputElement>('set-avatars').checked = s.showPlayerAvatars !== false;
+    const chatOp = s.chatOpacity ?? 0.8;
+    el<HTMLInputElement>('set-chatopacity').value = String(chatOp);
+    el<HTMLSpanElement>('lbl-chatopacity').textContent = Number(chatOp).toFixed(1);
+    const chatH = s.chatFocusHeight ?? 140;
+    el<HTMLInputElement>('set-chatheight').value = String(chatH);
+    el<HTMLSpanElement>('lbl-chatheight').textContent = String(chatH);
+    el<HTMLSelectElement>('set-chatwidth').value = s.chatWidth || 'compact';
     el<HTMLInputElement>('set-aa').checked = s.antialias;
     el<HTMLInputElement>('set-shadows').checked = s.shadows;
     el<HTMLInputElement>('set-particles').checked = s.particles;

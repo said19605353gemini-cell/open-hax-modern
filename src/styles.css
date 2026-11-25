@@ -984,3 +984,113 @@ body.in-room .chat-row input {
   padding: 4px 8px;
   font-size: 12px;
 }
+
+/* HaxBall Settings Modal Design */
+.hax-settings-card {
+  background: #1a2127;
+  border: 1px solid #2b3842;
+  width: min(460px, 94vw);
+  border-radius: 6px;
+}
+.hax-settings-head {
+  border-bottom: 2px solid #c94646;
+  padding-bottom: 8px;
+}
+.hax-close-btn {
+  background: #274863;
+  border-color: #366385;
+}
+.hax-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin: 12px 0 14px 0;
+}
+.hax-tab {
+  background: #23384a;
+  border: 1px solid #304b61;
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+.hax-tab:first-child { border-radius: 4px 0 0 4px; }
+.hax-tab:last-child { border-radius: 0 4px 4px 0; }
+.hax-tab.active {
+  background: #2c4c68;
+  color: #ffffff;
+  border-color: #4678a3;
+}
+.hax-tab-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.hax-opt-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.hax-opt-row select {
+  background: #244562;
+  color: #fff;
+  border: 1px solid #356084;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+.hax-opt-row input[type="range"] {
+  flex: 1;
+  accent-color: #3a9bdc;
+}
+.hax-val {
+  min-width: 34px;
+  font-size: 12px;
+  color: #e2e8f0;
+  font-variant-numeric: tabular-nums;
+}
+.hax-check-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.hax-check-row input {
+  accent-color: #3a9bdc;
+  width: 15px;
+  height: 15px;
+}
+.hax-sep {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 4px 0;
+}
+.hax-txt-in {
+  width: 170px;
+  background: #141a1f;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 12px;
+}
+body.in-room .chat-panel {
+  opacity: var(--chat-opacity, 0.8);
+}
+body.in-room.chat-full .chat-panel {
+  width: min(760px, 95vw);
+}
+body.in-room .chat-panel:focus-within .chat-box {
+  height: var(--chat-focus-h, 140px);
+}
+body.in-room.vp-full #game-canvas {
+  max-width: 99vw;
+  max-height: calc(100vh - 44px);
+}
+body.in-room.vp-restricted #game-canvas {
+  max-width: 860px;
+  max-height: 480px;
+}

@@ -46,7 +46,7 @@ export class CanvasRenderer {
   }
 
   private ensureConfig(stadium: StadiumConfig, settings: GameSettings): void {
-    const dpr = settings.resolution === 2 ? Math.min(2, window.devicePixelRatio || 1) : 1;
+    const dpr = settings.resolution > 1 ? Math.min(settings.resolution, window.devicePixelRatio || settings.resolution) : 1;
     const key = [
       stadium.id,
       settings.grassDetail,
@@ -343,11 +343,13 @@ export class CanvasRenderer {
       ctx.stroke();
 
       // Upright avatar
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 13px "Segoe UI", Arial, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(p.avatar, rx, ry + 0.5);
+      if (settings.showPlayerAvatars !== false) {
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 13px "Segoe UI", Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(p.avatar, rx, ry + 0.5);
+      }
 
       // Nickname below players (with [BOT] indicator if AI)
       if (!isLocal || players.length > 2 || p.isBot) {

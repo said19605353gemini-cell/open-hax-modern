@@ -25,6 +25,14 @@ export interface GameSettings {
   kickFlash: boolean;
   showHud: boolean;
   pauseOnBlur: boolean;
+  viewportMode?: 'dynamic' | 'restricted' | 'full';
+  lowLatencyCanvas?: boolean;
+  customTeamColors?: boolean;
+  showChatIndicators?: boolean;
+  showPlayerAvatars?: boolean;
+  chatOpacity?: number;
+  chatFocusHeight?: number;
+  chatWidth?: 'compact' | 'full';
   stadium: StadiumId;
   physicsProfile: PhysicsProfile;
   ballControl: number;       // 0..100 (higher = lower player-ball bounce = tighter dribble)

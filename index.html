@@ -410,149 +410,200 @@
     </section>
   </main>
 
-  <!-- Performans & Oyun Ayarları Modal -->
+  <!-- Performans & Oyun Ayarları Modal (HaxBall Style Tabs) -->
   <div id="settings-modal" class="modal-backdrop hidden">
-    <div class="modal-card">
-      <div class="modal-head">
-        <h2>Performans ve Oyun Ayarları</h2>
-        <button type="button" id="btn-settings-close" class="btn">Kapat</button>
+    <div class="modal-card hax-settings-card">
+      <div class="modal-head hax-settings-head">
+        <h2>Ayarlar</h2>
+        <button type="button" id="btn-settings-close" class="btn hax-close-btn">Kapat</button>
+      </div>
+      <div class="hax-tabs">
+        <button type="button" class="hax-tab" data-tab="sound">Ses</button>
+        <button type="button" class="hax-tab active" data-tab="video">Video</button>
+        <button type="button" class="hax-tab" data-tab="input">Girdi</button>
+        <button type="button" class="hax-tab" data-tab="misc">Çeşitli</button>
+        <button type="button" class="hax-tab" data-tab="physics">Fizik (Admin)</button>
       </div>
       <div class="modal-body">
-        <div class="presets-bar">
-          <span>Hızlı Profil:</span>
-          <button type="button" data-preset="balanced" class="btn primary">Dengeli (Sınırsız FPS)</button>
-          <button type="button" data-preset="proControl" class="btn primary">Çok Kontrollü (Pro)</button>
-          <button type="button" data-preset="ultraPerformance" class="btn">Maksimum Performans</button>
-          <button type="button" data-preset="powerSaver" class="btn">Güç Tasarrufu (30 FPS)</button>
-          <button type="button" id="btn-settings-reset" class="btn">Varsayılan</button>
+        <!-- VIDEO TAB -->
+        <div class="hax-tab-pane" data-pane="video">
+          <div class="hax-opt-row">
+            <span>Görünüm Modu (Viewport):</span>
+            <select id="set-viewport">
+              <option value="dynamic">Dinamik</option>
+              <option value="restricted">Sabit</option>
+              <option value="full">Tam Ekran</option>
+            </select>
+          </div>
+          <div class="hax-opt-row">
+            <span>FPS Limiti:</span>
+            <select id="set-fps">
+              <option value="0">Sınırsız (Önerilen)</option>
+              <option value="500">500 FPS</option>
+              <option value="240">240 FPS</option>
+              <option value="144">144 FPS</option>
+              <option value="120">120 FPS</option>
+              <option value="75">75 FPS</option>
+              <option value="60">60 FPS</option>
+              <option value="30">30 FPS (Güç Tasarrufu)</option>
+            </select>
+          </div>
+          <div class="hax-opt-row">
+            <span>Çözünürlük Ölçeği:</span>
+            <select id="set-res">
+              <option value="1">100%</option>
+              <option value="1.5">150%</option>
+              <option value="2">200%</option>
+            </select>
+          </div>
+          <label class="hax-check-row"><input type="checkbox" id="set-lowlatency" /><span>Düşük gecikmeli canvas (Low latency)</span></label>
+          <label class="hax-check-row"><input type="checkbox" id="set-customcolors" /><span>Özel takım renkleri aktif</span></label>
+          <label class="hax-check-row"><input type="checkbox" id="set-chatind" /><span>Sohbet göstergelerini göster</span></label>
+          <label class="hax-check-row"><input type="checkbox" id="set-avatars" /><span>Oyuncu avatarlarını göster</span></label>
+
+          <div class="hax-opt-row">
+            <span>Chat saydamlığı</span>
+            <span id="lbl-chatopacity" class="hax-val">0.8</span>
+            <input type="range" id="set-chatopacity" min="0.2" max="1" step="0.05" />
+          </div>
+          <div class="hax-opt-row">
+            <span>Chat odak yüksekliği</span>
+            <span id="lbl-chatheight" class="hax-val">140</span>
+            <input type="range" id="set-chatheight" min="80" max="240" step="10" />
+          </div>
+          <div class="hax-opt-row">
+            <span>Chat arka plan genişliği:</span>
+            <select id="set-chatwidth">
+              <option value="compact">Kompakt</option>
+              <option value="full">Tam Genişlik</option>
+            </select>
+          </div>
+
+          <hr class="hax-sep" />
+          <div class="hax-opt-row">
+            <span>Saha Dokusu:</span>
+            <select id="set-grass">
+              <option value="hd_stadium">HaxBall / HD Stadyum</option>
+              <option value="night_neon">Gece Stadyumu (Neon)</option>
+              <option value="standard">Standart Çim</option>
+              <option value="flat">Düz Çizgili (Ultra Hızlı)</option>
+            </select>
+          </div>
+          <div class="hax-opt-row">
+            <span>Top Görünümü:</span>
+            <select id="set-ballstyle">
+              <option value="soccer">Gerçekçi Futbol Topu (3D)</option>
+              <option value="classic">Klasik Beyaz Top</option>
+            </select>
+          </div>
+          <label class="hax-check-row"><input type="checkbox" id="set-balltrail" /><span>Top İz Efekti</span></label>
+          <label class="hax-check-row"><input type="checkbox" id="set-aa" /><span>Kenar Yumuşatma</span></label>
+          <label class="hax-check-row"><input type="checkbox" id="set-shadows" /><span>Yumuşak Gölgeler</span></label>
+          <label class="hax-check-row"><input type="checkbox" id="set-particles" /><span>Gol Parçacıkları</span></label>
+          <label class="hax-check-row"><input type="checkbox" id="set-kickflash" /><span>Şut Halkası Efekti</span></label>
+          <label class="hax-check-row"><input type="checkbox" id="set-hud" /><span>FPS / Ping HUD</span></label>
         </div>
 
-        <div class="settings-grid">
-          <div class="settings-col">
-            <h3>FPS ve Görüntü</h3>
-            <label class="row">
-              <span>FPS Limiti</span>
-              <select id="set-fps">
-                <option value="0">Sınırsız (Maksimum FPS)</option>
-                <option value="500">500 FPS</option>
-                <option value="240">240 FPS</option>
-                <option value="144">144 FPS</option>
-                <option value="120">120 FPS</option>
-                <option value="75">75 FPS</option>
-                <option value="60">60 FPS</option>
-                <option value="30">30 FPS (Güç Tasarrufu)</option>
-              </select>
-            </label>
-            <label class="row">
-              <span>Saha Dokusu</span>
-              <select id="set-grass">
-                <option value="hd_stadium">HD Stadyum (Önerilen)</option>
-                <option value="night_neon">Gece Stadyumu (Neon)</option>
-                <option value="standard">Standart Çim (Klasik)</option>
-                <option value="flat">Düz Çizgili Saha (Ultra Hızlı)</option>
-              </select>
-            </label>
-            <label class="row">
-              <span>Top Görünümü</span>
-              <select id="set-ballstyle">
-                <option value="soccer">Gerçekçi Futbol Topu (3D)</option>
-                <option value="classic">Klasik Beyaz Top</option>
-              </select>
-            </label>
-            <label class="row"><span>Top İz Efekti</span><input type="checkbox" id="set-balltrail" /></label>
-            <label class="row">
-              <span>Çözünürlük Ölçeği</span>
-              <select id="set-res">
-                <option value="1">1x (Performans)</option>
-                <option value="2">Yüksek DPI (Retina)</option>
-              </select>
-            </label>
-            <label class="row"><span>Kenar Yumuşatma</span><input type="checkbox" id="set-aa" /></label>
-            <label class="row"><span>Yumuşak Gölgeler</span><input type="checkbox" id="set-shadows" /></label>
-            <label class="row"><span>Gol Parçacıkları</span><input type="checkbox" id="set-particles" /></label>
-            <label class="row"><span>Şut Halkası Efekti</span><input type="checkbox" id="set-kickflash" /></label>
-            <label class="row"><span>FPS / Ping HUD</span><input type="checkbox" id="set-hud" /></label>
-            <label class="row"><span>Arka Planda Duraklat</span><input type="checkbox" id="set-blurpause" /></label>
+        <!-- SOUND TAB -->
+        <div class="hax-tab-pane hidden" data-pane="sound">
+          <label class="hax-check-row"><input type="checkbox" id="set-sound" /><span>Ses Efektleri Aktif</span></label>
+          <div class="hax-opt-row">
+            <span>Ses Seviyesi:</span>
+            <span id="vol-label" class="hax-val">60%</span>
+            <input type="range" id="set-volume" min="0" max="1" step="0.05" />
           </div>
+        </div>
 
-          <div class="settings-col" id="settings-physics-col">
-            <h3>Fizik, Top Kontrolü ve Ses</h3>
-            <div id="physics-admin-note" class="admin-only-note hidden">Fizik ayarlarını sadece Oda Admini değiştirebilir.</div>
-            <label class="row">
-              <span>Fizik Profili</span>
-              <select id="set-physics">
-                <option value="openhax">OpenHax Orijinal (60Hz)</option>
-                <option value="classic_hax">Klasik Haxball (Çevik)</option>
-                <option value="classic_hax_v2">Klasik Haxball v2 (Turnuva)</option>
-                <option value="pro_control">Pro Kontrol / Pas</option>
-                <option value="pro_control_v2">Pro Kontrol v2 (Dribbling)</option>
-                <option value="pro_control_v3">Pro Kontrol v3 (Ultra Hassas)</option>
-                <option value="futsal">Futsal / Salon</option>
-                <option value="big_arena">Büyük Saha (4v4)</option>
-                <option value="turbo">Hızlı Arcade</option>
-                <option value="turbo_v2">Hızlı Arcade v2 (Ekstrem)</option>
-                <option value="low_gravity">Düşük Sürtünme (Kayan)</option>
-                <option value="real_soccer">Gerçekçi Futbol</option>
-                <option value="real_soccer_v2">Gerçekçi Futbol v2 (Pro)</option>
-                <option value="ice_hockey">Buz Hokeyi (Çok Kayan)</option>
-                <option value="pinball">Pinball (Süper Sekme)</option>
-                <option value="heavy_tank">Ağır Tank (Sert Çarpışma)</option>
-              </select>
-            </label>
-            <label class="row">
-              <span>Top Tutuşu (<span id="lbl-ballctrl">90%</span>)</span>
-              <input type="range" id="set-ballctrl" min="20" max="100" step="2" />
-            </label>
-            <label class="row">
-              <span>Top Kayganlığı (<span id="lbl-balldamp">0.992</span>)</span>
-              <input type="range" id="set-balldamp" min="0.975" max="0.996" step="0.001" />
-            </label>
-            <label class="row">
-              <span>Şut Gücü (<span id="lbl-kickpwr">5.4</span>)</span>
-              <input type="range" id="set-kickpwr" min="3.5" max="8.5" step="0.1" />
-            </label>
-            <label class="row">
-              <span>Oyuncu Hızı (<span id="lbl-pspd">3.3</span>)</span>
-              <input type="range" id="set-pspd" min="2.8" max="5.5" step="0.1" />
-            </label>
-            <label class="row">
-              <span>Duvar Sekmesi (<span id="lbl-wallb">0.78</span>)</span>
-              <input type="range" id="set-wallb" min="0.40" max="0.95" step="0.02" />
-            </label>
-            <label class="row">
-              <span>Varsayılan Bot Zorluğu</span>
-              <select id="set-botdiff">
-                <option value="easy">Kolay</option>
-                <option value="medium">Orta</option>
-                <option value="hard">Zor</option>
-              </select>
-            </label>
-            <label class="row"><span>Ses Efektleri</span><input type="checkbox" id="set-sound" /></label>
-            <label class="row">
-              <span>Ses Seviyesi (<span id="vol-label">60%</span>)</span>
-              <input type="range" id="set-volume" min="0" max="1" step="0.05" />
-            </label>
-            <label class="row">
-              <span>Gol Animasyonu (.gif URL)</span>
-              <input type="text" id="set-goalgif" placeholder="https://.../gol.gif" style="width:170px;background:#1f1916;color:#fff;border:1px solid rgba(255,255,255,0.22);border-radius:4px;padding:3px 6px;font-size:12px;" />
-            </label>
-            <label class="row">
-              <span>Gol Yiyince GIF (.gif)</span>
-              <input type="text" id="set-concedegif" placeholder="https://.../gol-yeme.gif" style="width:170px;background:#1f1916;color:#fff;border:1px solid rgba(255,255,255,0.22);border-radius:4px;padding:3px 6px;font-size:12px;" />
-            </label>
-            <label class="row">
-              <span>Tezahürat GIF (.gif)</span>
-              <div style="display:flex;gap:4px;align-items:center;">
-                <input type="text" id="set-chantgif" placeholder="https://.../tezahurat.gif" style="width:130px;background:#1f1916;color:#fff;border:1px solid rgba(255,255,255,0.22);border-radius:4px;padding:3px 6px;font-size:12px;" />
-                <button id="btn-trigger-chant" type="button" class="btn btn-sm" title="Tezahürat GIF Göster">🔥</button>
-              </div>
-            </label>
-            <div class="help-box">
-              <strong>Kontroller:</strong><br />
-              Tek / Online: Ok Tuşları veya W A S D + X / Boşluk<br />
-              2 Kişilik Yerel: Kırmızı W A S D + Boşluk · Mavi Ok Tuşları + X
-            </div>
+        <!-- INPUT TAB -->
+        <div class="hax-tab-pane hidden" data-pane="input">
+          <label class="hax-check-row"><input type="checkbox" id="set-blurpause" /><span>Arka Planda Otomatik Duraklat (Çevrimdışı)</span></label>
+          <div class="help-box">
+            <strong>Kontroller:</strong><br />
+            Tek / Online: Ok Tuşları veya W A S D + X / Boşluk<br />
+            2 Kişilik Yerel: Kırmızı W A S D + Boşluk · Mavi Ok Tuşları + X<br />
+            Kısayollar: ESC (Menü) · P (Duraklat) · R (Sıfırla)
           </div>
+        </div>
+
+        <!-- MISC TAB -->
+        <div class="hax-tab-pane hidden" data-pane="misc">
+          <div class="presets-bar">
+            <span>Hızlı Profil:</span>
+            <button type="button" data-preset="balanced" class="btn primary">Dengeli (Sınırsız FPS)</button>
+            <button type="button" data-preset="proControl" class="btn primary">Çok Kontrollü (Pro)</button>
+            <button type="button" data-preset="ultraPerformance" class="btn">Maksimum Performans</button>
+            <button type="button" data-preset="powerSaver" class="btn">Güç Tasarrufu (30 FPS)</button>
+            <button type="button" id="btn-settings-reset" class="btn">Varsayılan</button>
+          </div>
+          <label class="row">
+            <span>Varsayılan Bot Zorluğu</span>
+            <select id="set-botdiff">
+              <option value="easy">Kolay</option>
+              <option value="medium">Orta</option>
+              <option value="hard">Zor</option>
+            </select>
+          </label>
+          <label class="row">
+            <span>Gol Animasyonu (.gif URL)</span>
+            <input type="text" id="set-goalgif" placeholder="https://.../gol.gif" class="hax-txt-in" />
+          </label>
+          <label class="row">
+            <span>Gol Yiyince GIF (.gif)</span>
+            <input type="text" id="set-concedegif" placeholder="https://.../gol-yeme.gif" class="hax-txt-in" />
+          </label>
+          <label class="row">
+            <span>Tezahürat GIF (.gif)</span>
+            <div style="display:flex;gap:4px;align-items:center;">
+              <input type="text" id="set-chantgif" placeholder="https://.../tezahurat.gif" class="hax-txt-in" style="width:140px;" />
+              <button id="btn-trigger-chant" type="button" class="btn btn-sm" title="Tezahürat GIF Göster">🔥</button>
+            </div>
+          </label>
+        </div>
+
+        <!-- PHYSICS (ADMIN) TAB -->
+        <div class="hax-tab-pane hidden" data-pane="physics" id="settings-physics-col">
+          <div id="physics-admin-note" class="admin-only-note hidden">Fizik ayarlarını sadece Oda Admini değiştirebilir.</div>
+          <label class="row">
+            <span>Fizik Profili</span>
+            <select id="set-physics">
+              <option value="openhax">OpenHax Orijinal (60Hz)</option>
+              <option value="classic_hax">Klasik Haxball (Çevik)</option>
+              <option value="classic_hax_v2">Klasik Haxball v2 (Turnuva)</option>
+              <option value="pro_control">Pro Kontrol / Pas</option>
+              <option value="pro_control_v2">Pro Kontrol v2 (Dribbling)</option>
+              <option value="pro_control_v3">Pro Kontrol v3 (Ultra Hassas)</option>
+              <option value="futsal">Futsal / Salon</option>
+              <option value="big_arena">Büyük Saha (4v4)</option>
+              <option value="turbo">Hızlı Arcade</option>
+              <option value="turbo_v2">Hızlı Arcade v2 (Ekstrem)</option>
+              <option value="low_gravity">Düşük Sürtünme (Kayan)</option>
+              <option value="real_soccer">Gerçekçi Futbol</option>
+              <option value="real_soccer_v2">Gerçekçi Futbol v2 (Pro)</option>
+              <option value="ice_hockey">Buz Hokeyi (Çok Kayan)</option>
+              <option value="pinball">Pinball (Süper Sekme)</option>
+              <option value="heavy_tank">Ağır Tank (Sert Çarpışma)</option>
+            </select>
+          </label>
+          <label class="row">
+            <span>Top Tutuşu (<span id="lbl-ballctrl">90%</span>)</span>
+            <input type="range" id="set-ballctrl" min="20" max="100" step="2" />
+          </label>
+          <label class="row">
+            <span>Top Kayganlığı (<span id="lbl-balldamp">0.992</span>)</span>
+            <input type="range" id="set-balldamp" min="0.975" max="0.996" step="0.001" />
+          </label>
+          <label class="row">
+            <span>Şut Gücü (<span id="lbl-kickpwr">5.4</span>)</span>
+            <input type="range" id="set-kickpwr" min="3.5" max="8.5" step="0.1" />
+          </label>
+          <label class="row">
+            <span>Oyuncu Hızı (<span id="lbl-pspd">3.3</span>)</span>
+            <input type="range" id="set-pspd" min="2.8" max="5.5" step="0.1" />
+          </label>
+          <label class="row">
+            <span>Duvar Sekmesi (<span id="lbl-wallb">0.78</span>)</span>
+            <input type="range" id="set-wallb" min="0.40" max="0.95" step="0.02" />
+          </label>
         </div>
       </div>
     </div>
