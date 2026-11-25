@@ -4,6 +4,8 @@ const FIXED_STEP_MS = 1000 / 60;
 
 export class GameLoop {
   private rafId: number | null = null;
+  private highResTimer: number | null = null;
+  private msgChannel: MessageChannel | null = null;
   private bgTimer: number | null = null;
   private running = false;
   private lastTickTime = 0;
@@ -41,7 +43,7 @@ export class GameLoop {
     this.renderedFrames = 0;
     this.workMsAccum = 0;
     this.telemetryStart = 0;
-    this.rafId = window.requestAnimationFrame(this.frame);
+    this.scheduleNext(0);
     if (this.bgTimer !== null) clearInterval(this.bgTimer);
     this.bgTimer = window.setInterval(() => {
       if (this.running && document.hidden) {
@@ -58,10 +60,49 @@ export class GameLoop {
       window.cancelAnimationFrame(this.rafId);
       this.rafId = null;
     }
+    if (this.highResTimer !== null) {
+      window.clearTimeout(this.highResTimer);
+      this.highResTimer = null;
+    }
+    if (this.msgChannel) {
+      this.msgChannel.port1.onmessage = null;
+      this.msgChannel.port1.close();
+      this.msgChannel.port2.close();
+      this.msgChannel = null;
+    }
     if (this.bgTimer !== null) {
       clearInterval(this.bgTimer);
       this.bgTimer = null;
     }
+  }
+
+  private scheduleNext(fpsLimit: number): void {
+    if (!this.running) return;
+    const useHighFreq = !document.hidden && (fpsLimit === 0 || fpsLimit > 65);
+    if (!useHighFreq) {
+      this.rafId = window.requestAnimationFrame(this.frame);
+      return;
+    }
+    const target = fpsLimit === 0 ? 240 : Math.min(500, fpsLimit);
+    const interval = 1000 / target;
+    const remaining = this.nextFrameTime > 0 ? this.nextFrameTime - performance.now() : 0;
+    if (remaining > 3) {
+      this.highResTimer = window.setTimeout(() => {
+        this.highResTimer = null;
+        if (this.running) this.frame(performance.now());
+      }, Math.max(1, Math.floor(remaining - 2)));
+      return;
+    }
+    if (!this.msgChannel) {
+      this.msgChannel = new MessageChannel();
+      this.msgChannel.port1.onmessage = () => {
+        if (this.running) this.frame(performance.now());
+      };
+    }
+    if (this.nextFrameTime === 0) {
+      this.nextFrameTime = performance.now() + interval;
+    }
+    this.msgChannel.port2.postMessage(null);
   }
 
   private frame = (rafTime: number): void => {
@@ -85,15 +126,16 @@ export class GameLoop {
       this.telemetryStart = rafTime;
     }
 
-    // 1. Frame rate gate when FPS is capped (default 60 FPS)
-    if (fpsLimit > 0) {
-      const frameInterval = 1000 / fpsLimit;
-      const tolerance = Math.min(2.0, frameInterval * 0.12);
+    // 1. Frame rate gate (VSync <=65 via rAF, >65 or Unlimited via high-res scheduler)
+    const effectiveCap = fpsLimit === 0 ? 240 : fpsLimit;
+    if (effectiveCap > 0) {
+      const frameInterval = 1000 / effectiveCap;
+      const tolerance = Math.min(1.2, frameInterval * 0.12);
 
       if (this.nextFrameTime === 0) {
         this.nextFrameTime = rafTime + frameInterval;
       } else if (rafTime + tolerance < this.nextFrameTime) {
-        this.rafId = window.requestAnimationFrame(this.frame);
+        this.scheduleNext(fpsLimit);
         return;
       } else {
         this.nextFrameTime += frameInterval;
@@ -152,7 +194,7 @@ export class GameLoop {
     }
 
     if (this.running) {
-      this.rafId = window.requestAnimationFrame(this.frame);
+      this.scheduleNext(fpsLimit);
     }
   };
 }

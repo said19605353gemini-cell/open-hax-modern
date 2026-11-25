@@ -3192,9 +3192,10 @@ class OpenHaxApp {
     const target = t.targetFps;
     const healthy = target === 0 || t.fps >= target - 4;
     this.fpsHudEl.classList.toggle('warn', !healthy);
+    const limitLabel = target > 0 ? ` / ${target}` : ' (∞)';
     const pingPart = this.pingMs !== null ? ' | Ping ' + this.pingMs + ' ms' : '';
     this.fpsHudEl.textContent =
-      t.fps + ' FPS | ' + t.frameMs.toFixed(1) + ' ms | CPU ' + t.workMs.toFixed(2) + ' ms' + pingPart;
+      t.fps + ' FPS' + limitLabel + ' | ' + t.frameMs.toFixed(1) + ' ms | CPU ' + t.workMs.toFixed(2) + ' ms' + pingPart;
   }
 }
 
