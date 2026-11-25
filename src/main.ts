@@ -504,6 +504,10 @@ class OpenHaxApp {
     el<HTMLButtonElement>('btn-topbar-menu').classList.toggle('hidden', !inRoom);
     el<HTMLButtonElement>('btn-toggle-roombars').classList.toggle('hidden', !inRoom);
     el<HTMLButtonElement>('btn-record').classList.toggle('hidden', !inRoom);
+    el<HTMLSelectElement>('room-yt-privacy').classList.toggle('hidden', !inRoom);
+    if (!inRoom) {
+      el<HTMLButtonElement>('btn-record-pause').classList.add('hidden');
+    }
 
     const hasNick = Boolean(this.settings.nickname.trim());
     const badge = getTimeBadge(this.myProfile?.playSeconds || 0);
@@ -957,6 +961,12 @@ class OpenHaxApp {
       });
     });
     el<HTMLButtonElement>('btn-record').addEventListener('click', () => this.toggleMatchRecording());
+    el<HTMLButtonElement>('btn-record-pause').addEventListener('click', () => this.togglePauseRecording());
+    el<HTMLSelectElement>('room-yt-privacy').addEventListener('change', (e) => {
+      const pv = (e.target as HTMLSelectElement).value as GameSettings['youtubePrivacy'];
+      el<HTMLSelectElement>('set-yt-privacy').value = pv || 'unlisted';
+      this.updateSettings({ youtubePrivacy: pv });
+    });
     el<HTMLSelectElement>('lobby-refresh-rate').addEventListener('change', () => {
       if (this.activeScreen === 'lobby') this.startLobbyPolling();
     });
@@ -1243,6 +1253,7 @@ class OpenHaxApp {
       this.updateSettings({ youtubeClientId: (e.target as HTMLInputElement).value.trim() });
     });
     bindSelect('set-yt-privacy', (v) => {
+      el<HTMLSelectElement>('room-yt-privacy').value = v;
       this.updateSettings({ youtubePrivacy: v as GameSettings['youtubePrivacy'] });
     });
     el<HTMLButtonElement>('btn-yt-connect').addEventListener('click', () => {
@@ -2305,6 +2316,7 @@ class OpenHaxApp {
     el<HTMLInputElement>('set-chantgif').value = s.chantGifUrl || '';
     el<HTMLInputElement>('set-yt-clientid').value = s.youtubeClientId || '';
     el<HTMLSelectElement>('set-yt-privacy').value = s.youtubePrivacy || 'unlisted';
+    el<HTMLSelectElement>('room-yt-privacy').value = s.youtubePrivacy || 'unlisted';
     el<HTMLInputElement>('set-ballctrl').value = String(s.ballControl);
     el<HTMLSpanElement>('lbl-ballctrl').textContent = s.ballControl + '%';
     el<HTMLInputElement>('set-balldamp').value = String(s.ballDamping);
@@ -2439,7 +2451,9 @@ class OpenHaxApp {
     setText('[data-nav="about"]', 'navAbout');
     setText('[data-nav="community"]', 'navCommunity');
     setText('#btn-profile', 'profileBtn');
-    setText('#btn-record', 'recordBtn');
+    if (!this.mediaRecorder || this.mediaRecorder.state === 'inactive') {
+      setText('#btn-record', 'recordBtn');
+    }
     setText('#btn-topbar-menu', 'menuBtn');
     setText('#btn-toggle-roombars', 'roomBarBtn');
     setText('#view-auth h1', 'authTitle');
@@ -3224,12 +3238,29 @@ class OpenHaxApp {
     }
   }
 
+  private togglePauseRecording(): void {
+    const pauseBtn = el<HTMLButtonElement>('btn-record-pause');
+    if (!this.mediaRecorder) return;
+    if (this.mediaRecorder.state === 'recording') {
+      this.mediaRecorder.pause();
+      pauseBtn.textContent = '▶';
+      pauseBtn.title = 'Kayda Devam Et';
+    } else if (this.mediaRecorder.state === 'paused') {
+      this.mediaRecorder.resume();
+      pauseBtn.textContent = '⏸';
+      pauseBtn.title = 'Kaydı Duraklat';
+    }
+  }
+
   private toggleMatchRecording(): void {
     const btn = el<HTMLButtonElement>('btn-record');
-    if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+    const pauseBtn = el<HTMLButtonElement>('btn-record-pause');
+    if (this.mediaRecorder && (this.mediaRecorder.state === 'recording' || this.mediaRecorder.state === 'paused')) {
       this.mediaRecorder.stop();
       btn.classList.remove('danger');
-      btn.textContent = '⏺ Kayıt';
+      btn.textContent = '⏺ Kaydet';
+      pauseBtn.classList.add('hidden');
+      pauseBtn.textContent = '⏸';
       return;
     }
     try {
@@ -3249,14 +3280,16 @@ class OpenHaxApp {
         URL.revokeObjectURL(url);
         if (this.ytAccessToken || this.settings.youtubeClientId) {
           void this.uploadVideoToYouTube(blob);
-        } else if (window.confirm('Maç videosu indirildi! Otomatik yükleme için Ayarlar → Çeşitli içinden YouTube bağlayabilir veya YouTube Studio\'yu açabilirsiniz. Açmak ister misiniz?')) {
+        } else if (window.confirm('Maç videosu indirildi! Otomatik YouTube yayını için Ayarlar → Çeşitli bölümüne Google Client ID girebilir veya YouTube Studio\'yu açabilirsiniz. Açmak ister misiniz?')) {
           window.open('https://studio.youtube.com/', '_blank', 'noopener');
         }
       };
       rec.start();
       this.mediaRecorder = rec;
       btn.classList.add('danger');
-      btn.textContent = '⏹ Durdur';
+      btn.textContent = '⏹ Bitir & Yayınla';
+      pauseBtn.classList.remove('hidden');
+      pauseBtn.textContent = '⏸';
     } catch {
       this.addChat('Sistem', 'Tarayıcınız video kaydını desteklemiyor.', true);
     }
