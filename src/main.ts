@@ -1215,11 +1215,12 @@ class OpenHaxApp {
 
   private applySettingsEffects(): void {
     this.audio.setConfig(this.settings.masterSound, this.settings.soundVolume);
-    this.btnMute.textContent = this.settings.masterSound ? 'Ses: Açık' : 'Ses: Kapalı';
+    const l = this.settings.lang || 'tr';
+    this.btnMute.textContent = this.settings.masterSound ? t(l, 'soundOn') : t(l, 'soundOff');
     this.btnMute.classList.toggle('danger', !this.settings.masterSound);
     this.fpsHudEl.classList.toggle('hidden', !this.settings.showHud);
-    const fpsText = this.settings.fpsLimit > 0 ? this.settings.fpsLimit + ' FPS' : 'Sınırsız';
-    this.btnSettings.textContent = 'Performans & Ayarlar (' + fpsText + ')';
+    const fpsText = this.settings.fpsLimit > 0 ? this.settings.fpsLimit + ' FPS' : '∞';
+    this.btnSettings.textContent = t(l, 'settingsShort') + ' (' + fpsText + ')';
     if (this.peerMgr.getRole() !== 'guest') {
       this.stadium = getStadium(this.settings.stadium);
     }
@@ -1288,6 +1289,8 @@ class OpenHaxApp {
     this.btnAuthEnter.textContent = this.pendingInviteCode ? t(l, 'enterInvite') : t(l, 'enterLobby');
     this.btnMute.textContent = this.settings.masterSound ? t(l, 'soundOn') : t(l, 'soundOff');
     this.btnPause.textContent = this.paused ? t(l, 'resume') : t(l, 'pause');
+    const fpsText = this.settings.fpsLimit > 0 ? this.settings.fpsLimit + ' FPS' : '∞';
+    this.btnSettings.textContent = t(l, 'settingsShort') + ' (' + fpsText + ')';
   }
 
   private createPlayer(

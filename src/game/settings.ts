@@ -19,8 +19,9 @@ export const COUNTRY_FLAGS: Record<string, string> = {
 };
 
 export function countryFlag(code?: string): string {
-  const key = (code || '').toUpperCase();
-  return COUNTRY_FLAGS[key] || '🌍';
+  const key = (code || '').trim().toUpperCase();
+  if (key === 'GL' || !/^[A-Z]{2}$/.test(key)) return COUNTRY_FLAGS[key] || '🌍';
+  return String.fromCodePoint(0x1f1e6 + key.charCodeAt(0) - 65, 0x1f1e6 + key.charCodeAt(1) - 65);
 }
 
 export function detectDefaultCountry(): string {
