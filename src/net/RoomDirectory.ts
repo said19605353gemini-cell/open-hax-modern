@@ -15,6 +15,12 @@ export interface PublicRoomInfo {
 
 const LOCAL_STORAGE_KEY = 'openhax_local_rooms_v1';
 const ROOM_TTL_MS = 22000;
+
+function emitDebug(tag: 'SYS' | 'NET' | 'ERR' | 'DUP', msg: string): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('openhax:debug', { detail: `[${tag}] ${msg}` }));
+  }
+}
 // GitHub Pages gibi statik sitelerde ortak oda listesi için Firebase, Supabase veya Upstash Redis kullanabilirsiniz
 const FIREBASE_DB_URL: string = 'https://haxturko-default-rtdb.europe-west1.firebasedatabase.app';
 const SUPABASE_URL: string = '';
@@ -80,9 +86,14 @@ export class RoomDirectory {
               } catch { /* ignore */ }
             }
             this.serverApiWorks = true;
+            emitDebug('NET', `Firebase listRooms OK (${rooms.length} rooms)`);
             return { rooms, mode: 'server' };
+          } else {
+            emitDebug('ERR', `Firebase listRooms HTTP ${res.status}`);
           }
-        } catch { /* fall through */ }
+        } catch (err) {
+          emitDebug('ERR', `Firebase listRooms error: ${String(err)}`);
+        }
       }
 
       if (SUPABASE_URL && SUPABASE_ANON_KEY) {
@@ -121,9 +132,14 @@ export class RoomDirectory {
               }
             }
             this.serverApiWorks = true;
+            emitDebug('NET', `Firebase listRooms OK (${rooms.length} rooms)`);
             return { rooms, mode: 'server' };
+          } else {
+            emitDebug('ERR', `Firebase listRooms HTTP ${res.status}`);
           }
-        } catch { /* fall through */ }
+        } catch (err) {
+          emitDebug('ERR', `Firebase listRooms error: ${String(err)}`);
+        }
       }
     }
 
