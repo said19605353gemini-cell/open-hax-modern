@@ -1103,3 +1103,32 @@ select option {
   background: #1f2933;
   color: #f8fafc;
 }
+
+/* Player Profile Summary Card */
+.profile-summary-box {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #304b61;
+  border-radius: 6px;
+  padding: 12px;
+}
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+.profile-stat-tile {
+  background: rgba(0, 0, 0, 0.28);
+  border-radius: 5px;
+  padding: 8px;
+  text-align: center;
+}
+.profile-stat-tile strong {
+  display: block;
+  font-size: 18px;
+  color: #7ee787;
+}
+.profile-stat-tile span {
+  font-size: 11px;
+  color: #cbd5e1;
+}

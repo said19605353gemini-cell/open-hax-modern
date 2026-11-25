@@ -28,6 +28,7 @@
 
       <div class="topbar-actions">
         <button type="button" id="btn-change-name" class="btn hidden">Ad Değiştir</button>
+        <button type="button" id="btn-profile" class="btn hidden">👤 Profil</button>
         <button type="button" id="btn-pause" class="btn hidden">Duraklat (P)</button>
         <button type="button" id="btn-reset" class="btn hidden">Sıfırla (R)</button>
         <button type="button" id="btn-mute" class="btn">Ses: Açık</button>
@@ -134,6 +135,11 @@
           <option value="AU">🇦🇺 Avustralya (AU)</option>
           <option value="GL">🌍 Global (GL)</option>
         </select>
+      </label>
+
+      <label class="field">
+        <span>Üyelik Şifresi (İsteğe Bağlı · İstatistik Kaydı İçin)</span>
+        <input type="password" id="auth-pass" maxlength="32" placeholder="Profilini kilitlemek için şifre belirle / gir" autocomplete="current-password" />
       </label>
 
       <div id="auth-error" class="error-text hidden"></div>
@@ -645,6 +651,41 @@
         <button type="button" id="btn-teams-copy" class="btn">🔗 Davet Linki</button>
         <button type="button" id="btn-teams-start" class="btn primary">▶ Oyunu Başlat / Devam Et</button>
         <button type="button" id="btn-teams-leave" class="btn danger">🚪 Odadan Çık</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Player Profile & Leaderboard Modal -->
+  <div id="profile-modal" class="modal-backdrop hidden">
+    <div class="modal-card hax-settings-card" style="width:min(620px,95vw);">
+      <div class="modal-head hax-settings-head">
+        <h2>👤 Oyuncu Profili &amp; İstatistikler</h2>
+        <button type="button" id="btn-profile-close" class="btn hax-close-btn">Kapat</button>
+      </div>
+      <div class="modal-body" style="padding-top:12px;">
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <input type="text" id="profile-search-input" placeholder="Oyuncu adı ara..." class="hax-txt-in" style="flex:1;" />
+          <button type="button" id="btn-profile-search" class="btn primary">Profil Ara</button>
+          <button type="button" id="btn-profile-mine" class="btn">Kendi Profilim</button>
+        </div>
+        <div id="profile-card-box" class="profile-summary-box"></div>
+        <h3 style="margin:14px 0 8px 0;font-size:14px;color:#93c5fd;">🏆 En İyi Oyuncular (Canlı Liderlik Tablosu)</h3>
+        <div class="rooms-table-wrap" style="max-height:220px;">
+          <table class="rooms-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Oyuncu</th>
+                <th>Gol</th>
+                <th>Kurtarma</th>
+                <th>Asist</th>
+                <th>Galibiyet</th>
+                <th>Favori Mod</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-tbody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>

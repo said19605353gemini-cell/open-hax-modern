@@ -15,7 +15,8 @@ export type NetPacket =
   | { type: 'ping'; ts: number; lastRtt?: number }
   | { type: 'pong'; ts: number }
   | { type: 'admin_cmd'; cmd: string; targetId?: string; value?: string | number | boolean }
-  | { type: 'migrate_host'; newHostId: string; roomCode: string; roomName: string; password: string };
+  | { type: 'migrate_host'; newHostId: string; roomCode: string; roomName: string; password: string }
+  | { type: 'stat_event'; event: 'goal' | 'save' | 'assist' | 'win' | 'match'; mode?: string; stadium?: string };
 
 export interface PeerCallbacks {
   onStatus: (role: PeerRole, stateText: string, roomCode: string) => void;
@@ -33,6 +34,7 @@ export interface PeerCallbacks {
   onAdminCmd?: (fromPeerId: string, cmd: string, targetId?: string, value?: string | number | boolean) => void;
   onMigrateHost?: (newHostId: string, roomCode: string, roomName: string, password: string) => void;
   onHostLost?: (roomCode: string) => void;
+  onStatEvent?: (event: 'goal' | 'save' | 'assist' | 'win' | 'match', mode?: string, stadium?: string) => void;
 }
 
 const PEER_PREFIX = 'openhax2026-';
@@ -261,6 +263,8 @@ export class PeerManager {
         } else if (pkt.type === 'migrate_host') {
           migrationTriggered = true;
           this.cb.onMigrateHost?.(pkt.newHostId, pkt.roomCode, pkt.roomName, pkt.password);
+        } else if (pkt.type === 'stat_event') {
+          this.cb.onStatEvent?.(pkt.event, pkt.mode, pkt.stadium);
         } else if (pkt.type === 'snap') {
           this.cb.onSnapshot(pkt.data);
         } else if (pkt.type === 'chat') {
@@ -338,6 +342,14 @@ export class PeerManager {
   sendAdminCmd(cmd: string, targetId?: string, value?: string | number | boolean): void {
     if (this.role === 'guest' && this.hostConn?.open) {
       this.hostConn.send({ type: 'admin_cmd', cmd, targetId, value } satisfies NetPacket);
+    }
+  }
+
+  sendStatEvent(peerId: string, event: 'goal' | 'save' | 'assist' | 'win' | 'match', mode?: string, stadium?: string): void {
+    if (this.role !== 'host') return;
+    const conn = this.clientConns.get(peerId);
+    if (conn && conn.open) {
+      conn.send({ type: 'stat_event', event, mode, stadium } satisfies NetPacket);
     }
   }
 

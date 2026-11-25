@@ -18,6 +18,8 @@ import { computeBotInput } from './bot';
 export interface StepResult {
   kicked: boolean;
   goalTeam: Team | null;
+  touchedById?: string;
+  savedById?: string;
 }
 
 interface PhysicsParams {
@@ -505,6 +507,13 @@ export function stepPhysicsTick(
   }
 
   let kicked = false;
+  let touchedById: string | undefined;
+  let savedById: string | undefined;
+  const prevBallVx = ball.vx;
+  const centerYGoal = stadium.pitchY + stadium.pitchHeight / 2;
+  const inDangerZoneY = Math.abs(ball.y - centerYGoal) <= stadium.goalHalfHeight + 48;
+  const redDanger = prevBallVx < -2.1 && ball.x < stadium.pitchX + stadium.pitchWidth * 0.25 && inDangerZoneY;
+  const blueDanger = prevBallVx > 2.1 && ball.x > stadium.pitchX + stadium.pitchWidth * 0.75 && inDangerZoneY;
 
   for (let i = 0; i < activePlayers.length; i++) {
     const p = activePlayers[i];
@@ -577,6 +586,11 @@ export function stepPhysicsTick(
         p.nextKickTick = currentTick + 8;
         p.kickFlashTicks = 8;
         kicked = true;
+        touchedById = p.id;
+        if ((p.team === 'red' && redDanger && ball.vx > prevBallVx + 1.5) ||
+            (p.team === 'blue' && blueDanger && ball.vx < prevBallVx - 1.5)) {
+          savedById = p.id;
+        }
       }
     }
   }
@@ -623,13 +637,25 @@ export function stepPhysicsTick(
     }
 
     for (let i = 0; i < activePlayers.length; i++) {
+      const ap = activePlayers[i];
+      const ddx = ball.x - ap.x;
+      const ddy = ball.y - ap.y;
+      const minD = ap.radius + ball.radius;
+      const hit = ddx * ddx + ddy * ddy < minD * minD;
       resolveCircleCircle(
-        activePlayers[i],
+        ap,
         ball,
         cfg.playerInvMass,
         cfg.ballInvMass,
         cfg.playerBallRestitution
       );
+      if (hit) {
+        touchedById = ap.id;
+        if ((ap.team === 'red' && redDanger && ball.vx > prevBallVx + 1.2) ||
+            (ap.team === 'blue' && blueDanger && ball.vx < prevBallVx - 1.2)) {
+          savedById = ap.id;
+        }
+      }
     }
 
     for (let k = 0; k < stadium.posts.length; k++) {
@@ -682,7 +708,7 @@ export function stepPhysicsTick(
     }
   }
 
-  return { kicked, goalTeam };
+  return { kicked, goalTeam, touchedById, savedById };
 }
 
 export function resetPositionsForKickoff(

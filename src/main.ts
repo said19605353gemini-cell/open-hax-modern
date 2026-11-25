@@ -23,6 +23,14 @@ import { AudioEngine } from './game/audio';
 import { Lang, t } from './i18n';
 import { extractRoomCode, PeerManager, PeerRole } from './net/PeerManager';
 import { PublicRoomInfo, RoomDirectory } from './net/RoomDirectory';
+import {
+  createEmptyProfile,
+  formatModeName,
+  formatStadiumName,
+  PlayerProfile,
+  ProfileService,
+  topRecordKey
+} from './net/ProfileService';
 
 type ViewScreen = 'auth' | 'lobby' | 'room';
 
@@ -95,6 +103,12 @@ class OpenHaxApp {
   private heartbeatTimer: number | null = null;
   private heartbeatWorker: Worker | null = null;
   private pageExitHandler: (() => void) | null = null;
+  private lastTouchId = '';
+  private assistTouchId = '';
+  private lastTouchTick = 0;
+  private saveCooldownTick = 0;
+  private profileSvc = new ProfileService();
+  private myProfile: PlayerProfile | null = null;
   private currentRoomPassword = '';
 
   private debugLogs: DebugEntry[] = [];
@@ -124,7 +138,10 @@ class OpenHaxApp {
   private authNick = el<HTMLInputElement>('auth-nick');
   private authAvatar = el<HTMLInputElement>('auth-avatar');
   private authCountry = el<HTMLSelectElement>('auth-country');
+  private authPass = el<HTMLInputElement>('auth-pass');
   private authError = el<HTMLDivElement>('auth-error');
+  private btnProfile = el<HTMLButtonElement>('btn-profile');
+  private profileModal = el<HTMLDivElement>('profile-modal');
   private inviteNotice = el<HTMLDivElement>('invite-notice');
   private btnAuthEnter = el<HTMLButtonElement>('btn-auth-enter');
 
@@ -214,7 +231,8 @@ class OpenHaxApp {
       onAdminCmd: (fromPeerId, cmd, targetId, value) => this.handleRemoteAdminCmd(fromPeerId, cmd, targetId, value),
       onMigrateHost: (newHostId, roomCode, roomName, password) =>
         this.handleMigrateHost(newHostId, roomCode, roomName, password),
-      onHostLost: (roomCode) => this.handleHostLost(roomCode)
+      onHostLost: (roomCode) => this.handleHostLost(roomCode),
+      onStatEvent: (event, mode, stadium) => this.applyLocalStatEvent(event, mode, stadium)
     });
 
     this.loop = new GameLoop(
@@ -240,6 +258,7 @@ class OpenHaxApp {
     this.authNick.value = this.settings.nickname || '';
     this.authAvatar.value = this.settings.avatar || ':)';
     this.authCountry.value = this.settings.country || 'TR';
+    this.myProfile = this.profileSvc.loadLocal();
     this.switchScreen('auth');
     this.authNick.focus();
 
@@ -320,6 +339,7 @@ class OpenHaxApp {
     this.userPill.classList.toggle('hidden', !hasNick || inRoom);
     this.userPill.textContent = this.settings.nickname + ' (' + this.settings.avatar + ')';
     this.btnChangeName.classList.toggle('hidden', screen !== 'lobby');
+    this.btnProfile.classList.toggle('hidden', screen === 'auth' || !hasNick);
 
     if (screen === 'lobby') {
       this.stopMatchLoop();
@@ -388,14 +408,42 @@ class OpenHaxApp {
       });
     });
     this.authNick.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') this.submitAuth();
+      if (e.key === 'Enter') void this.submitAuth();
     });
-    this.btnAuthEnter.addEventListener('click', () => this.submitAuth());
+    this.authPass.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') void this.submitAuth();
+    });
+    this.btnAuthEnter.addEventListener('click', () => void this.submitAuth());
 
-    // Topbar
+    // Topbar & Profile modal
     this.btnChangeName.addEventListener('click', () => {
       this.switchScreen('auth');
       this.authNick.focus();
+    });
+    this.btnProfile.addEventListener('click', () => {
+      this.profileModal.classList.remove('hidden');
+      void this.openProfileModal(this.myProfile || createEmptyProfile(this.settings.nickname || 'Oyuncu', this.settings.avatar, this.settings.country || 'TR'));
+    });
+    el<HTMLButtonElement>('btn-profile-close').addEventListener('click', () => {
+      this.profileModal.classList.add('hidden');
+    });
+    this.profileModal.addEventListener('click', (e) => {
+      if (e.target === this.profileModal) this.profileModal.classList.add('hidden');
+    });
+    el<HTMLButtonElement>('btn-profile-mine').addEventListener('click', () => {
+      if (this.myProfile) void this.openProfileModal(this.myProfile);
+    });
+    el<HTMLButtonElement>('btn-profile-search').addEventListener('click', () => {
+      const q = el<HTMLInputElement>('profile-search-input').value.trim();
+      if (!q) return;
+      void this.profileSvc.fetchProfileByUsername(q).then((found) => {
+        if (found) {
+          void this.openProfileModal(found);
+        } else {
+          const box = el<HTMLDivElement>('profile-card-box');
+          box.textContent = `"${q}" adlı üye profili bulunamadı.`;
+        }
+      });
     });
     this.btnPause.addEventListener('click', () => {
       if (this.isMeAdmin()) this.dispatchAdminAction('toggle_pause');
@@ -819,21 +867,35 @@ class OpenHaxApp {
     bindRange('set-wallb', 'lbl-wallb', (v) => v.toFixed(2), (v) => this.updateSettings({ wallBounce: v }));
   }
 
-  private submitAuth(): void {
-    const nick = this.authNick.value.trim();
+  private async submitAuth(): Promise<void> {
+    const rawNick = this.authNick.value.trim();
     const avatar = this.authAvatar.value.trim() || ':)';
+    const country = this.authCountry.value || this.settings.country || 'TR';
+    const pass = this.authPass.value.trim();
 
-    if (nick.length < 2) {
+    if (rawNick.length < 2) {
       this.authError.textContent = 'Kullanıcı adı en az 2 karakter olmalıdır.';
       this.authError.classList.remove('hidden');
       return;
     }
 
+    const cleanNick = censorText(rawNick);
+    this.btnAuthEnter.disabled = true;
+    const res = await this.profileSvc.loginOrRegister(cleanNick, avatar, country, pass);
+    this.btnAuthEnter.disabled = false;
+
+    if (!res.ok) {
+      this.authError.textContent = res.error;
+      this.authError.classList.remove('hidden');
+      return;
+    }
+
+    this.myProfile = res.profile;
     this.authError.classList.add('hidden');
     this.updateSettings({
-      nickname: censorText(nick),
+      nickname: res.profile.username,
       avatar,
-      country: this.authCountry.value || this.settings.country || 'TR'
+      country
     });
 
     if (this.pendingInviteCode) {
@@ -845,6 +907,124 @@ class OpenHaxApp {
     }
 
     this.switchScreen('lobby');
+  }
+
+  private async openProfileModal(profile: PlayerProfile): Promise<void> {
+    const box = el<HTMLDivElement>('profile-card-box');
+    box.textContent = '';
+
+    const header = document.createElement('div');
+    header.style.display = 'flex';
+    header.style.justifyContent = 'space-between';
+    header.style.alignItems = 'center';
+
+    const title = document.createElement('strong');
+    title.style.fontSize = '16px';
+    title.textContent = `${countryFlag(profile.country)} ${profile.avatar} ${profile.username}`;
+    const badge = document.createElement('span');
+    badge.style.fontSize = '11px';
+    badge.style.color = profile.passHash ? '#7ee787' : '#cbd5e1';
+    badge.textContent = profile.passHash ? '🔒 Şifreli Üye' : 'Açık Profil';
+    header.appendChild(title);
+    header.appendChild(badge);
+    box.appendChild(header);
+
+    const grid = document.createElement('div');
+    grid.className = 'profile-stats-grid';
+    const addTile = (val: string, lbl: string) => {
+      const tile = document.createElement('div');
+      tile.className = 'profile-stat-tile';
+      const s = document.createElement('strong');
+      s.textContent = val;
+      const l = document.createElement('span');
+      l.textContent = lbl;
+      tile.appendChild(s);
+      tile.appendChild(l);
+      grid.appendChild(tile);
+    };
+    const topMode = topRecordKey(profile.modes);
+    const topSt = topRecordKey(profile.stadiums);
+    addTile(String(profile.goals || 0), 'Gol');
+    addTile(String(profile.saves || 0), 'Kurtarma');
+    addTile(String(profile.assists || 0), 'Asist');
+    addTile(String(profile.matches || 0), 'Maç');
+    addTile(String(profile.wins || 0), 'Galibiyet');
+    box.appendChild(grid);
+
+    const favs = document.createElement('div');
+    favs.style.marginTop = '10px';
+    favs.style.fontSize = '12px';
+    favs.style.color = '#e2e8f0';
+    favs.textContent =
+      'En Çok Oynadığı Mod: ' +
+      (topMode ? `${formatModeName(topMode.key)} (${topMode.count})` : '—') +
+      '  ·  En Çok Oynadığı Saha: ' +
+      (topSt ? `${formatStadiumName(topSt.key)} (${topSt.count})` : '—');
+    box.appendChild(favs);
+
+    const tbody = el<HTMLTableSectionElement>('leaderboard-tbody');
+    tbody.textContent = '';
+    const leaders = await this.profileSvc.fetchLeaderboard(12);
+    leaders.forEach((p, idx) => {
+      const tr = document.createElement('tr');
+      const favM = topRecordKey(p.modes);
+      const cells = [
+        String(idx + 1),
+        `${countryFlag(p.country)} ${p.username}`,
+        String(p.goals || 0),
+        String(p.saves || 0),
+        String(p.assists || 0),
+        String(p.wins || 0),
+        favM ? formatModeName(favM.key) : '—'
+      ];
+      cells.forEach((c) => {
+        const td = document.createElement('td');
+        td.textContent = c;
+        tr.appendChild(td);
+      });
+      tr.style.cursor = 'pointer';
+      tr.addEventListener('click', () => {
+        void this.openProfileModal(p);
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  private dispatchStatToPlayer(
+    playerId: string,
+    event: 'goal' | 'save' | 'assist' | 'win' | 'match',
+    mode?: string,
+    stadium?: string
+  ): void {
+    const p = this.players.find((pl) => pl.id === playerId);
+    if (!p || p.isBot) return;
+    if (p.id === this.myPlayerId) {
+      this.applyLocalStatEvent(event, mode, stadium);
+    } else {
+      this.peerMgr.sendStatEvent(p.id, event, mode, stadium);
+    }
+  }
+
+  private applyLocalStatEvent(
+    event: 'goal' | 'save' | 'assist' | 'win' | 'match',
+    mode?: string,
+    stadium?: string
+  ): void {
+    if (!this.myProfile) {
+      if (!this.settings.nickname) return;
+      this.myProfile = createEmptyProfile(this.settings.nickname, this.settings.avatar, this.settings.country || 'TR');
+    }
+    const pr = this.myProfile;
+    if (event === 'goal') pr.goals = (pr.goals || 0) + 1;
+    else if (event === 'save') pr.saves = (pr.saves || 0) + 1;
+    else if (event === 'assist') pr.assists = (pr.assists || 0) + 1;
+    else if (event === 'win') pr.wins = (pr.wins || 0) + 1;
+    else if (event === 'match') {
+      pr.matches = (pr.matches || 0) + 1;
+      if (mode) pr.modes[mode] = (pr.modes[mode] || 0) + 1;
+      if (stadium) pr.stadiums[stadium] = (pr.stadiums[stadium] || 0) + 1;
+    }
+    void this.profileSvc.saveProfile(pr);
   }
 
   private showLobbyError(msg: string): void {
@@ -1574,6 +1754,10 @@ class OpenHaxApp {
     this.goalPending = false;
     this.goalBannerTeam = null;
     this.goalResetTicks = 0;
+    this.lastTouchId = '';
+    this.assistTouchId = '';
+    this.lastTouchTick = 0;
+    this.saveCooldownTick = 0;
     this.particles = [];
     resetPositionsForKickoff(this.players, this.ball, this.stadium);
     this.pendingNetEvents |= 4;
@@ -1661,6 +1845,15 @@ class OpenHaxApp {
               ? 'Sure doldu! Mac berabere bitti (' + this.scoreRed + '-' + this.scoreBlue + ')'
               : 'Sure doldu! ' + (this.scoreRed > this.scoreBlue ? 'Kirmizi' : 'Mavi') + ' takim kazandi!';
           this.addChat('Sistem', msg, true);
+          const winner: Team | null = this.scoreRed > this.scoreBlue ? 'red' : this.scoreBlue > this.scoreRed ? 'blue' : null;
+          for (const pl of this.players) {
+            if (!pl.isBot && pl.team !== 'spec') {
+              this.dispatchStatToPlayer(pl.id, 'match', this.settings.physicsProfile, this.stadium.id);
+              if (winner && pl.team === winner) {
+                this.dispatchStatToPlayer(pl.id, 'win');
+              }
+            }
+          }
         }
         this.syncScoreboardUI();
       }
@@ -1678,6 +1871,25 @@ class OpenHaxApp {
       this.customTuningActive ? this.settings : undefined
     );
 
+    if (res.touchedById) {
+      if (this.lastTouchId !== res.touchedById) {
+        this.assistTouchId = this.lastTouchId;
+        this.lastTouchId = res.touchedById;
+      }
+      this.lastTouchTick = this.tick;
+    }
+
+    if (res.savedById && !this.goalPending && this.tick >= this.saveCooldownTick) {
+      this.saveCooldownTick = this.tick + 90;
+      const saver = this.players.find((p) => p.id === res.savedById);
+      if (saver && !saver.isBot) {
+        this.dispatchStatToPlayer(saver.id, 'save');
+        const saveMsg = '🧤 Kurtarış: ' + saver.name;
+        this.addChat('Sistem', saveMsg, true);
+        this.peerMgr.broadcastChat('Sistem', saveMsg, undefined);
+      }
+    }
+
     if (res.kicked) {
       this.audio.playKick();
       this.pendingNetEvents |= 1;
@@ -1688,6 +1900,20 @@ class OpenHaxApp {
       this.goalBannerTeam = res.goalTeam;
       if (res.goalTeam === 'red') this.scoreRed++;
       else this.scoreBlue++;
+
+      // Credit goal & assist to human players if touched within 5s
+      const scorer = this.lastTouchId && this.tick - this.lastTouchTick <= 360
+        ? this.players.find((p) => p.id === this.lastTouchId)
+        : undefined;
+      if (scorer && !scorer.isBot && scorer.team === res.goalTeam) {
+        this.dispatchStatToPlayer(scorer.id, 'goal');
+        const assister = this.assistTouchId ? this.players.find((p) => p.id === this.assistTouchId) : undefined;
+        if (assister && !assister.isBot && assister.id !== scorer.id && assister.team === res.goalTeam) {
+          this.dispatchStatToPlayer(assister.id, 'assist');
+        }
+      }
+      this.lastTouchId = '';
+      this.assistTouchId = '';
 
       const reachedLimit =
         this.roomScoreLimit > 0 &&
@@ -1702,6 +1928,14 @@ class OpenHaxApp {
           (res.goalTeam === 'red' ? 'Kirmizi' : 'Mavi') + ' takim maci kazandi! (' + this.scoreRed + '-' + this.scoreBlue + ')',
           true
         );
+        for (const pl of this.players) {
+          if (!pl.isBot && pl.team !== 'spec') {
+            this.dispatchStatToPlayer(pl.id, 'match', this.settings.physicsProfile, this.stadium.id);
+            if (pl.team === res.goalTeam) {
+              this.dispatchStatToPlayer(pl.id, 'win');
+            }
+          }
+        }
       } else {
         this.goalResetTicks = 96;
         this.audio.playGoal();
