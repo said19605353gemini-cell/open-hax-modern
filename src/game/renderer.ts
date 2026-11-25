@@ -48,7 +48,7 @@ export class CanvasRenderer {
   }
 
   private ensureConfig(stadium: StadiumConfig, settings: GameSettings): void {
-    const dpr = settings.resolution > 1 ? Math.min(settings.resolution, window.devicePixelRatio || settings.resolution) : 1;
+    const dpr = Math.max(1, Number(settings.resolution) || 1);
     const key = [
       stadium.id,
       settings.grassDetail,
@@ -71,8 +71,8 @@ export class CanvasRenderer {
       this.canvas.width = pw;
       this.canvas.height = ph;
     }
-    this.canvas.style.width = stadium.canvasWidth + 'px';
-    this.canvas.style.height = stadium.canvasHeight + 'px';
+    this.canvas.style.setProperty('--canvas-w', stadium.canvasWidth + 'px');
+    this.canvas.style.setProperty('--canvas-ar', String(stadium.canvasWidth / stadium.canvasHeight));
     this.canvas.style.aspectRatio = `${stadium.canvasWidth} / ${stadium.canvasHeight}`;
 
     this.bgCanvas.width = pw;

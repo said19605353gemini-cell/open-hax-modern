@@ -220,7 +220,19 @@
   <!-- SCREEN 2: Server / Room Browser & Room Creator -->
   <section id="view-lobby" class="screen lobby-screen hidden">
     <div class="lobby-grid">
-      <!-- Left: Room List & Direct Join -->
+      <!-- Left: Global Chat -->
+      <div class="card lobby-chat-card">
+        <div class="card-head">
+          <h2>💬 Genel Sohbet</h2>
+        </div>
+        <div id="lobby-global-chat-box" class="chat-box" style="height:360px;background:rgba(0,0,0,0.28);margin-bottom:8px;"></div>
+        <div class="chat-row">
+          <input type="text" id="lobby-global-chat-input" maxlength="160" placeholder="Genel sohbete yaz (Enter)..." />
+          <button type="button" id="btn-lobby-global-chat-send" class="btn primary">Gönder</button>
+        </div>
+      </div>
+
+      <!-- Center: Room List & Direct Join -->
       <div class="card lobby-list-card">
         <div class="card-head">
           <h2>Odalar / Sunucular</h2>

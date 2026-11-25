@@ -271,18 +271,24 @@ body {
 
 /* Lobby Screen */
 .lobby-screen {
-  max-width: 1280px;
+  max-width: 1460px;
   margin-left: auto;
   margin-right: auto;
 }
 
 .lobby-grid {
   display: grid;
-  grid-template-columns: 1.55fr 1fr;
+  grid-template-columns: 300px 1.45fr 1fr;
   gap: 16px;
+  align-items: start;
 }
 
-@media (max-width: 880px) {
+.lobby-chat-card h2 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+}
+
+@media (max-width: 1100px) {
   .lobby-grid {
     grid-template-columns: 1fr;
   }
@@ -1092,13 +1098,18 @@ body.in-room.chat-full .chat-panel {
 body.in-room .chat-panel:focus-within .chat-box {
   height: var(--chat-focus-h, 140px);
 }
+body.in-room #game-canvas {
+  width: min(96vw, var(--canvas-w, 860px));
+  height: auto;
+}
 body.in-room.vp-full #game-canvas {
-  max-width: 99vw;
-  max-height: calc(100vh - 44px);
+  width: min(98vw, calc((100vh - 54px) * var(--canvas-ar, 1.87)));
+  height: auto;
+  max-height: calc(100vh - 54px);
 }
 body.in-room.vp-restricted #game-canvas {
-  max-width: 860px;
-  max-height: 480px;
+  width: min(720px, 94vw);
+  height: auto;
 }
 
 /* Fix white-on-white <select> dropdown options on Windows browsers */

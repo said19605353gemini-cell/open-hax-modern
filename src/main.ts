@@ -583,42 +583,53 @@ class OpenHaxApp {
     });
     const globalChatBox = el<HTMLDivElement>('global-chat-box');
     const globalChatIn = el<HTMLInputElement>('global-chat-input');
+    const lobbyGlobalChatBox = el<HTMLDivElement>('lobby-global-chat-box');
+    const lobbyGlobalChatIn = el<HTMLInputElement>('lobby-global-chat-input');
     const GLOBAL_CHAT_URL = 'https://haxturko-default-rtdb.europe-west1.firebasedatabase.app/global_chat.json';
     let lastGlobalSend = 0;
+
+    const renderChatRows = (box: HTMLDivElement, rows: Array<{ author: string; text: string; country?: string; badge?: string; ts?: number }>) => {
+      box.textContent = '';
+      for (const m of rows) {
+        if (!m || !m.text) continue;
+        const div = document.createElement('div');
+        div.className = 'chat-msg';
+        const nickSpan = document.createElement('span');
+        nickSpan.className = 'nick';
+        if (m.badge) nickSpan.append(m.badge + ' ');
+        nickSpan.append(createFlagEl(m.country), ` ${censorText(String(m.author || 'Oyuncu').slice(0, 20))}: `);
+        const msgSpan = document.createElement('span');
+        msgSpan.textContent = censorText(String(m.text).slice(0, 160));
+        div.appendChild(nickSpan);
+        div.appendChild(msgSpan);
+        box.appendChild(div);
+      }
+      box.scrollTop = box.scrollHeight;
+    };
 
     const loadGlobalChat = async () => {
       try {
         const res = await fetch(`${GLOBAL_CHAT_URL}?orderBy="$key"&limitToLast=35`, { cache: 'no-store' });
         if (!res.ok) return;
         const data = (await res.json()) as Record<string, { author: string; text: string; country?: string; badge?: string; ts?: number }> | null;
-        globalChatBox.textContent = '';
-        if (!data || typeof data !== 'object') return;
-        const rows = Object.values(data).sort((a, b) => (a.ts || 0) - (b.ts || 0));
-        for (const m of rows) {
-          if (!m || !m.text) continue;
-          const div = document.createElement('div');
-          div.className = 'chat-msg';
-          const nickSpan = document.createElement('span');
-          nickSpan.className = 'nick';
-          if (m.badge) nickSpan.append(m.badge + ' ');
-          nickSpan.append(createFlagEl(m.country), ` ${censorText(String(m.author || 'Oyuncu').slice(0, 20))}: `);
-          const msgSpan = document.createElement('span');
-          msgSpan.textContent = censorText(String(m.text).slice(0, 160));
-          div.appendChild(nickSpan);
-          div.appendChild(msgSpan);
-          globalChatBox.appendChild(div);
+        if (!data || typeof data !== 'object') {
+          globalChatBox.textContent = '';
+          lobbyGlobalChatBox.textContent = '';
+          return;
         }
-        globalChatBox.scrollTop = globalChatBox.scrollHeight;
+        const rows = Object.values(data).sort((a, b) => (a.ts || 0) - (b.ts || 0));
+        renderChatRows(globalChatBox, rows);
+        renderChatRows(lobbyGlobalChatBox, rows);
       } catch { /* ignore */ }
     };
 
-    const sendGlobalChat = async () => {
+    const sendGlobalChat = async (sourceInput: HTMLInputElement) => {
       const now = performance.now();
       if (now - lastGlobalSend < 1400) return;
-      const raw = globalChatIn.value.trim();
+      const raw = sourceInput.value.trim();
       if (!raw) return;
       lastGlobalSend = now;
-      globalChatIn.value = '';
+      sourceInput.value = '';
       const author = censorText((this.authNick.value.trim() || this.settings.nickname || 'Misafir').slice(0, 20));
       const text = censorText(raw.slice(0, 160));
       const bdg = getTimeBadge(this.myProfile?.playSeconds || 0).icon;
@@ -633,13 +644,17 @@ class OpenHaxApp {
       } catch { /* ignore */ }
     };
 
-    el<HTMLButtonElement>('btn-global-chat-send').addEventListener('click', () => void sendGlobalChat());
+    el<HTMLButtonElement>('btn-global-chat-send').addEventListener('click', () => void sendGlobalChat(globalChatIn));
     globalChatIn.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') void sendGlobalChat();
+      if (e.key === 'Enter') void sendGlobalChat(globalChatIn);
+    });
+    el<HTMLButtonElement>('btn-lobby-global-chat-send').addEventListener('click', () => void sendGlobalChat(lobbyGlobalChatIn));
+    lobbyGlobalChatIn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') void sendGlobalChat(lobbyGlobalChatIn);
     });
     void loadGlobalChat();
     window.setInterval(() => {
-      if (this.activeScreen === 'auth') void loadGlobalChat();
+      if (this.activeScreen === 'auth' || this.activeScreen === 'lobby') void loadGlobalChat();
     }, 4500);
 
     el<HTMLButtonElement>('btn-profile-mine').addEventListener('click', () => {
@@ -2166,6 +2181,9 @@ class OpenHaxApp {
     setText('.auth-chat-card h2', 'globalChatTitle');
     setPh('#global-chat-input', 'globalChatPh');
     setText('#btn-global-chat-send', 'send');
+    setText('.lobby-chat-card h2', 'globalChatTitle');
+    setPh('#lobby-global-chat-input', 'globalChatPh');
+    setText('#btn-lobby-global-chat-send', 'send');
     setText('.lobby-list-card h2', 'roomsTitle');
     setPh('#lobby-search', 'searchPh');
     setPh('#join-code-input', 'joinCodePh');
