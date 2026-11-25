@@ -176,6 +176,7 @@ export interface MatchSnapshot {
   sec: number;
   p: boolean;
   lk?: boolean;
+  rl?: boolean;
   gt: Team | null;
   pu?: FieldPowerup | null;
   bf?: PowerupType | null;

@@ -91,6 +91,7 @@ class OpenHaxApp {
   private scoreBlue = 0;
   private paused = false;
   private teamsLocked = false;
+  private roomEntryLocked = false;
   private goalPending = false;
   private goalBannerTeam: Team | null = null;
   private goalResetTicks = 0;
@@ -590,7 +591,8 @@ class OpenHaxApp {
       const isAdm = this.isMeAdmin();
       el<HTMLDivElement>('teams-admin-actions').classList.toggle('hidden', !isAdm);
       el<HTMLSelectElement>('teams-botdiff').value = this.settings.botDifficulty;
-      el<HTMLButtonElement>('btn-teams-lock').textContent = this.teamsLocked ? '🔒 Kilitli' : '🔓 Kilitle';
+      el<HTMLButtonElement>('btn-teams-lock').textContent = this.teamsLocked ? '🔒 Takım Kilitli' : '🔓 Takım Kilitle';
+      el<HTMLButtonElement>('btn-teams-roomlock').textContent = this.roomEntryLocked ? '🔒 Oda Giriş: Kilitli' : '🚪 Oda Giriş: Açık';
       for (const p of this.players) {
         const row = document.createElement('div');
         row.className = 'team-player-row';
@@ -686,6 +688,11 @@ class OpenHaxApp {
     el<HTMLButtonElement>('btn-teams-lock').addEventListener('click', () => {
       if (!this.isMeAdmin()) return;
       this.dispatchAdminAction('toggle_lock');
+      setTimeout(renderTeamsModal, 60);
+    });
+    el<HTMLButtonElement>('btn-teams-roomlock').addEventListener('click', () => {
+      if (!this.isMeAdmin()) return;
+      this.dispatchAdminAction('toggle_roomlock');
       setTimeout(renderTeamsModal, 60);
     });
     el<HTMLButtonElement>('btn-teams-reset').addEventListener('click', () => {
@@ -1388,6 +1395,7 @@ class OpenHaxApp {
     this.currentRoomPassword = password;
     this.roomHasPassword = Boolean(password);
     this.customTuningActive = false;
+    this.roomEntryLocked = false;
     this.enabledPowerups =
       powerupMode === 'none'
         ? []
@@ -1515,6 +1523,7 @@ class OpenHaxApp {
     const nextHost = wasHost ? this.pickNextHostPlayer() : undefined;
     this.stopRoomHeartbeat();
     this.teamsLocked = false;
+    this.roomEntryLocked = false;
 
     if (wasHost && code) {
       if (nextHost) {
@@ -1764,6 +1773,12 @@ class OpenHaxApp {
       this.addChat('Sistem', this.teamsLocked ? 'Takım seçimi kilitlendi.' : 'Takım seçimi açıldı.', true);
       this.peerMgr.broadcastChat('Sistem', this.teamsLocked ? 'Takım seçimi kilitlendi.' : 'Takım seçimi açıldı.', undefined);
       this.updateRoomUI();
+    } else if (cmd === 'toggle_roomlock') {
+      this.roomEntryLocked = !this.roomEntryLocked;
+      const msg = this.roomEntryLocked ? '🔒 Oda yeni oyunculara kilitlendi.' : '🔓 Oda yeni oyunculara açıldı.';
+      this.addChat('Sistem', msg, true);
+      this.peerMgr.broadcastChat('Sistem', msg, undefined);
+      this.updateRoomUI();
     } else if (cmd === 'toggle_pause') {
       this.togglePause();
     } else if (cmd === 'reset_match') {
@@ -1975,6 +1990,9 @@ class OpenHaxApp {
   }
 
   private handlePeerJoin(peerId: string, name: string, avatar: string, country = 'TR'): boolean | string {
+    if (this.roomEntryLocked) {
+      return 'Oda girişe kilitli! Yeni oyuncu kabul edilmiyor.';
+    }
     const humanCount = this.players.filter((p) => !p.isBot).length;
     if (humanCount >= this.roomMaxPlayers) {
       return 'Oda dolu (' + humanCount + '/' + this.roomMaxPlayers + ')';
@@ -2323,6 +2341,7 @@ class OpenHaxApp {
       sec: this.matchSeconds,
       p: this.paused,
       lk: this.teamsLocked,
+      rl: this.roomEntryLocked,
       gt: this.goalBannerTeam,
       pu: this.fieldPowerup,
       bf: this.ballFireType,
@@ -2393,6 +2412,7 @@ class OpenHaxApp {
     this.matchSeconds = snap.sec;
     this.paused = snap.p;
     this.teamsLocked = Boolean(snap.lk);
+    this.roomEntryLocked = Boolean(snap.rl);
     this.goalBannerTeam = snap.gt;
     this.fieldPowerup = snap.pu || null;
     this.ballFireType = snap.bf || null;
