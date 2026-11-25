@@ -76,6 +76,7 @@ class OpenHaxApp {
   private scoreRed = 0;
   private scoreBlue = 0;
   private paused = false;
+  private teamsLocked = false;
   private goalPending = false;
   private goalBannerTeam: Team | null = null;
   private goalResetTicks = 0;
@@ -348,8 +349,8 @@ class OpenHaxApp {
         this.settingsModal.classList.add('hidden');
         this.debugModal.classList.add('hidden');
       } else if (this.activeScreen === 'room') {
-        if (e.code === 'KeyP') this.togglePause();
-        else if (e.code === 'KeyR') this.resetMatch();
+        if (e.code === 'KeyP' && this.isMeAdmin()) this.dispatchAdminAction('toggle_pause');
+        else if (e.code === 'KeyR' && this.isMeAdmin()) this.dispatchAdminAction('reset_match');
       }
     });
 
@@ -375,8 +376,12 @@ class OpenHaxApp {
       this.switchScreen('auth');
       this.authNick.focus();
     });
-    this.btnPause.addEventListener('click', () => this.togglePause());
-    this.btnReset.addEventListener('click', () => this.resetMatch());
+    this.btnPause.addEventListener('click', () => {
+      if (this.isMeAdmin()) this.dispatchAdminAction('toggle_pause');
+    });
+    this.btnReset.addEventListener('click', () => {
+      if (this.isMeAdmin()) this.dispatchAdminAction('reset_match');
+    });
     this.btnMute.addEventListener('click', () => {
       this.updateSettings({ masterSound: !this.settings.masterSound });
       el<HTMLInputElement>('set-sound').checked = this.settings.masterSound;
@@ -398,7 +403,6 @@ class OpenHaxApp {
     });
 
     const teamsModal = el<HTMLDivElement>('teams-modal');
-    let teamsLocked = false;
     const renderTeamsModal = () => {
       const lists: Record<Team, HTMLDivElement> = {
         red: el<HTMLDivElement>('teams-list-red'),
@@ -410,11 +414,13 @@ class OpenHaxApp {
       lists.blue.innerHTML = '';
       const isAdm = this.isMeAdmin();
       el<HTMLDivElement>('teams-admin-actions').classList.toggle('hidden', !isAdm);
-      el<HTMLButtonElement>('btn-teams-lock').textContent = teamsLocked ? '🔒 Kilitli' : '🔓 Kilitle';
+      el<HTMLButtonElement>('btn-teams-lock').textContent = this.teamsLocked ? '🔒 Kilitli' : '🔓 Kilitle';
       for (const p of this.players) {
         const row = document.createElement('div');
         row.className = 'team-player-row';
-        row.innerHTML = `<span>${p.isAdmin ? '★ ' : ''}${p.avatar} ${p.name}${p.isBot ? ' [BOT]' : ''}</span>`;
+        const label = document.createElement('span');
+        label.textContent = (p.isAdmin ? '★ ' : '') + p.avatar + ' ' + p.name + (p.isBot ? ' [BOT]' : '');
+        row.appendChild(label);
         row.addEventListener('click', (ev) => {
           ev.stopPropagation();
           if (isAdm) this.openPlayerContextMenu(ev.clientX, ev.clientY, p);
@@ -429,13 +435,13 @@ class OpenHaxApp {
     el<HTMLButtonElement>('btn-teams-close').addEventListener('click', () => teamsModal.classList.add('hidden'));
     el<HTMLButtonElement>('btn-teams-start').addEventListener('click', () => {
       teamsModal.classList.add('hidden');
-      if (this.paused && this.isMeAdmin()) this.togglePause();
+      if (this.paused && this.isMeAdmin()) this.dispatchAdminAction('toggle_pause');
     });
     teamsModal.addEventListener('click', (e) => {
       if (e.target === teamsModal) teamsModal.classList.add('hidden');
     });
     const joinCol = (team: Team) => {
-      if (teamsLocked && !this.isMeAdmin()) return;
+      if (this.teamsLocked && !this.isMeAdmin()) return;
       (this.viewRoom.querySelector(`[data-team="${team}"]`) as HTMLButtonElement | null)?.click();
       setTimeout(renderTeamsModal, 60);
     };
@@ -444,18 +450,18 @@ class OpenHaxApp {
     el<HTMLButtonElement>('btn-join-blue').addEventListener('click', () => joinCol('blue'));
     el<HTMLButtonElement>('btn-teams-lock').addEventListener('click', () => {
       if (!this.isMeAdmin()) return;
-      teamsLocked = !teamsLocked;
-      renderTeamsModal();
+      this.dispatchAdminAction('toggle_lock');
+      setTimeout(renderTeamsModal, 60);
     });
     el<HTMLButtonElement>('btn-teams-reset').addEventListener('click', () => {
       if (!this.isMeAdmin()) return;
-      for (const p of this.players) this.dispatchAdminAction(p.id, 'set_team', 'spec');
+      for (const p of this.players) this.dispatchAdminAction('set_team', p.id, 'spec');
       setTimeout(renderTeamsModal, 60);
     });
     el<HTMLButtonElement>('btn-teams-auto').addEventListener('click', () => {
       if (!this.isMeAdmin()) return;
       this.players.forEach((p, idx) => {
-        this.dispatchAdminAction(p.id, 'set_team', idx % 2 === 0 ? 'red' : 'blue');
+        this.dispatchAdminAction('set_team', p.id, idx % 2 === 0 ? 'red' : 'blue');
       });
       setTimeout(renderTeamsModal, 60);
     });
@@ -463,7 +469,7 @@ class OpenHaxApp {
       if (!this.isMeAdmin()) return;
       const shuffled = [...this.players].sort(() => Math.random() - 0.5);
       shuffled.forEach((p, idx) => {
-        this.dispatchAdminAction(p.id, 'set_team', idx % 2 === 0 ? 'red' : 'blue');
+        this.dispatchAdminAction('set_team', p.id, idx % 2 === 0 ? 'red' : 'blue');
       });
       setTimeout(renderTeamsModal, 60);
     });
@@ -572,6 +578,7 @@ class OpenHaxApp {
 
     this.viewRoom.querySelectorAll<HTMLButtonElement>('[data-team]').forEach((btn) => {
       btn.addEventListener('click', () => {
+        if (this.teamsLocked && !this.isMeAdmin()) return;
         const team = btn.dataset.team as Team;
         if (this.peerMgr.getRole() === 'guest') {
           this.peerMgr.sendTeamRequest(team);
@@ -581,25 +588,49 @@ class OpenHaxApp {
       });
     });
 
-    el<HTMLButtonElement>('btn-add-red-bot').addEventListener('click', () => this.addBot('red'));
-    el<HTMLButtonElement>('btn-add-blue-bot').addEventListener('click', () => this.addBot('blue'));
-    el<HTMLButtonElement>('btn-remove-bot').addEventListener('click', () => this.removeLastBot());
-    el<HTMLButtonElement>('btn-clear-bots').addEventListener('click', () => this.clearBots());
+    el<HTMLButtonElement>('btn-add-red-bot').addEventListener('click', () => {
+      if (this.isMeAdmin()) this.dispatchAdminAction('add_bot', undefined, 'red');
+    });
+    el<HTMLButtonElement>('btn-add-blue-bot').addEventListener('click', () => {
+      if (this.isMeAdmin()) this.dispatchAdminAction('add_bot', undefined, 'blue');
+    });
+    el<HTMLButtonElement>('btn-remove-bot').addEventListener('click', () => {
+      if (this.isMeAdmin()) this.dispatchAdminAction('remove_bot');
+    });
+    el<HTMLButtonElement>('btn-clear-bots').addEventListener('click', () => {
+      if (this.isMeAdmin()) this.dispatchAdminAction('clear_bots');
+    });
 
     this.roomBotDiff.addEventListener('change', () => {
-      this.updateSettings({ botDifficulty: this.roomBotDiff.value as BotDifficulty });
+      if (!this.isMeAdmin()) return;
+      const diff = this.roomBotDiff.value as BotDifficulty;
+      if (this.peerMgr.getRole() === 'guest') {
+        this.dispatchAdminAction('set_botdiff', undefined, diff);
+        return;
+      }
+      this.updateSettings({ botDifficulty: diff });
       el<HTMLSelectElement>('set-botdiff').value = this.settings.botDifficulty;
     });
 
     this.roomStadium.addEventListener('change', () => {
+      if (!this.isMeAdmin()) return;
       const stId = this.roomStadium.value as StadiumId;
+      if (this.peerMgr.getRole() === 'guest') {
+        this.dispatchAdminAction('set_stadium', undefined, stId);
+        return;
+      }
       this.updateSettings({ stadium: stId });
       resetPositionsForKickoff(this.players, this.ball, this.stadium);
     });
 
     this.roomPhysics.addEventListener('change', () => {
-      this.customTuningActive = false;
+      if (!this.isMeAdmin()) return;
       const pf = this.roomPhysics.value as PhysicsProfile;
+      if (this.peerMgr.getRole() === 'guest') {
+        this.dispatchAdminAction('set_physics', undefined, pf);
+        return;
+      }
+      this.customTuningActive = false;
       this.updateSettings({ physicsProfile: pf });
       el<HTMLSelectElement>('set-physics').value = pf;
     });
@@ -618,6 +649,22 @@ class OpenHaxApp {
         const key = btn.dataset.preset || '';
         const preset = PERFORMANCE_PRESETS[key];
         if (preset) {
+          if (!this.isMeAdmin()) {
+            const {
+              physicsProfile: _pf,
+              ballControl: _bc,
+              ballDamping: _bd,
+              kickPower: _kp,
+              playerSpeed: _ps,
+              wallBounce: _wb,
+              ...clientSafePreset
+            } = preset;
+            if (Object.keys(clientSafePreset).length > 0) {
+              this.updateSettings(clientSafePreset);
+              this.syncSettingsToUI();
+            }
+            return;
+          }
           this.updateSettings(preset);
           this.syncSettingsToUI();
         }
@@ -876,6 +923,7 @@ class OpenHaxApp {
     const code = this.peerMgr.getRoomCode();
     const wasHost = this.peerMgr.getRole() === 'host';
     this.stopRoomHeartbeat();
+    this.teamsLocked = false;
     if (wasHost && code) {
       void this.directory.removeRoom(code);
     }
@@ -1054,8 +1102,8 @@ class OpenHaxApp {
         this.peerMgr.broadcastChat('Sistem', target.name + (target.isAdmin ? ' artık oda admini.' : ' adminlikten çıkarıldı.'), undefined);
         this.updateRoomUI();
       }
-    } else if (cmd === 'set_team' && targetId && typeof value === 'string') {
-      this.handlePeerTeam(targetId, value as Team);
+    } else if (cmd === 'set_team' && targetId && (value === 'red' || value === 'blue' || value === 'spec')) {
+      this.handlePeerTeam(targetId, value as Team, true);
     } else if (cmd === 'kick' && targetId && targetId !== 'host') {
       const idx = this.players.findIndex((p) => p.id === targetId);
       if (idx !== -1) {
@@ -1067,6 +1115,35 @@ class OpenHaxApp {
           this.peerMgr.kickPeer(targetId, 'Oda admini tarafından odadan çıkarıldınız.');
         }
       }
+    } else if (cmd === 'toggle_lock') {
+      this.teamsLocked = !this.teamsLocked;
+      this.addChat('Sistem', this.teamsLocked ? 'Takım seçimi kilitlendi.' : 'Takım seçimi açıldı.', true);
+      this.peerMgr.broadcastChat('Sistem', this.teamsLocked ? 'Takım seçimi kilitlendi.' : 'Takım seçimi açıldı.', undefined);
+      this.updateRoomUI();
+    } else if (cmd === 'toggle_pause') {
+      this.togglePause();
+    } else if (cmd === 'reset_match') {
+      this.resetMatch();
+    } else if (cmd === 'add_bot' && (value === 'red' || value === 'blue')) {
+      this.addBot(value);
+    } else if (cmd === 'remove_bot') {
+      this.removeLastBot();
+    } else if (cmd === 'clear_bots') {
+      this.clearBots();
+    } else if (cmd === 'set_botdiff' && (value === 'easy' || value === 'medium' || value === 'hard')) {
+      this.updateSettings({ botDifficulty: value });
+      this.roomBotDiff.value = value;
+      el<HTMLSelectElement>('set-botdiff').value = value;
+    } else if (cmd === 'set_stadium' && typeof value === 'string') {
+      const nextStadium = getStadium(value as StadiumId);
+      this.updateSettings({ stadium: nextStadium.id });
+      resetPositionsForKickoff(this.players, this.ball, this.stadium);
+      this.roomStadium.value = nextStadium.id;
+    } else if (cmd === 'set_physics' && typeof value === 'string') {
+      this.customTuningActive = false;
+      this.updateSettings({ physicsProfile: value as PhysicsProfile });
+      this.roomPhysics.value = value;
+      el<HTMLSelectElement>('set-physics').value = value;
     }
   }
 
@@ -1083,7 +1160,9 @@ class OpenHaxApp {
     this.fpsHudEl.classList.toggle('hidden', !this.settings.showHud);
     const fpsText = this.settings.fpsLimit > 0 ? this.settings.fpsLimit + ' FPS' : 'Sınırsız';
     this.btnSettings.textContent = 'Performans & Ayarlar (' + fpsText + ')';
-    this.stadium = getStadium(this.settings.stadium);
+    if (this.peerMgr.getRole() !== 'guest') {
+      this.stadium = getStadium(this.settings.stadium);
+    }
   }
 
   private syncSettingsToUI(): void {
@@ -1224,9 +1303,10 @@ class OpenHaxApp {
     if (p) p.inputBits = bits;
   }
 
-  private handlePeerTeam(peerId: string, team: Team): void {
+  private handlePeerTeam(peerId: string, team: Team, bypassLock = false): void {
     const p = this.players.find((pl) => pl.id === peerId);
     if (!p || p.team === team) return;
+    if (this.teamsLocked && !bypassLock && !p.isAdmin) return;
     p.team = team;
     p.vx = 0;
     p.vy = 0;
@@ -1425,6 +1505,7 @@ class OpenHaxApp {
       tl: this.roomTimeLimit,
       sec: this.matchSeconds,
       p: this.paused,
+      lk: this.teamsLocked,
       gt: this.goalBannerTeam,
       b: [
         Math.round(this.ball.x * 10) / 10,
@@ -1480,6 +1561,7 @@ class OpenHaxApp {
     this.scoreBlue = snap.sc[1];
     this.matchSeconds = snap.sec;
     this.paused = snap.p;
+    this.teamsLocked = Boolean(snap.lk);
     this.goalBannerTeam = snap.gt;
 
     this.ball.prevX = this.ball.x;
@@ -1549,28 +1631,48 @@ class OpenHaxApp {
     this.btnPause.textContent = this.paused ? 'Devam Et (P)' : 'Duraklat (P)';
     this.pauseBannerEl.classList.toggle('hidden', !this.paused);
 
+    const safeHttpUrl = (raw?: string): string => {
+      const trimmed = (raw || '').trim();
+      return /^https?:\/\/[^\s"'<>]+$/i.test(trimmed) ? trimmed : '';
+    };
+    const renderBanner = (gifUrl: string, labelText?: string) => {
+      this.goalBannerEl.textContent = '';
+      const wrap = document.createElement('div');
+      wrap.style.textAlign = 'center';
+      const safeUrl = safeHttpUrl(gifUrl);
+      if (safeUrl) {
+        const img = document.createElement('img');
+        img.src = safeUrl;
+        img.alt = labelText ? 'goal' : 'chant';
+        img.style.maxHeight = labelText ? '110px' : '120px';
+        img.style.borderRadius = '6px';
+        if (labelText) img.style.marginBottom = '8px';
+        img.style.display = 'block';
+        img.style.marginLeft = 'auto';
+        img.style.marginRight = 'auto';
+        wrap.appendChild(img);
+      }
+      if (labelText) {
+        const span = document.createElement('span');
+        span.textContent = labelText;
+        wrap.appendChild(span);
+      }
+      this.goalBannerEl.appendChild(wrap);
+    };
+
     if (this.goalBannerTeam) {
       const l = this.settings.lang || 'tr';
       this.goalBannerEl.className = 'overlay-banner ' + this.goalBannerTeam;
       const me = this.players.find((p) => p.id === this.myPlayerId);
       const isConcede = Boolean(me && me.team !== 'spec' && me.team !== this.goalBannerTeam && this.settings.concedeGifUrl);
       const activeGif = isConcede ? (this.settings.concedeGifUrl || '') : (this.settings.goalGifUrl || '');
-      const gifHtml = activeGif
-        ? '<img src="' + activeGif.replace(/"/g, '&quot;') + '" alt="goal" style="max-height:110px;border-radius:6px;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto;" />'
-        : '';
-      this.goalBannerEl.innerHTML =
-        '<div style="text-align:center;">' +
-        gifHtml +
-        '<span>' + (this.goalBannerTeam === 'red' ? t(l, 'goalRed') : t(l, 'goalBlue')) + '</span></div>';
+      renderBanner(activeGif, this.goalBannerTeam === 'red' ? t(l, 'goalRed') : t(l, 'goalBlue'));
     } else if (((this as unknown as { chantBannerUntil?: number }).chantBannerUntil || 0) > performance.now() && this.settings.chantGifUrl) {
       this.goalBannerEl.className = 'overlay-banner';
-      this.goalBannerEl.innerHTML =
-        '<div style="text-align:center;">' +
-        '<img src="' + this.settings.chantGifUrl.replace(/"/g, '&quot;') + '" alt="chant" style="max-height:120px;border-radius:6px;display:block;margin-left:auto;margin-right:auto;" />' +
-        '</div>';
+      renderBanner(this.settings.chantGifUrl);
     } else {
       this.goalBannerEl.className = 'overlay-banner hidden';
-      this.goalBannerEl.innerHTML = '';
+      this.goalBannerEl.textContent = '';
     }
   }
 

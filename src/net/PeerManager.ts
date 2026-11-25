@@ -62,6 +62,7 @@ export class PeerManager {
   private peer: Peer | null = null;
   private hostConn: DataConnection | null = null;
   private clientConns = new Map<string, DataConnection>();
+  private clientNames = new Map<string, string>();
   private pingTimer: number | null = null;
   private role: PeerRole = 'offline';
   private roomCode = '';
@@ -125,7 +126,9 @@ export class PeerManager {
             }, 150);
             return;
           }
-          const result = this.cb.onPeerJoin(conn.peer, pkt.name || 'Misafir', pkt.avatar || ':)');
+          const cleanName = String(pkt.name || 'Misafir').trim().slice(0, 20) || 'Misafir';
+          const cleanAvatar = String(pkt.avatar || ':)').trim().slice(0, 8) || ':)';
+          const result = this.cb.onPeerJoin(conn.peer, cleanName, cleanAvatar);
           if (result !== true) {
             conn.send({ type: 'auth_error', reason: typeof result === 'string' ? result : 'Oda dolu!' } satisfies NetPacket);
             setTimeout(() => {
@@ -134,25 +137,37 @@ export class PeerManager {
             return;
           }
           this.clientConns.set(conn.peer, conn);
+          this.clientNames.set(conn.peer, cleanName);
           conn.send({ type: 'welcome', playerId: conn.peer, roomName: this.roomName } satisfies NetPacket);
           this.cb.onStatus('host', 'Oda acik (' + (this.clientConns.size + 1) + ' kisi)', this.roomCode);
-        } else if (pkt.type === 'input') {
-          this.cb.onPeerInput(conn.peer, Number(pkt.bits) || 0);
-        } else if (pkt.type === 'team') {
-          this.cb.onPeerTeam(conn.peer, pkt.team);
-        } else if (pkt.type === 'chat') {
-          this.cb.onChat(pkt.author, pkt.text, pkt.team);
-          this.broadcast(pkt, conn.peer);
         } else if (pkt.type === 'ping') {
           conn.send({ type: 'pong', ts: pkt.ts } satisfies NetPacket);
-        } else if (pkt.type === 'admin_cmd') {
-          this.cb.onAdminCmd?.(conn.peer, pkt.cmd, pkt.targetId, pkt.value);
+        } else {
+          // Reject any gameplay/chat/admin packet before join handshake succeeds
+          if (!this.clientConns.has(conn.peer)) return;
+          if (pkt.type === 'input') {
+            this.cb.onPeerInput(conn.peer, (Number(pkt.bits) || 0) & 31);
+          } else if (pkt.type === 'team') {
+            if (pkt.team === 'red' || pkt.team === 'blue' || pkt.team === 'spec') {
+              this.cb.onPeerTeam(conn.peer, pkt.team);
+            }
+          } else if (pkt.type === 'chat') {
+            const verifiedAuthor = this.clientNames.get(conn.peer) || 'Misafir';
+            const cleanText = String(pkt.text || '').trim().slice(0, 180);
+            if (!cleanText) return;
+            const verifiedPkt: NetPacket = { type: 'chat', author: verifiedAuthor, text: cleanText };
+            this.cb.onChat(verifiedAuthor, cleanText);
+            this.broadcast(verifiedPkt, conn.peer);
+          } else if (pkt.type === 'admin_cmd') {
+            this.cb.onAdminCmd?.(conn.peer, pkt.cmd, pkt.targetId, pkt.value);
+          }
         }
       });
 
       conn.on('close', () => {
         if (this.clientConns.has(conn.peer)) {
           this.clientConns.delete(conn.peer);
+          this.clientNames.delete(conn.peer);
           this.cb.onPeerLeave(conn.peer);
           this.cb.onStatus('host', 'Oda acik (' + (this.clientConns.size + 1) + ' kisi)', this.roomCode);
         }
@@ -310,6 +325,7 @@ export class PeerManager {
       try { c.close(); } catch {}
     });
     this.clientConns.clear();
+    this.clientNames.clear();
     if (this.hostConn) {
       try { this.hostConn.close(); } catch {}
       this.hostConn = null;

@@ -145,6 +145,7 @@ export interface MatchSnapshot {
   tl: number; // timeLimitSeconds (0 = unlimited)
   sec: number;
   p: boolean;
+  lk?: boolean;
   gt: Team | null;
   b: [number, number, number, number];
   pl: SnapshotPlayer[];

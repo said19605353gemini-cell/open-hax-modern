@@ -71,6 +71,11 @@ if ($method === 'GET' && $action === 'list') {
 }
 
 $bodyRaw = file_get_contents('php://input');
+if ($bodyRaw !== false && strlen($bodyRaw) > 4096) {
+    http_response_code(413);
+    echo json_encode(['ok' => false, 'error' => 'payload_too_large']);
+    exit;
+}
 $body = json_decode($bodyRaw ?: '{}', true);
 if (!is_array($body)) {
     $body = [];
@@ -79,16 +84,27 @@ if (!is_array($body)) {
 $rooms = loadRooms($storeFile, $now, $ttlSeconds);
 
 if ($action === 'upsert') {
-    $code = preg_replace('/[^a-z0-9-]/', '', strtolower((string)($body['code'] ?? '')));
+    $code = substr(preg_replace('/[^a-z0-9-]/', '', strtolower((string)($body['code'] ?? ''))), 0, 16);
     if ($code === '') {
         http_response_code(400);
         echo json_encode(['ok' => false, 'error' => 'invalid_code']);
         exit;
     }
+    if (!isset($rooms[$code]) && count($rooms) >= 200) {
+        http_response_code(429);
+        echo json_encode(['ok' => false, 'error' => 'directory_full']);
+        exit;
+    }
     $name = trim(mb_substr((string)($body['name'] ?? 'OpenHax Oda'), 0, 32));
     $hostName = trim(mb_substr((string)($body['hostName'] ?? 'Kurucu'), 0, 20));
     $stadium = (string)($body['stadium'] ?? 'classic');
-    if (!in_array($stadium, ['classic', 'big', 'huge', 'futsal', 'tiny', 'long'], true)) {
+    $allowedStadiums = [
+        'classic', 'big', 'huge', 'futsal', 'tiny', 'long',
+        'arena_3v3', 'mini_fast', 'wide_wing', 'penalty_box',
+        'hbs_classic', 'hbs_easy', 'hbs_small', 'hbs_rounded',
+        'hbs_big', 'hbs_big_easy', 'hbs_huge'
+    ];
+    if (!in_array($stadium, $allowedStadiums, true)) {
         $stadium = 'classic';
     }
     $players = max(1, min(20, (int)($body['players'] ?? 1)));
