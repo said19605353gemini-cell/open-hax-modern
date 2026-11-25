@@ -15,6 +15,9 @@ export interface PublicRoomInfo {
 
 const LOCAL_STORAGE_KEY = 'openhax_local_rooms_v1';
 const ROOM_TTL_MS = 22000;
+// GitHub Pages gibi statik sitelerde ortak oda listesi için Firebase Realtime Database URL'sini buraya yazın
+// Örnek: 'https://projeniz-default-rtdb.firebaseio.com'
+const FIREBASE_DB_URL: string = '';
 
 export class RoomDirectory {
   private serverApiWorks: boolean | null = null;
@@ -41,6 +44,28 @@ export class RoomDirectory {
 
   async listRooms(): Promise<{ rooms: PublicRoomInfo[]; mode: 'server' | 'local' }> {
     const localRooms = this.readLocalRooms();
+
+    if (FIREBASE_DB_URL) {
+      try {
+        const res = await fetch(`${FIREBASE_DB_URL.replace(/\/$/, '')}/rooms.json`, { cache: 'no-store' });
+        if (res.ok) {
+          const data = (await res.json()) as Record<string, PublicRoomInfo> | null;
+          const now = Date.now();
+          const rooms: PublicRoomInfo[] = [];
+          if (data && typeof data === 'object') {
+            for (const r of Object.values(data)) {
+              if (r && r.code && now - (r.updatedAt || 0) < ROOM_TTL_MS) {
+                rooms.push({ ...r, source: 'server' });
+              }
+            }
+          }
+          this.serverApiWorks = true;
+          return { rooms, mode: 'server' };
+        }
+      } catch {
+        // Fall through to local
+      }
+    }
 
     if (this.serverApiWorks !== false) {
       try {
@@ -73,7 +98,22 @@ export class RoomDirectory {
   }
 
   async publishRoom(room: Omit<PublicRoomInfo, 'updatedAt' | 'source'>): Promise<void> {
-    this.writeLocalRoom({ ...room, updatedAt: Date.now(), source: 'local' });
+    const now = Date.now();
+    this.writeLocalRoom({ ...room, updatedAt: now, source: 'local' });
+
+    if (FIREBASE_DB_URL) {
+      try {
+        const res = await fetch(`${FIREBASE_DB_URL.replace(/\/$/, '')}/rooms/${encodeURIComponent(room.code)}.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...room, updatedAt: now })
+        });
+        this.serverApiWorks = res.ok;
+      } catch {
+        // Ignore
+      }
+      return;
+    }
 
     if (this.serverApiWorks === false) {
       return;
@@ -94,6 +134,17 @@ export class RoomDirectory {
 
   async removeRoom(code: string): Promise<void> {
     this.removeLocalRoom(code);
+
+    if (FIREBASE_DB_URL) {
+      try {
+        await fetch(`${FIREBASE_DB_URL.replace(/\/$/, '')}/rooms/${encodeURIComponent(code)}.json`, {
+          method: 'DELETE'
+        });
+      } catch {
+        // Ignore
+      }
+      return;
+    }
 
     if (this.serverApiWorks === false) {
       return;
