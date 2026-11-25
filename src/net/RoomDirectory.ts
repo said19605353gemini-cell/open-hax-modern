@@ -10,6 +10,7 @@ export interface PublicRoomInfo {
   maxPlayers: number;
   hasPassword: boolean;
   country?: string;
+  ownerHash?: string;
   updatedAt: number;
   source?: 'server' | 'local';
 }
@@ -33,6 +34,7 @@ export class RoomDirectory {
   private phpApiWorks: boolean | null =
     typeof window !== 'undefined' && window.location.hostname.endsWith('github.io') ? false : null;
   private lastCloudRooms: PublicRoomInfo[] = [];
+  private cachedOwnerHash: string | null = null;
   private channel: BroadcastChannel | null = null;
   private onLocalUpdateCallback: (() => void) | null = null;
 
@@ -272,16 +274,65 @@ export class RoomDirectory {
     return { rooms: localRooms, mode: 'local', latencyMs: 0 };
   }
 
+  async getOwnerHash(): Promise<string> {
+    if (this.cachedOwnerHash) return this.cachedOwnerHash;
+    let fallbackId = '';
+    try {
+      fallbackId = window.localStorage.getItem('openhax_client_id') || '';
+      if (!fallbackId) {
+        fallbackId = 'cid_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+        window.localStorage.setItem('openhax_client_id', fallbackId);
+      }
+    } catch {
+      fallbackId = 'cid_anon';
+    }
+    try {
+      const ctrl = new AbortController();
+      const timer = window.setTimeout(() => ctrl.abort(), 2000);
+      const res = await fetch('https://api.ipify.org?format=json', { signal: ctrl.signal, cache: 'no-store' });
+      window.clearTimeout(timer);
+      if (res.ok) {
+        const data = (await res.json()) as { ip?: string };
+        if (data?.ip) {
+          let h = 2166136261;
+          for (let i = 0; i < data.ip.length; i++) {
+            h ^= data.ip.charCodeAt(i);
+            h = Math.imul(h, 16777619);
+          }
+          this.cachedOwnerHash = 'ip_' + (h >>> 0).toString(36);
+          return this.cachedOwnerHash;
+        }
+      }
+    } catch { /* ignore */ }
+    this.cachedOwnerHash = fallbackId;
+    return this.cachedOwnerHash;
+  }
+
+  async canCreateRoom(hostName: string): Promise<{ ok: boolean; count: number; limit: number }> {
+    const limit = 3;
+    const ownerHash = await this.getOwnerHash();
+    const { rooms } = await this.listRooms();
+    const cleanHost = (hostName || '').trim().toLowerCase();
+    const count = rooms.filter((r) => {
+      if (r.ownerHash && r.ownerHash === ownerHash) return true;
+      if (!r.ownerHash && cleanHost && r.hostName.trim().toLowerCase() === cleanHost) return true;
+      return false;
+    }).length;
+    return { ok: count < limit, count, limit };
+  }
+
   async publishRoom(room: Omit<PublicRoomInfo, 'updatedAt' | 'source'>): Promise<void> {
     const now = Date.now();
-    this.writeLocalRoom({ ...room, updatedAt: now, source: 'local' });
+    const ownerHash = await this.getOwnerHash();
+    const payload = { ...room, ownerHash };
+    this.writeLocalRoom({ ...payload, updatedAt: now, source: 'local' });
 
     if (this.phpApiWorks !== false) {
       try {
         const res = await fetch('./api/rooms.php?action=upsert', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(room)
+          body: JSON.stringify(payload)
         });
         const text = await res.text();
         if (res.ok && text.trim().startsWith('{')) {
@@ -295,7 +346,7 @@ export class RoomDirectory {
     }
 
     if (this.hasCloudDb()) {
-      await this.publishCloudRoom(room, now);
+      await this.publishCloudRoom(payload, now);
     }
   }
 

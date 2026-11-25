@@ -1048,7 +1048,20 @@ class OpenHaxApp {
       this.createBotRow.classList.toggle('hidden', t === 'local2p');
     });
 
-    el<HTMLButtonElement>('btn-create-room').addEventListener('click', () => this.createAndEnterRoom());
+    el<HTMLButtonElement>('btn-create-room').addEventListener('click', () => {
+      const kind = this.createType.value;
+      if (kind === 'public' || kind === 'private') {
+        void this.directory.canCreateRoom(this.settings.nickname).then((chk) => {
+          if (!chk.ok) {
+            this.showLobbyError(`Aynı IP / kişi üzerinden en fazla ${chk.limit} aktif oda açabilirsiniz (Mevcut: ${chk.count}/${chk.limit}).`);
+            return;
+          }
+          this.createAndEnterRoom();
+        });
+      } else {
+        this.createAndEnterRoom();
+      }
+    });
 
     // Screen 3: Room controls
     this.btnCopyLink.addEventListener('click', () => {
