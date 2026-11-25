@@ -135,6 +135,8 @@ export const DEFAULT_SETTINGS: GameSettings = {
   chatWidth: 'compact',
   youtubeClientId: '',
   youtubePrivacy: 'unlisted',
+  perfBoost: false,
+  showGoalNets: true,
   stadium: 'classic',
   physicsProfile: 'openhax',
   physicsHz: 60,
@@ -169,16 +171,30 @@ export const PERFORMANCE_PRESETS: Record<string, Partial<GameSettings>> = {
     kickFlash: true,
     pauseOnBlur: true
   },
+  ultraHD: {
+    grassDetail: 'arena_pro',
+    ballStyle: 'soccer',
+    ballTrail: true,
+    resolution: 2,
+    antialias: true,
+    shadows: true,
+    particles: true,
+    kickFlash: true,
+    perfBoost: false,
+    showGoalNets: true
+  },
   ultraPerformance: {
     fpsLimit: 0,
     grassDetail: 'flat',
     ballStyle: 'classic',
     ballTrail: false,
-    resolution: 1,
+    resolution: 0.75,
     antialias: false,
     shadows: false,
     particles: false,
     kickFlash: false,
+    perfBoost: true,
+    showGoalNets: false,
     pauseOnBlur: true
   },
   powerSaver: {

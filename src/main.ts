@@ -1195,6 +1195,22 @@ class OpenHaxApp {
     });
     bindSelect('set-viewport', (v) => this.updateSettings({ viewportMode: v as GameSettings['viewportMode'] }));
     bindSelect('set-grass', (v) => this.updateSettings({ grassDetail: v as GameSettings['grassDetail'] }));
+    bindSelect('set-gfx-quality', (v) => {
+      if (v === 'ultra_perf') {
+        this.updateSettings(PERFORMANCE_PRESETS.ultraPerformance);
+      } else if (v === 'low') {
+        this.updateSettings({ grassDetail: 'flat', resolution: 1, antialias: false, shadows: false, particles: false, kickFlash: false, perfBoost: true, showGoalNets: false });
+      } else if (v === 'medium') {
+        this.updateSettings({ grassDetail: 'hd_stadium', resolution: 1, antialias: true, shadows: true, particles: false, kickFlash: true, perfBoost: false, showGoalNets: true });
+      } else if (v === 'high') {
+        this.updateSettings({ grassDetail: 'hd_stadium', resolution: 1.5, antialias: true, shadows: true, particles: true, kickFlash: true, perfBoost: false, showGoalNets: true });
+      } else if (v === 'ultra') {
+        this.updateSettings(PERFORMANCE_PRESETS.ultraHD);
+      }
+      this.syncSettingsToUI();
+    });
+    bindCheck('set-perfboost', (v) => this.updateSettings({ perfBoost: v }));
+    bindCheck('set-goalnets', (v) => this.updateSettings({ showGoalNets: v }));
     bindSelect('set-ballstyle', (v) => this.updateSettings({ ballStyle: v as GameSettings['ballStyle'] }));
     bindCheck('set-balltrail', (v) => this.updateSettings({ ballTrail: v }));
     bindSelect('set-res', (v) => this.updateSettings({ resolution: Number(v) }));
@@ -2347,6 +2363,8 @@ class OpenHaxApp {
     el<HTMLSpanElement>('lbl-chatheight').textContent = String(chatH);
     el<HTMLSelectElement>('set-chatwidth').value = s.chatWidth || 'compact';
     el<HTMLInputElement>('set-aa').checked = s.antialias;
+    el<HTMLInputElement>('set-perfboost').checked = Boolean(s.perfBoost);
+    el<HTMLInputElement>('set-goalnets').checked = s.showGoalNets !== false;
     el<HTMLInputElement>('set-shadows').checked = s.shadows;
     el<HTMLInputElement>('set-particles').checked = s.particles;
     el<HTMLInputElement>('set-kickflash').checked = s.kickFlash;

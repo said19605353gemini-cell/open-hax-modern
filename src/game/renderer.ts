@@ -54,6 +54,8 @@ export class CanvasRenderer {
       settings.grassDetail,
       dpr,
       settings.antialias ? 1 : 0,
+      settings.perfBoost ? 1 : 0,
+      settings.showGoalNets !== false ? 1 : 0,
       this.grassLoaded ? 1 : 0
     ].join('|');
 
@@ -97,11 +99,17 @@ export class CanvasRenderer {
     const cx = pitchX + pitchWidth / 2;
     const cy = pitchY + pitchHeight / 2;
     const isNight = settings.grassDetail === 'night_neon';
-    const isHd = settings.grassDetail === 'hd_stadium' || isNight;
+    const isArena = settings.grassDetail === 'arena_pro';
+    const isRetro = settings.grassDetail === 'retro_arcade';
+    const isHd = !settings.perfBoost && (settings.grassDetail === 'hd_stadium' || isNight || isArena);
 
-    // Pitch surface (HaxBall diagonal 45° stripes on hd_stadium / standard)
+    // Pitch surface
     if (isNight) {
       this.drawDiagonalStripes(ctx, pitchX, pitchY, pitchWidth, pitchHeight, '#1b3b2b', '#204533');
+    } else if (isArena) {
+      this.drawDiagonalStripes(ctx, pitchX, pitchY, pitchWidth, pitchHeight, '#2d6a4f', '#255c44');
+    } else if (isRetro) {
+      this.drawDiagonalStripes(ctx, pitchX, pitchY, pitchWidth, pitchHeight, '#578a34', '#4d7d2c');
     } else if (settings.grassDetail === 'hd_stadium') {
       this.drawDiagonalStripes(ctx, pitchX, pitchY, pitchWidth, pitchHeight, '#718c5a', '#688251');
     } else if (settings.grassDetail === 'standard' && this.grassImage) {
@@ -121,7 +129,7 @@ export class CanvasRenderer {
     if (isHd) {
       const boxW = Math.round(pitchWidth * 0.14);
       const boxH = Math.round(goalHalfHeight * 2.15);
-      ctx.strokeStyle = isNight ? 'rgba(167, 243, 208, 0.55)' : 'rgba(255, 255, 255, 0.52)';
+      ctx.strokeStyle = isNight || isArena ? 'rgba(167, 243, 208, 0.58)' : 'rgba(255, 255, 255, 0.52)';
       ctx.lineWidth = 2;
       ctx.strokeRect(pitchX, cy - boxH / 2, boxW, boxH);
       ctx.strokeRect(pitchX + pitchWidth - boxW, cy - boxH / 2, boxW, boxH);
@@ -138,24 +146,26 @@ export class CanvasRenderer {
       ctx.arc(pitchX + pitchWidth, pitchY + pitchHeight, cr, Math.PI, Math.PI * 1.5);
       ctx.stroke();
 
-      // Goal net crosshatch mesh
-      ctx.save();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-      ctx.lineWidth = 1;
-      for (let y = cy - goalHalfHeight + 8; y < cy + goalHalfHeight; y += 10) {
-        ctx.beginPath();
-        ctx.moveTo(pitchX - goalDepth, y);
-        ctx.lineTo(pitchX, y);
-        ctx.moveTo(pitchX + pitchWidth, y);
-        ctx.lineTo(pitchX + pitchWidth + goalDepth, y);
-        ctx.stroke();
+      if (settings.showGoalNets !== false) {
+        // Goal net crosshatch mesh
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+        ctx.lineWidth = 1;
+        for (let y = cy - goalHalfHeight + 8; y < cy + goalHalfHeight; y += 10) {
+          ctx.beginPath();
+          ctx.moveTo(pitchX - goalDepth, y);
+          ctx.lineTo(pitchX, y);
+          ctx.moveTo(pitchX + pitchWidth, y);
+          ctx.lineTo(pitchX + pitchWidth + goalDepth, y);
+          ctx.stroke();
+        }
+        ctx.restore();
       }
-      ctx.restore();
 
       // Subtle stadium floodlight radial vignette
       const grad = ctx.createRadialGradient(cx, cy, pitchHeight * 0.25, cx, cy, pitchWidth * 0.68);
-      grad.addColorStop(0, isNight ? 'rgba(110, 231, 183, 0.08)' : 'rgba(255, 255, 240, 0.08)');
-      grad.addColorStop(1, isNight ? 'rgba(0, 0, 0, 0.42)' : 'rgba(0, 0, 0, 0.18)');
+      grad.addColorStop(0, isNight || isArena ? 'rgba(110, 231, 183, 0.09)' : 'rgba(255, 255, 240, 0.08)');
+      grad.addColorStop(1, isNight || isArena ? 'rgba(0, 0, 0, 0.42)' : 'rgba(0, 0, 0, 0.18)');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, stadium.canvasWidth, stadium.canvasHeight);
     }

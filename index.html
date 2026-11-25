@@ -604,6 +604,17 @@
         <!-- VIDEO TAB -->
         <div class="hax-tab-pane" data-pane="video">
           <div class="hax-opt-row">
+            <span>Grafik &amp; Performans Kalitesi:</span>
+            <select id="set-gfx-quality">
+              <option value="custom">Özel</option>
+              <option value="ultra_perf">Ultra Performans (Max FPS)</option>
+              <option value="low">Düşük (Hızlı)</option>
+              <option value="medium" selected>Orta (Dengeli)</option>
+              <option value="high">Yüksek (HD)</option>
+              <option value="ultra">Ultra HD (200% + Efektler)</option>
+            </select>
+          </div>
+          <div class="hax-opt-row">
             <span>Görünüm Modu (Viewport):</span>
             <select id="set-viewport">
               <option value="dynamic">Dinamik</option>
@@ -673,7 +684,9 @@
             <span>Saha Dokusu:</span>
             <select id="set-grass">
               <option value="hd_stadium">HaxBall / HD Stadyum</option>
+              <option value="arena_pro">Arena Pro (Şampiyonlar)</option>
               <option value="night_neon">Gece Stadyumu (Neon)</option>
+              <option value="retro_arcade">Retro Klasik</option>
               <option value="standard">Standart Çim</option>
               <option value="flat">Düz Çizgili (Ultra Hızlı)</option>
             </select>
@@ -686,6 +699,8 @@
             </select>
           </div>
           <label class="hax-check-row"><input type="checkbox" id="set-balltrail" /><span>Top İz Efekti</span></label>
+          <label class="hax-check-row"><input type="checkbox" id="set-goalnets" /><span>Kale Ağları &amp; Saha Detayları</span></label>
+          <label class="hax-check-row"><input type="checkbox" id="set-perfboost" /><span>Performans Modu (Hafif Çizim / Yüksek FPS)</span></label>
           <label class="hax-check-row"><input type="checkbox" id="set-aa" /><span>Kenar Yumuşatma</span></label>
           <label class="hax-check-row"><input type="checkbox" id="set-shadows" /><span>Yumuşak Gölgeler</span></label>
           <label class="hax-check-row"><input type="checkbox" id="set-particles" /><span>Gol Parçacıkları</span></label>
@@ -720,7 +735,8 @@
         <div class="hax-tab-pane hidden" data-pane="misc">
           <div class="presets-bar">
             <span>Hızlı Profil:</span>
-            <button type="button" data-preset="balanced" class="btn primary">Dengeli (Sınırsız FPS)</button>
+            <button type="button" data-preset="ultraHD" class="btn primary">Ultra HD (200%)</button>
+            <button type="button" data-preset="balanced" class="btn primary">Dengeli</button>
             <button type="button" data-preset="proControl" class="btn primary">Çok Kontrollü (Pro)</button>
             <button type="button" data-preset="ultraPerformance" class="btn">Maksimum Performans</button>
             <button type="button" data-preset="powerSaver" class="btn">Güç Tasarrufu (30 FPS)</button>
