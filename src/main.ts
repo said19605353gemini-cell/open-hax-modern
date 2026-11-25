@@ -2302,7 +2302,10 @@ class OpenHaxApp {
     this.btnMute.textContent = this.settings.masterSound ? t(l, 'soundOn') : t(l, 'soundOff');
     this.btnMute.classList.toggle('danger', !this.settings.masterSound);
     this.fpsHudEl.classList.toggle('hidden', !this.settings.showHud);
-    const fpsText = this.settings.fpsLimit > 0 ? this.settings.fpsLimit + ' FPS' : '∞';
+    const uFps = Number(this.settings.fpsLimit) || 0;
+    const rFps = this.activeScreen === 'room' ? (Number(this.settings.roomMaxFps) || 0) : 0;
+    const effFps = uFps > 0 && rFps > 0 ? Math.min(uFps, rFps) : uFps || rFps;
+    const fpsText = effFps > 0 ? effFps + ' FPS' : '∞';
     this.btnSettings.textContent = t(l, 'settingsShort') + ' (' + fpsText + ')';
     if (this.peerMgr.getRole() !== 'guest') {
       this.stadium = getStadium(this.settings.stadium);
@@ -2548,7 +2551,10 @@ class OpenHaxApp {
     this.btnAuthEnter.textContent = this.pendingInviteCode ? t(l, 'enterInvite') : t(l, 'enterLobby');
     this.btnMute.textContent = this.settings.masterSound ? t(l, 'soundOn') : t(l, 'soundOff');
     this.btnPause.textContent = this.paused ? t(l, 'resume') : t(l, 'pause');
-    const fpsText = this.settings.fpsLimit > 0 ? this.settings.fpsLimit + ' FPS' : '∞';
+    const uFps = Number(this.settings.fpsLimit) || 0;
+    const rFps = this.activeScreen === 'room' ? (Number(this.settings.roomMaxFps) || 0) : 0;
+    const effFps = uFps > 0 && rFps > 0 ? Math.min(uFps, rFps) : uFps || rFps;
+    const fpsText = effFps > 0 ? effFps + ' FPS' : '∞';
     this.btnSettings.textContent = t(l, 'settingsShort') + ' (' + fpsText + ')';
   }
 
