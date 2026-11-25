@@ -15,6 +15,7 @@ export interface PlayerProfile {
   saves: number;
   matches: number;
   wins: number;
+  playSeconds: number;
   modes: Record<string, number>;
   stadiums: Record<string, number>;
   createdAt: number;
@@ -82,6 +83,24 @@ export function formatModeName(id: string): string {
   return MODE_LABELS[id as PhysicsProfile] || id;
 }
 
+export function getTimeBadge(playSeconds = 0): { icon: string; name: string; nextAtSec: number | null } {
+  if (playSeconds >= 36000) return { icon: '👑', name: 'Kral (10+ Saat)', nextAtSec: null };
+  if (playSeconds >= 18000) return { icon: '💎', name: 'Elmas (5+ Saat)', nextAtSec: 36000 };
+  if (playSeconds >= 3600) return { icon: '🥇', name: 'Altın (1+ Saat)', nextAtSec: 18000 };
+  if (playSeconds >= 1800) return { icon: '🥈', name: 'Gümüş (30+ Dk)', nextAtSec: 3600 };
+  if (playSeconds >= 300) return { icon: '🥉', name: 'Bronz (5+ Dk)', nextAtSec: 1800 };
+  return { icon: '🌱', name: 'Çaylak', nextAtSec: 300 };
+}
+
+export function formatPlayTime(sec = 0): string {
+  const s = Math.max(0, Math.floor(sec));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  if (h > 0) return `${h}sa ${m}dk`;
+  if (m > 0) return `${m}dk ${s % 60}sn`;
+  return `${s}sn`;
+}
+
 export function createEmptyProfile(username: string, avatar: string, country: string, passHash = ''): PlayerProfile {
   const now = Date.now();
   return {
@@ -95,6 +114,7 @@ export function createEmptyProfile(username: string, avatar: string, country: st
     saves: 0,
     matches: 0,
     wins: 0,
+    playSeconds: 0,
     modes: {},
     stadiums: {},
     createdAt: now,

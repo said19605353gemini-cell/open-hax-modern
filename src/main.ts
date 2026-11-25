@@ -26,7 +26,9 @@ import { PublicRoomInfo, RoomDirectory } from './net/RoomDirectory';
 import {
   createEmptyProfile,
   formatModeName,
+  formatPlayTime,
   formatStadiumName,
+  getTimeBadge,
   PlayerProfile,
   ProfileService,
   topRecordKey
@@ -265,6 +267,12 @@ class OpenHaxApp {
     this.authAvatar.value = this.settings.avatar || ':)';
     this.authCountry.value = this.settings.country || 'TR';
     this.myProfile = this.profileSvc.loadLocal();
+    window.setInterval(() => {
+      if (this.activeScreen === 'room' && this.myProfile) {
+        this.myProfile.playSeconds = (this.myProfile.playSeconds || 0) + 15;
+        void this.profileSvc.saveProfile(this.myProfile);
+      }
+    }, 15000);
     this.switchScreen('auth');
     this.authNick.focus();
 
@@ -342,8 +350,9 @@ class OpenHaxApp {
     el<HTMLButtonElement>('btn-toggle-roombars').classList.toggle('hidden', !inRoom);
 
     const hasNick = Boolean(this.settings.nickname.trim());
+    const badge = getTimeBadge(this.myProfile?.playSeconds || 0);
     this.userPill.classList.toggle('hidden', !hasNick || inRoom);
-    this.userPill.textContent = this.settings.nickname + ' (' + this.settings.avatar + ')';
+    this.userPill.textContent = badge.icon + ' ' + this.settings.nickname + ' (' + this.settings.avatar + ')';
     this.btnChangeName.classList.toggle('hidden', screen !== 'lobby');
     this.btnProfile.classList.toggle('hidden', screen === 'auth' || !hasNick);
 
@@ -987,11 +996,12 @@ class OpenHaxApp {
 
     const title = document.createElement('strong');
     title.style.fontSize = '16px';
-    title.textContent = `${countryFlag(profile.country)} ${profile.avatar} ${profile.username}`;
+    const timeBadge = getTimeBadge(profile.playSeconds || 0);
+    title.textContent = `${timeBadge.icon} ${countryFlag(profile.country)} ${profile.avatar} ${profile.username}`;
     const badge = document.createElement('span');
     badge.style.fontSize = '11px';
     badge.style.color = profile.passHash ? '#7ee787' : '#cbd5e1';
-    badge.textContent = profile.passHash ? '🔒 Kayıtlı Üye' : '👤 Misafir (Yerel Hatırlanır)';
+    badge.textContent = `${timeBadge.name} · ${profile.passHash ? '🔒 Kayıtlı Üye' : '👤 Misafir'}`;
     header.appendChild(title);
     header.appendChild(badge);
     box.appendChild(header);
@@ -1014,8 +1024,8 @@ class OpenHaxApp {
     addTile(String(profile.goals || 0), 'Gol');
     addTile(String(profile.saves || 0), 'Kurtarma');
     addTile(String(profile.assists || 0), 'Asist');
-    addTile(String(profile.matches || 0), 'Maç');
     addTile(String(profile.wins || 0), 'Galibiyet');
+    addTile(formatPlayTime(profile.playSeconds || 0), 'Oyunda Süre');
     box.appendChild(grid);
 
     const favs = document.createElement('div');
@@ -1035,13 +1045,14 @@ class OpenHaxApp {
     leaders.forEach((p, idx) => {
       const tr = document.createElement('tr');
       const favM = topRecordKey(p.modes);
+      const bdg = getTimeBadge(p.playSeconds || 0);
       const cells = [
         String(idx + 1),
+        bdg.icon,
         `${countryFlag(p.country)} ${p.username}`,
         String(p.goals || 0),
         String(p.saves || 0),
-        String(p.assists || 0),
-        String(p.wins || 0),
+        formatPlayTime(p.playSeconds || 0),
         favM ? formatModeName(favM.key) : '—'
       ];
       cells.forEach((c) => {
