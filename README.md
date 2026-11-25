@@ -1,71 +1,89 @@
 # ⚽ OpenHaxModern
 
-[![Live Demo](https://img.shields.io/badge/Canlı%20Oyna-GitHub%20Pages-2ea44f?style=for-the-badge&logo=github)](https://said19605353gemini-cell.github.io/open-hax-modern/)
+[![Live Demo](https://img.shields.io/badge/Play%20Now-GitHub%20Pages-2ea44f?style=for-the-badge&logo=github)](https://said19605353gemini-cell.github.io/open-hax-modern/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-6.0-646cff?style=for-the-badge&logo=vite)](https://vitejs.dev/)
 [![WebRTC](https://img.shields.io/badge/P2P-PeerJS%20WebRTC-orange?style=for-the-badge)](https://peerjs.com/)
 
-Modern, tarayıcı tabanlı çok oyunculu 2D futbol (**HaxBall** tarzı) oyunu.  
-Hem doğrudan **GitHub Pages** üzerinde Firebase desteğiyle, hem de **PHP web hosting** üzerinde sunucu oda listesiyle çalışır.
+> [🇹🇷 Türkçe Açıklama](#-türkçe) · [🇬🇧 English Description](#-english)
 
-## 🎮 Hemen Oyna
+## 🎮 Play Online / Canlı Oyna
 👉 **https://said19605353gemini-cell.github.io/open-hax-modern/**
 
 ---
 
-## ✨ Öne Çıkan Özellikler
+## 🇹🇷 Türkçe
 
-### 🌍 36 Dil & 195+ Ülke SVG Bayrak Desteği
-- **36 Dünya Dili (`i18n`):** Türkçe, English, Azərbaycan, Deutsch, Français, Español, Português, Italiano, Nederlands, Polski, Русский, العربية, Українська, Română, Ελληνικά, Čeština, Magyar, Svenska, Norsk, Dansk, Suomi, Български, Српски, Hrvatski, ქართული, Қазақша, Oʻzbekcha, فارسی, עברית, हिन्दी, Bahasa Indonesia, Tiếng Việt, ไทย, 日本語, 한국어, 中文.
-- **Otomatik Dil & Ülke Algılama:** Tarayıcı diline ve saat dilimine göre varsayılan dil/ülke otomatik seçilir; yapılan son ayarlar kaydedilir.
-- **Gerçek SVG Bayrak Logoları (`flag-icons`):** Tüm tarayıcılarda (`TR`, `FR` vb. metin yerine) yüksek çözünürlüklü vektörel bayrak ikonları, arama özellikli dil & ülke menüsü.
+Modern, tarayıcı tabanlı çok oyunculu 2D futbol (**HaxBall** tarzı) oyunu.  
+Hem doğrudan **GitHub Pages** üzerinde Firebase desteğiyle, hem de **PHP web hosting** üzerinde sunucu oda listesiyle çalışır.
 
-### ⚡ Özel Güçler (Power-Ups) & Oyun Modları
-- **Özel Güç Modları:** Oda kurarken veya maç içinde seçilebilir/kapatılabilir modlar:
-  - 🦅 **Şahin Vuruşu**
-  - 🔥 **Alevli Şut**
-  - ⚡ **Hızlı Koşu (Turbo)**
-  - 🧲 **Mıknatıs (Top Çekimi)**
-  - 🛡️ **Dev Oyuncu**
-  - 🌟 **Tüm Özel Güçler**
+### ✨ Öne Çıkan Özellikler
+- **36 Dil & 195+ Ülke SVG Bayrak Desteği:** Tarayıcı dilini/ülkesini otomatik algılar; tüm arayüzde `flag-icons` ile yüksek çözünürlüklü vektörel SVG bayraklar ve arama özellikli dil/ülke seçicileri sunar.
+- **Canlı Genel Sohbet & Liderlik Tablosu:** Giriş ekranında ve lobi (odalar/sunucular) ekranının sol tarafında anlık **Genel Sohbet**, **⚽ Gol Kralları**, **⏱️ En Çok Süre Geçirenler** ve süre rozetleri yer alır.
+- **Özel Güç Modları (Power-Ups):** Oda kurarken veya maç içinde seçilebilir/kapatılabilir modlar: 🦅 Şahin Vuruşu, 🔥 Alevli Şut, ⚡ Hızlı Koşu (Turbo), 🧲 Mıknatıs, 🛡️ Dev Oyuncu, 🌟 Hepsi.
+- **Gelişmiş Oda & Admin Yönetimi (`ESC`):**
+  - Sürükle-bırak veya sağ tık ile oyuncuları/botları Kırmızı, Mavi, İzleyici veya Odadan At alanına taşıma.
+  - Oda giriş kilitleme (`🚪 Oda Giriş: Açık/Kilitli`), Takım kilitleme, Kırmızı/Mavi bot ekleme/silme, Bot zorluğu (`Kolay / Orta / Zor`).
+  - **Otomatik Host Migration:** Kurucu ayrılırsa oda sıradaki gerçek oyuncuya devredilir.
+  - **Tıklanabilir Duraklatma (`P`) Menüsü:** `▶ Devam Et (P)`, `🔄 Sıfırla (R)`, `⚙️ Ayarlar`, `🚪 Odadan Çık`.
+  - **Sayfa Yenilemede (`F5`) Kaldığı Yerden Devam:** Lobi veya maç içindeyken `F5` atıldığında ekran, oda ayarları, skor, süre, top ve oyuncu/bot konumları korunur.
+- **VSync'siz Yüksek FPS & Görünüm Ölçeği:**
+  - VSync kilidinden bağımsız hassas zamanlayıcı; kişisel FPS limiti (varsayılan `60 FPS`, `30–500 FPS` veya `Sınırsız`) ve maç sırasında değiştirilebilen **Oda FPS Limiti**.
+  - `Dinamik`, `Sabit`, `Tam Ekran (Geniş)` ve `Tam Ekran (F11 / Gerçek)` modları ile `%75–%300` görsel & çözünürlük ölçeği.
+- **Maç Videosu Kaydı & Otomatik YouTube Yayını:**
+  - Oyun içi `⏺ Kaydet` / `⏸ Duraklat` / `⏹ Bitir & Yayınla` butonları ve `YT: Açık / Liste Dışı / Gizli` seçicisi ile kaydedilen `.webm` maç videosunu doğrudan oyuncunun kendi YouTube hesabına otomatik yükleme (Google OAuth + YouTube Data API v3).
+- **16 Fizik Profili, 17 Saha & Küresel Küfür Filtresi:**
+  - OpenHax, Klasik HaxBall `v1/v2`, Pro Kontrol `v1/v2/v3`, Futsal, Turbo `v1/v2`, Gerçekçi Futbol `v1/v2`, Buz Hokeyi, Pinball, Ağır Tank + 17 harita + 36+ dil/alfabede küfür & XSS koruması.
 
-### 🌐 Çok Oyunculu Lobi, Genel Sohbet & Oda Yönetimi
-- **Canlı Genel Sohbet & Liderlik Tablosu:** Giriş ekranında ve lobi (odalar/sunucular) ekranının sol tarafında anlık **Genel Sohbet**, **⚽ Gol Kralları**, **⏱️ En Çok Süre Geçirenler** ve süre rozetleri.
-- **Canlı Oda Listesi & Otomatik Yenileme:** Firebase Realtime Database veya `api/rooms.php` üzerinden `5 / 10 / 15 sn` otomatik yenileme, şifreli/özel odalar ve davet linki (`?room=KOD`).
-- **Sürükle-Bırak Takım Yönetimi (`ESC`):** Adminler oyuncuları ve botları sürükle-bırak veya sağ tık ile **Kırmızı**, **Mavi**, **İzleyici** veya **Odadan At** alanına taşıyabilir; oda girişini kilitleyebilir (`🚪 Oda Giriş: Açık/Kilitli`), kırmızı/mavi bot ekleyip silebilir ve bot zorluğunu (`Kolay / Orta / Zor`) seçebilir.
-- **Otomatik Oda Sahipliği Devri (Host Migration):** Kurucu ayrılırsa oda sıradaki gerçek oyuncuya devredilir.
-- **Sayfa Yenilemede (`F5`) Kaldığı Yerden Devam:** Lobi veya maç içindeyken `F5` atıldığında ekran, oda ayarları, skor, süre, top ve oyuncu/bot konumları korunarak oyun kaldığı yerden devam eder.
-
-### 🚀 VSync'siz Yüksek FPS, Ölçek & Video Kaydı
-- **VSync'siz Hassas Zamanlayıcı:** Ekran yenileme hızı (60 Hz) kilidine takılmadan kişisel FPS limiti (`60 FPS` varsayılan, `30–500 FPS` veya `Sınırsız`) ve **Oda FPS Limiti** (maç sırasında bile admin tarafından değiştirilebilir).
-- **Görünüm Modları & Ölçek:** `Dinamik`, `Sabit`, `Tam Ekran (Geniş)`, `Tam Ekran (F11 / Gerçek)` modları ve `%75` – `%300` arası anlık görsel + çözünürlük ölçeği.
-- **Tıklanabilir Duraklatma (`P`) Menüsü:** `▶ Devam Et (P)`, `🔄 Sıfırla (R)`, `⚙️ Ayarlar`, `🚪 Odadan Çık`.
-- **Maç Videosu Kaydı:** Oyun içi `⏺ Kayıt` butonu ile maç videosu kaydedip indirme / YouTube paylaşım desteği.
-
-### ⚙️ 16 Fizik Profili, 17 Saha & Küresel Küfür Filtresi
-- **16 Fizik Profili:** OpenHax Orijinal, Klasik HaxBall `v1/v2`, Pro Kontrol `v1/v2/v3`, Futsal, Büyük Saha, Turbo `v1/v2`, Düşük Sürtünme, Gerçekçi Futbol `v1/v2`, Buz Hokeyi, Pinball, Ağır Tank.
-- **17 Harita:** Classic, Big, Huge, Futsal, Tiny, Long, 3v3 Orta Arena, Hızlı 2v2, Geniş Kanat, Ceza Sahası + 7 `.hbs` haritası.
-- **Küresel Küfür & XSS Koruması:** 36+ dil ve alfabede (Latin, Kiril, Arapça, Farsça, Yunanca, Gürcüce, İbranice, Hintçe, CJK vb.) küfür filtresi, oda adı/nick/sohbet sansürü.
-
----
-
-## 🕹️ Kontroller
-
+### 🕹️ Kontroller
 | Tuş | İşlev |
 | --- | --- |
-| `W A S D` veya `Ok Tuşları` | Hareket |
+| `W A S D` / `Ok Tuşları` | Hareket |
 | `Space` / `X` | Şut (Kick) |
 | `P` | Duraklat / Devam Et (Admin) |
 | `R` | Maçı Sıfırla (Admin) |
-| `ESC` | Oda & Takım Listesi |
+| `ESC` | Oda & Takım Menüsü |
 | `Enter` / `Tab` | Sohbet Odakla |
 
 ---
 
-## 🛠️ Yerel Geliştirme & Build
+## 🇬🇧 English
+
+**OpenHaxModern** is a modern, browser-based multiplayer 2D physics soccer game (**HaxBall-inspired**), built with TypeScript, HTML5 Canvas, PeerJS (WebRTC P2P), and Firebase / PHP room directory support.
+
+### ✨ Key Features
+- **36 Languages & 195+ Country SVG Flags:** Auto-detects browser language and country on first visit, with searchable dropdowns and crisp vector SVG flags (`flag-icons`) across leaderboards, chat, rooms, and player rosters.
+- **Live Global Chat & Leaderboards:** Real-time Global Chat, Top Scorers, and Most Active Players tables visible on both the welcome screen and the lobby browser.
+- **Power-Up Game Modes:** Toggleable match modifiers including 🦅 Hawk Shot, 🔥 Fire Shot, ⚡ Turbo Speed, 🧲 Magnet, 🛡️ Giant Player, or 🌟 All Power-Ups.
+- **Room & Admin Controls (`ESC`):**
+  - Drag-and-drop or right-click players/bots between Red, Blue, Spectators, or Kick.
+  - Room entry lock, team lock, Red/Blue AI bots with adjustable difficulty (`Easy / Medium / Hard`), and automatic **Host Migration**.
+  - Clickable **Pause (`P`) Menu** (`Resume`, `Reset`, `Settings`, `Leave Room`).
+  - **Seamless `F5` Reload Persistence:** Preserves active screen, room settings, score, match timer, ball, and player/bot positions across page reloads.
+- **Uncapped VSync-Free FPS & Visual Scaling:**
+  - High-precision `MessageChannel` loop free of 60Hz VSync lock; personal FPS limit (default `60 FPS`, `30–500 FPS`, or `Unlimited`) plus an in-room **Room FPS Limit** enforced for all players.
+  - Viewport modes (`Dynamic`, `Restricted`, `Full Width`, `True Fullscreen`) and `75%–300%` visual & resolution scaling.
+- **In-Game Recording & Automatic YouTube Upload:**
+  - Record, pause/resume, and stop match videos directly from the top bar and automatically publish them to your own YouTube channel (`Public`, `Unlisted`, or `Private`) via Google OAuth & YouTube Data API v3.
+- **16 Physics Profiles, 17 Stadiums & Global Profanity Filter:**
+  - Includes Classic, Pro Control, Futsal, Turbo, Real Soccer, Ice Hockey, Pinball, Heavy Tank physics profiles, 17 arenas (including `.hbs` maps), and multilingual profanity/XSS filtering across 36+ languages.
+
+### 🕹️ Controls
+| Key | Action |
+| --- | --- |
+| `W A S D` / `Arrow Keys` | Move |
+| `Space` / `X` | Kick |
+| `P` | Pause / Resume (Admin) |
+| `R` | Reset Match (Admin) |
+| `ESC` | Room & Team Menu |
+| `Enter` / `Tab` | Focus Chat |
+
+---
+
+## 🛠️ Local Development / Yerel Geliştirme
 
 ```bash
 npm install
-npm run dev     # Yerel geliştirme sunucusu
-npm run build   # TypeScript kontrolü ve production build (dist/)
+npm run dev     # Start local dev server
+npm run build   # Type-check & production build (dist/)
 ```
