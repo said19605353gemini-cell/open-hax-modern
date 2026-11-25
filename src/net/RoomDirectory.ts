@@ -17,7 +17,7 @@ const LOCAL_STORAGE_KEY = 'openhax_local_rooms_v1';
 const ROOM_TTL_MS = 22000;
 // GitHub Pages gibi statik sitelerde ortak oda listesi için Firebase Realtime Database URL'sini buraya yazın
 // Örnek: 'https://projeniz-default-rtdb.firebaseio.com'
-const FIREBASE_DB_URL: string = 'https://haxturko-default-rtdb.firebaseio.com';
+const FIREBASE_DB_URL: string = 'https://haxturko-default-rtdb.europe-west1.firebasedatabase.app';
 
 export class RoomDirectory {
   private serverApiWorks: boolean | null = null;
