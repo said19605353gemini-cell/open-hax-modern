@@ -41,6 +41,8 @@ export interface GameSettings {
   chatOpacity?: number;
   chatFocusHeight?: number;
   chatWidth?: 'compact' | 'full';
+  youtubeClientId?: string;
+  youtubePrivacy?: 'public' | 'unlisted' | 'private';
   stadium: StadiumId;
   physicsProfile: PhysicsProfile;
   physicsHz?: number;

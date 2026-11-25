@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OpenHax Modern - Haxball</title>
   <link rel="icon" type="image/png" href="./favicon.png" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
@@ -715,6 +716,23 @@
               <option value="hard">Zor</option>
             </select>
           </label>
+          <hr class="hax-sep" />
+          <div class="hax-opt-row">
+            <span>YouTube OAuth Client ID:</span>
+            <input type="text" id="set-yt-clientid" class="hax-txt-in" placeholder="xxx.apps.googleusercontent.com" />
+          </div>
+          <div class="hax-opt-row">
+            <span>YouTube Video Gizliliği:</span>
+            <select id="set-yt-privacy">
+              <option value="public">Herkese Açık (Public)</option>
+              <option value="unlisted" selected>Liste Dışı (Unlisted)</option>
+              <option value="private">Gizli (Private)</option>
+            </select>
+          </div>
+          <div class="hax-opt-row">
+            <button type="button" id="btn-yt-connect" class="btn primary">📺 YouTube Hesabına Bağlan</button>
+            <span id="yt-auth-status" class="hax-val">Bağlı değil</span>
+          </div>
           <label class="row">
             <span>Gol Animasyonu (.gif URL)</span>
             <input type="text" id="set-goalgif" placeholder="https://.../gol.gif" class="hax-txt-in" />

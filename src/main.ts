@@ -126,6 +126,7 @@ class OpenHaxApp {
   private fieldPowerup: FieldPowerup | null = null;
   private mediaRecorder: MediaRecorder | null = null;
   private recordedChunks: Blob[] = [];
+  private ytAccessToken: string | null = null;
   private renderTeamsModalFn: (() => void) | null = null;
   private nextPowerupSpawnTick = 0;
   private ballFireType: PowerupType | null = null;
@@ -1238,6 +1239,15 @@ class OpenHaxApp {
       this.updateSettings({ botDifficulty: v as BotDifficulty });
       this.roomBotDiff.value = v;
     });
+    el<HTMLInputElement>('set-yt-clientid').addEventListener('change', (e) => {
+      this.updateSettings({ youtubeClientId: (e.target as HTMLInputElement).value.trim() });
+    });
+    bindSelect('set-yt-privacy', (v) => {
+      this.updateSettings({ youtubePrivacy: v as GameSettings['youtubePrivacy'] });
+    });
+    el<HTMLButtonElement>('btn-yt-connect').addEventListener('click', () => {
+      void this.connectYouTube();
+    });
     bindCheck('set-sound', (v) => this.updateSettings({ masterSound: v }));
     el<HTMLInputElement>('set-volume').addEventListener('input', (e) => {
       const vol = Number((e.target as HTMLInputElement).value);
@@ -2293,6 +2303,8 @@ class OpenHaxApp {
     el<HTMLInputElement>('set-goalgif').value = s.goalGifUrl || '';
     el<HTMLInputElement>('set-concedegif').value = s.concedeGifUrl || '';
     el<HTMLInputElement>('set-chantgif').value = s.chantGifUrl || '';
+    el<HTMLInputElement>('set-yt-clientid').value = s.youtubeClientId || '';
+    el<HTMLSelectElement>('set-yt-privacy').value = s.youtubePrivacy || 'unlisted';
     el<HTMLInputElement>('set-ballctrl').value = String(s.ballControl);
     el<HTMLSpanElement>('lbl-ballctrl').textContent = s.ballControl + '%';
     el<HTMLInputElement>('set-balldamp').value = String(s.ballDamping);
@@ -3107,6 +3119,111 @@ class OpenHaxApp {
     this.peerMgr.broadcastChat(author, text, team);
   }
 
+  private connectYouTube(): Promise<string | null> {
+    return new Promise((resolve) => {
+      const clientId = (this.settings.youtubeClientId || '').trim();
+      const statusEl = el<HTMLSpanElement>('yt-auth-status');
+      if (!clientId) {
+        statusEl.textContent = 'Client ID gerekli';
+        window.alert('Önce Ayarlar → Çeşitli bölümüne Google Cloud YouTube OAuth Client ID girin.');
+        resolve(null);
+        return;
+      }
+      const g = (window as unknown as {
+        google?: {
+          accounts?: {
+            oauth2?: {
+              initTokenClient: (cfg: {
+                client_id: string;
+                scope: string;
+                callback: (resp: { access_token?: string; error?: string }) => void;
+              }) => { requestAccessToken: () => void };
+            };
+          };
+        };
+      }).google;
+      if (!g?.accounts?.oauth2) {
+        statusEl.textContent = 'Google SDK yüklenemedi';
+        resolve(null);
+        return;
+      }
+      const client = g.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: 'https://www.googleapis.com/auth/youtube.upload',
+        callback: (resp) => {
+          if (resp && resp.access_token) {
+            this.ytAccessToken = resp.access_token;
+            statusEl.textContent = 'Bağlı ✓';
+            resolve(resp.access_token);
+          } else {
+            statusEl.textContent = 'Bağlantı başarısız';
+            resolve(null);
+          }
+        }
+      });
+      client.requestAccessToken();
+    });
+  }
+
+  private async uploadVideoToYouTube(blob: Blob): Promise<void> {
+    let token = this.ytAccessToken;
+    if (!token && this.settings.youtubeClientId) {
+      token = await this.connectYouTube();
+    }
+    if (!token) return;
+    this.addChat('Sistem', '📺 Maç videosu YouTube hesabına yükleniyor...', true);
+    try {
+      const metadata = {
+        snippet: {
+          title: `OpenHax Maç Kaydı - ${this.currentRoomName} (${this.scoreRed}-${this.scoreBlue})`,
+          description: `OpenHaxModern üzerinde kaydedildi.\nSaha: ${this.stadium.label}\nSkor: ${this.scoreRed} - ${this.scoreBlue}`,
+          tags: ['OpenHax', 'HaxBall', 'Gaming'],
+          categoryId: '20'
+        },
+        status: {
+          privacyStatus: this.settings.youtubePrivacy || 'unlisted'
+        }
+      };
+      const initRes = await fetch(
+        'https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer ' + token,
+            'Content-Type': 'application/json; charset=UTF-8',
+            'X-Upload-Content-Length': String(blob.size),
+            'X-Upload-Content-Type': 'video/webm'
+          },
+          body: JSON.stringify(metadata)
+        }
+      );
+      if (!initRes.ok) {
+        this.addChat('Sistem', `YouTube yükleme başlatılamadı (HTTP ${initRes.status}).`, true);
+        return;
+      }
+      const uploadUrl = initRes.headers.get('Location');
+      if (!uploadUrl) {
+        this.addChat('Sistem', 'YouTube yükleme adresi alınamadı.', true);
+        return;
+      }
+      const upRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'video/webm' },
+        body: blob
+      });
+      if (!upRes.ok) {
+        this.addChat('Sistem', `YouTube yükleme hatası (HTTP ${upRes.status}).`, true);
+        return;
+      }
+      const uploaded = (await upRes.json()) as { id?: string };
+      if (uploaded.id) {
+        this.addChat('Sistem', `✅ YouTube'a yüklendi: https://youtu.be/${uploaded.id}`, true);
+      }
+    } catch {
+      this.addChat('Sistem', 'YouTube yükleme sırasında ağ hatası oluştu.', true);
+    }
+  }
+
   private toggleMatchRecording(): void {
     const btn = el<HTMLButtonElement>('btn-record');
     if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
@@ -3130,7 +3247,9 @@ class OpenHaxApp {
         a.download = `openhax-${Date.now()}.webm`;
         a.click();
         URL.revokeObjectURL(url);
-        if (window.confirm('Maç videosu indirildi! YouTube Studio yükleme sayfasını açmak ister misiniz?')) {
+        if (this.ytAccessToken || this.settings.youtubeClientId) {
+          void this.uploadVideoToYouTube(blob);
+        } else if (window.confirm('Maç videosu indirildi! Otomatik yükleme için Ayarlar → Çeşitli içinden YouTube bağlayabilir veya YouTube Studio\'yu açabilirsiniz. Açmak ister misiniz?')) {
           window.open('https://studio.youtube.com/', '_blank', 'noopener');
         }
       };

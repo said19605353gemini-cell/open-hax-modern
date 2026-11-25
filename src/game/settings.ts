@@ -133,6 +133,8 @@ export const DEFAULT_SETTINGS: GameSettings = {
   chatOpacity: 0.8,
   chatFocusHeight: 140,
   chatWidth: 'compact',
+  youtubeClientId: '',
+  youtubePrivacy: 'unlisted',
   stadium: 'classic',
   physicsProfile: 'openhax',
   physicsHz: 60,
