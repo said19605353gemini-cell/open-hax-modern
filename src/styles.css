@@ -1165,3 +1165,37 @@ body:not(.in-room) {
   color: #ffffff;
   background: rgba(255, 255, 255, 0.12);
 }
+
+/* Auth Page Leaderboard Grid & Drag-Drop Hover */
+.auth-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: flex-start;
+  justify-content: center;
+  max-width: 1120px;
+  width: 100%;
+}
+.auth-leaders-card {
+  width: 520px;
+  max-width: 95vw;
+}
+.auth-leaders-card h2 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+}
+.auth-leaders-card h3 {
+  margin: 10px 0 6px 0;
+  font-size: 13px;
+  color: #fde68a;
+}
+.leaders-split {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.team-col.drop-hover,
+#teams-kick-dropzone.drop-hover {
+  outline: 2px solid #facc15;
+  background: rgba(250, 204, 21, 0.14);
+}

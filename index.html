@@ -64,7 +64,32 @@
 
   <!-- SCREEN 1: Username Creation -->
   <section id="view-auth" class="screen center-screen">
-    <div class="card auth-card">
+    <div class="auth-grid">
+      <div class="card auth-leaders-card">
+        <h2>🏆 Gol Kralları &amp; En Aktifler</h2>
+        <div class="leaders-split">
+          <div>
+            <h3>⚽ Gol Kralları</h3>
+            <div class="rooms-table-wrap" style="max-height:220px;">
+              <table class="rooms-table">
+                <thead><tr><th>#</th><th>Oyuncu</th><th>Gol</th><th>Kurtarma</th></tr></thead>
+                <tbody id="auth-top-goals"></tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <h3>⏱️ En Çok Süre Geçirenler</h3>
+            <div class="rooms-table-wrap" style="max-height:220px;">
+              <table class="rooms-table">
+                <thead><tr><th>#</th><th>Oyuncu</th><th>Rozet</th><th>Süre</th></tr></thead>
+                <tbody id="auth-top-time"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card auth-card">
       <h1>OpenHax'e Hoş Geldin</h1>
       <p class="subtitle">Sahaya çıkmadan önce oyuncu adını ve avatarını belirle.</p>
       <div id="invite-notice" class="notice hidden"></div>
@@ -155,6 +180,7 @@
         <button type="button" id="btn-guest-enter" class="btn lg full">👤 Misafir Olarak Devam Et (Şifresiz)</button>
       </div>
       <div id="auth-top-stats" style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.12);font-size:12px;color:#cbd5e1;"></div>
+    </div>
     </div>
   </section>
 

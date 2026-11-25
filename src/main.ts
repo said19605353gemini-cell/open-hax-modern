@@ -278,14 +278,40 @@ class OpenHaxApp {
     this.authAvatar.value = this.settings.avatar || ':)';
     this.authCountry.value = this.settings.country || 'TR';
     this.myProfile = this.profileSvc.loadLocal();
-    void this.profileSvc.fetchLeaderboard(3).then((top) => {
+    void this.profileSvc.fetchLeaderboard(30).then((all) => {
       const box = el<HTMLDivElement>('auth-top-stats');
-      if (!top.length) {
+      const goalsBody = el<HTMLTableSectionElement>('auth-top-goals');
+      const timeBody = el<HTMLTableSectionElement>('auth-top-time');
+      goalsBody.textContent = '';
+      timeBody.textContent = '';
+      if (!all.length) {
         box.textContent = '';
         return;
       }
-      const bestGoal = top[0];
-      const bestTime = [...top].sort((a, b) => (b.playSeconds || 0) - (a.playSeconds || 0))[0];
+      const byGoals = [...all].sort((a, b) => (b.goals || 0) - (a.goals || 0)).slice(0, 8);
+      const byTime = [...all].sort((a, b) => (b.playSeconds || 0) - (a.playSeconds || 0)).slice(0, 8);
+      byGoals.forEach((p, idx) => {
+        const tr = document.createElement('tr');
+        const bdg = getTimeBadge(p.playSeconds || 0);
+        [String(idx + 1), `${bdg.icon} ${countryFlag(p.country)} ${p.username}`, String(p.goals || 0), String(p.saves || 0)].forEach((txt) => {
+          const td = document.createElement('td');
+          td.textContent = txt;
+          tr.appendChild(td);
+        });
+        goalsBody.appendChild(tr);
+      });
+      byTime.forEach((p, idx) => {
+        const tr = document.createElement('tr');
+        const bdg = getTimeBadge(p.playSeconds || 0);
+        [String(idx + 1), `${countryFlag(p.country)} ${p.username}`, bdg.icon, formatPlayTime(p.playSeconds || 0)].forEach((txt) => {
+          const td = document.createElement('td');
+          td.textContent = txt;
+          tr.appendChild(td);
+        });
+        timeBody.appendChild(tr);
+      });
+      const bestGoal = byGoals[0];
+      const bestTime = byTime[0];
       box.textContent = `🏆 Gol Kralı: ${countryFlag(bestGoal.country)} ${bestGoal.username} (${bestGoal.goals || 0})  ·  ⏱️ En Çok Süre: ${countryFlag(bestTime.country)} ${bestTime.username} (${formatPlayTime(bestTime.playSeconds || 0)})`;
     });
     window.setInterval(() => {
@@ -571,7 +597,10 @@ class OpenHaxApp {
         if (isAdm) {
           row.draggable = true;
           row.addEventListener('dragstart', (ev) => {
-            ev.dataTransfer?.setData('text/plain', p.id);
+            if (ev.dataTransfer) {
+              ev.dataTransfer.effectAllowed = 'move';
+              ev.dataTransfer.setData('text/plain', p.id);
+            }
           });
         }
         const label = document.createElement('span');
@@ -597,20 +626,26 @@ class OpenHaxApp {
       }
     };
     this.renderTeamsModalFn = renderTeamsModal;
-    const bindDropZone = (node: HTMLElement, onDropPlayer: (playerId: string) => void) => {
+    const bindDropZone = (node: HTMLElement | null, onDropPlayer: (playerId: string) => void) => {
+      if (!node) return;
       node.addEventListener('dragover', (e) => {
-        if (this.isMeAdmin()) e.preventDefault();
+        if (!this.isMeAdmin()) return;
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+        node.classList.add('drop-hover');
       });
+      node.addEventListener('dragleave', () => node.classList.remove('drop-hover'));
       node.addEventListener('drop', (e) => {
+        node.classList.remove('drop-hover');
         if (!this.isMeAdmin()) return;
         e.preventDefault();
         const pid = e.dataTransfer?.getData('text/plain');
         if (pid) onDropPlayer(pid);
       });
     };
-    bindDropZone(el<HTMLDivElement>('teams-list-red'), (pid) => this.dispatchAdminAction('set_team', pid, 'red'));
-    bindDropZone(el<HTMLDivElement>('teams-list-spec'), (pid) => this.dispatchAdminAction('set_team', pid, 'spec'));
-    bindDropZone(el<HTMLDivElement>('teams-list-blue'), (pid) => this.dispatchAdminAction('set_team', pid, 'blue'));
+    bindDropZone(el<HTMLDivElement>('teams-list-red').parentElement, (pid) => this.dispatchAdminAction('set_team', pid, 'red'));
+    bindDropZone(el<HTMLDivElement>('teams-list-spec').parentElement, (pid) => this.dispatchAdminAction('set_team', pid, 'spec'));
+    bindDropZone(el<HTMLDivElement>('teams-list-blue').parentElement, (pid) => this.dispatchAdminAction('set_team', pid, 'blue'));
     bindDropZone(el<HTMLDivElement>('teams-kick-dropzone'), (pid) => {
       if (pid !== 'host') this.dispatchAdminAction('kick', pid);
     });
