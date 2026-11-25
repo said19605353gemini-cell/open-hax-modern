@@ -80,7 +80,14 @@ export const STADIUMS: Record<StadiumId, StadiumConfig> = {
   arena_3v3: buildStadium('arena_3v3', '3v3 Orta Arena (960x500)', 960, 500, 36, 32, 78, 24, 80),
   mini_fast: buildStadium('mini_fast', 'Hızlı 2v2 (720x380)', 720, 380, 28, 26, 60, 20, 58),
   wide_wing: buildStadium('wide_wing', 'Geniş Kanat (980x580)', 980, 580, 38, 34, 88, 26, 84),
-  penalty_box: buildStadium('penalty_box', 'Ceza Sahası / Şut (640x440)', 640, 440, 28, 28, 86, 22, 56)
+  penalty_box: buildStadium('penalty_box', 'Ceza Sahası / Şut (640x440)', 640, 440, 28, 28, 86, 22, 56),
+  hbs_classic: buildStadium('hbs_classic', 'HBS: Classic (740x400)', 800, 460, 30, 30, 64, 22, 70),
+  hbs_easy: buildStadium('hbs_easy', 'HBS: Easy (740x400)', 800, 460, 30, 30, 90, 22, 70),
+  hbs_small: buildStadium('hbs_small', 'HBS: Small (640x400)', 700, 460, 30, 30, 55, 20, 62),
+  hbs_rounded: buildStadium('hbs_rounded', 'HBS: Rounded (740x400)', 800, 460, 30, 30, 64, 22, 70),
+  hbs_big: buildStadium('hbs_big', 'HBS: Big (1100x540)', 1180, 600, 40, 30, 80, 26, 88),
+  hbs_big_easy: buildStadium('hbs_big_easy', 'HBS: Big Easy (1100x540)', 1180, 600, 40, 30, 95, 26, 88),
+  hbs_huge: buildStadium('hbs_huge', 'HBS: Huge (1400x700)', 1480, 760, 40, 30, 100, 28, 105)
 };
 
 export function getStadium(id: StadiumId): StadiumConfig {
