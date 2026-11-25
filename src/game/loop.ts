@@ -78,8 +78,7 @@ export class GameLoop {
 
   private scheduleNext(fpsLimit: number): void {
     if (!this.running) return;
-    const useHighFreq = !document.hidden && (fpsLimit === 0 || fpsLimit > 65);
-    if (!useHighFreq) {
+    if (document.hidden) {
       this.rafId = window.requestAnimationFrame(this.frame);
       return;
     }

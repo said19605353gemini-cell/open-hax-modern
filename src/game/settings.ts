@@ -114,7 +114,7 @@ export function detectDefaultLang(): Lang {
 }
 
 export const DEFAULT_SETTINGS: GameSettings = {
-  fpsLimit: 0,
+  fpsLimit: 60,
   grassDetail: 'hd_stadium',
   ballStyle: 'soccer',
   ballTrail: true,

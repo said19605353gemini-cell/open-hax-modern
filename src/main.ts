@@ -406,7 +406,6 @@ class OpenHaxApp {
             if (fullSr.timeLimit) this.createTimeLimit.value = fullSr.timeLimit;
             if (fullSr.botDiff) this.createBotDiff.value = fullSr.botDiff;
             if (fullSr.physProfile) this.createPhysics.value = fullSr.physProfile;
-            if (fullSr.physHz) el<HTMLSelectElement>('create-physicshz').value = fullSr.physHz;
             if (fullSr.roomMaxFps) el<HTMLSelectElement>('create-roommaxfps').value = fullSr.roomMaxFps;
             if (fullSr.powerupMode) el<HTMLSelectElement>('create-powerup').value = fullSr.powerupMode;
             this.createPass.value = fullSr.password || '';
@@ -1645,7 +1644,7 @@ class OpenHaxApp {
     const botPreset = this.createBots.value;
     const botDiff = this.createBotDiff.value as BotDifficulty;
     const physProfile = this.createPhysics.value as PhysicsProfile;
-    const physHz = Math.max(60, Math.min(500, Number(el<HTMLSelectElement>('create-physicshz').value) || 60));
+    const physHz = 60;
     const roomMaxFps = Math.max(0, Number(el<HTMLSelectElement>('create-roommaxfps').value) || 0);
     const powerupMode = (el<HTMLSelectElement>('create-powerup').value as PowerupMode) || 'none';
     const scoreLimit = Number(this.createScoreLimit.value) || 0;
