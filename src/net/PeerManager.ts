@@ -1,5 +1,6 @@
 import Peer, { DataConnection } from 'peerjs';
 import { MatchSnapshot, Team } from '../types';
+import { censorText } from '../game/profanity';
 
 export type PeerRole = 'offline' | 'host' | 'guest';
 
@@ -128,7 +129,8 @@ export class PeerManager {
             }, 150);
             return;
           }
-          const cleanName = String(pkt.name || 'Misafir').trim().slice(0, 20) || 'Misafir';
+          const rawName = String(pkt.name || 'Misafir').trim().slice(0, 20) || 'Misafir';
+          const cleanName = censorText(rawName);
           const cleanAvatar = String(pkt.avatar || ':)').trim().slice(0, 8) || ':)';
           const cleanCountry = String(pkt.country || 'TR').trim().toUpperCase().replace(/[^A-Z]/g, '').slice(0, 2) || 'TR';
           const result = this.cb.onPeerJoin(conn.peer, cleanName, cleanAvatar, cleanCountry);
@@ -159,7 +161,7 @@ export class PeerManager {
             }
           } else if (pkt.type === 'chat') {
             const verifiedAuthor = this.clientNames.get(conn.peer) || 'Misafir';
-            const cleanText = String(pkt.text || '').trim().slice(0, 180);
+            const cleanText = censorText(String(pkt.text || '').trim().slice(0, 180));
             if (!cleanText) return;
             const verifiedPkt: NetPacket = { type: 'chat', author: verifiedAuthor, text: cleanText };
             this.cb.onChat(verifiedAuthor, cleanText);

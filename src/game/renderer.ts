@@ -71,6 +71,7 @@ export class CanvasRenderer {
     }
     this.canvas.style.width = stadium.canvasWidth + 'px';
     this.canvas.style.height = stadium.canvasHeight + 'px';
+    this.canvas.style.aspectRatio = `${stadium.canvasWidth} / ${stadium.canvasHeight}`;
 
     this.bgCanvas.width = pw;
     this.bgCanvas.height = ph;
@@ -86,8 +87,8 @@ export class CanvasRenderer {
     ctx.save();
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
 
-    // Outer stadium apron matching open-hax-master (1) #5F7B48
-    ctx.fillStyle = '#5F7B48';
+    // Outer stadium apron matching haxball.com/play olive green (#6a8553)
+    ctx.fillStyle = '#6a8553';
     ctx.fillRect(0, 0, stadium.canvasWidth, stadium.canvasHeight);
 
     const { pitchX, pitchY, pitchWidth, pitchHeight, goalHalfHeight, goalDepth } = stadium;
@@ -96,21 +97,22 @@ export class CanvasRenderer {
     const isNight = settings.grassDetail === 'night_neon';
     const isHd = settings.grassDetail === 'hd_stadium' || isNight;
 
-    // Pitch surface
+    // Pitch surface (HaxBall diagonal 45° stripes on hd_stadium / standard)
     if (isNight) {
-      this.drawStripes(ctx, pitchX, pitchY, pitchWidth, pitchHeight, '#1b3b2b', '#204533');
+      this.drawDiagonalStripes(ctx, pitchX, pitchY, pitchWidth, pitchHeight, '#1b3b2b', '#204533');
     } else if (settings.grassDetail === 'hd_stadium') {
-      this.drawStripes(ctx, pitchX, pitchY, pitchWidth, pitchHeight, '#4d7c3f', '#578a47');
+      this.drawDiagonalStripes(ctx, pitchX, pitchY, pitchWidth, pitchHeight, '#718c5a', '#688251');
     } else if (settings.grassDetail === 'standard' && this.grassImage) {
       const pattern = ctx.createPattern(this.grassImage, 'repeat');
       if (pattern) {
         ctx.fillStyle = pattern;
         ctx.fillRect(pitchX, pitchY, pitchWidth, pitchHeight);
       } else {
-        this.drawStripes(ctx, pitchX, pitchY, pitchWidth, pitchHeight, '#5c8044', '#658a4b');
+        this.drawDiagonalStripes(ctx, pitchX, pitchY, pitchWidth, pitchHeight, '#718c5a', '#688251');
       }
     } else {
-      this.drawStripes(ctx, pitchX, pitchY, pitchWidth, pitchHeight, '#5c8044', '#658a4b');
+      ctx.fillStyle = '#718c5a';
+      ctx.fillRect(pitchX, pitchY, pitchWidth, pitchHeight);
     }
 
     // HD Stadium extras: penalty boxes, corner arcs, net mesh, and floodlight vignette (cached once!)
@@ -186,11 +188,13 @@ export class CanvasRenderer {
     ctx.stroke();
     ctx.restore();
 
-    // Field lines and goal nets
+    // Field boundary & center lines (haxball clean white) + rounded goal nets
     for (let i = 0; i < stadium.segments.length; i++) {
       const seg = stadium.segments[i];
+      // Skip rectangular goal net segments so we draw HaxBall curved nets cleanly
+      if (seg.mask === 'both' && seg.color === '#000000') continue;
       ctx.save();
-      ctx.globalAlpha = seg.alpha;
+      ctx.globalAlpha = seg.alpha * 0.72;
       ctx.strokeStyle = seg.color;
       ctx.lineWidth = seg.width;
       ctx.lineCap = 'round';
@@ -201,22 +205,47 @@ export class CanvasRenderer {
       ctx.restore();
     }
 
-    // Goalposts
+    // Smooth HaxBall rounded goal nets
+    const rNet = Math.min(12, goalDepth * 0.65);
+    const drawGoalNet = (gx: number, isRight: boolean) => {
+      const dir = isRight ? 1 : -1;
+      const backX = gx + dir * goalDepth;
+      const yTop = cy - goalHalfHeight;
+      const yBot = cy + goalHalfHeight;
+      ctx.save();
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 3;
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(gx, yTop);
+      ctx.lineTo(backX - dir * rNet, yTop);
+      ctx.quadraticCurveTo(backX, yTop, backX, yTop + rNet);
+      ctx.lineTo(backX, yBot - rNet);
+      ctx.quadraticCurveTo(backX, yBot, backX - dir * rNet, yBot);
+      ctx.lineTo(gx, yBot);
+      ctx.stroke();
+      ctx.restore();
+    };
+    drawGoalNet(pitchX, false);
+    drawGoalNet(pitchX + pitchWidth, true);
+
+    // Soft pastel HaxBall goalposts
     for (let i = 0; i < stadium.posts.length; i++) {
       const post = stadium.posts[i];
+      const isHome = post.x <= cx;
       ctx.beginPath();
       ctx.arc(post.x, post.y, post.radius, 0, Math.PI * 2);
-      ctx.fillStyle = post.color;
+      ctx.fillStyle = isHome ? '#ffcccc' : '#ccccff';
       ctx.fill();
       ctx.lineWidth = 2;
-      ctx.strokeStyle = '#111111';
+      ctx.strokeStyle = '#000000';
       ctx.stroke();
     }
 
     ctx.restore();
   }
 
-  private drawStripes(
+  private drawDiagonalStripes(
     ctx: CanvasRenderingContext2D,
     x: number,
     y: number,
@@ -225,12 +254,25 @@ export class CanvasRenderer {
     c1: string,
     c2: string
   ): void {
-    const count = 12;
-    const sw = w / count;
-    for (let i = 0; i < count; i++) {
-      ctx.fillStyle = i % 2 === 0 ? c1 : c2;
-      ctx.fillRect(x + i * sw, y, sw + 0.5, h);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, y, w, h);
+    ctx.clip();
+    ctx.fillStyle = c1;
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = c2;
+    const stripeW = 46;
+    const span = w + h + stripeW * 2;
+    for (let d = -h; d < span; d += stripeW * 2) {
+      ctx.beginPath();
+      ctx.moveTo(x + d, y);
+      ctx.lineTo(x + d + stripeW, y);
+      ctx.lineTo(x + d + stripeW - h, y + h);
+      ctx.lineTo(x + d - h, y + h);
+      ctx.closePath();
+      ctx.fill();
     }
+    ctx.restore();
   }
 
   render(

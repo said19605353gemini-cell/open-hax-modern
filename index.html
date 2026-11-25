@@ -31,6 +31,8 @@
         <button type="button" id="btn-pause" class="btn hidden">Duraklat (P)</button>
         <button type="button" id="btn-reset" class="btn hidden">Sıfırla (R)</button>
         <button type="button" id="btn-mute" class="btn">Ses: Açık</button>
+        <button type="button" id="btn-topbar-menu" class="btn hidden" title="Oda & Takım Menüsü (ESC)">☰ Menü</button>
+        <button type="button" id="btn-toggle-roombars" class="btn hidden" title="Oda Kontrolleri / Botlar">🎛️ Oda</button>
         <select id="select-lang" class="btn" title="Dil / Language">
           <option value="tr">🇹🇷 Türkçe</option>
           <option value="en">🇬🇧 English</option>
@@ -588,8 +590,10 @@
           </div>
         </div>
       </div>
-      <div class="teams-modal-foot">
+      <div class="teams-modal-foot" style="gap:8px;flex-wrap:wrap;">
+        <button type="button" id="btn-teams-copy" class="btn">🔗 Davet Linki</button>
         <button type="button" id="btn-teams-start" class="btn primary">▶ Oyunu Başlat / Devam Et</button>
+        <button type="button" id="btn-teams-leave" class="btn danger">🚪 Odadan Çık</button>
       </div>
     </div>
   </div>

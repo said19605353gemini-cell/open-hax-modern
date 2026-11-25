@@ -13,6 +13,7 @@ import {
   Team
 } from './types';
 import { countryFlag, loadSettings, PERFORMANCE_PRESETS, saveSettings } from './game/settings';
+import { censorText } from './game/profanity';
 import { getStadium } from './game/stadiums';
 import { resetPositionsForKickoff, stepPhysicsTick } from './game/physics';
 import { InputController } from './game/input';
@@ -299,11 +300,15 @@ class OpenHaxApp {
     this.viewRoom.classList.toggle('hidden', screen !== 'room');
 
     const inRoom = screen === 'room';
+    document.body.classList.toggle('in-room', inRoom);
+    if (!inRoom) document.body.classList.remove('show-roombars');
     this.topbarBrand.classList.toggle('hidden', inRoom);
     this.topbarScore.classList.toggle('hidden', !inRoom);
     this.btnPause.classList.toggle('hidden', !inRoom);
     this.btnReset.classList.toggle('hidden', !inRoom);
     this.btnLeaveRoom.classList.toggle('hidden', !inRoom);
+    el<HTMLButtonElement>('btn-topbar-menu').classList.toggle('hidden', !inRoom);
+    el<HTMLButtonElement>('btn-toggle-roombars').classList.toggle('hidden', !inRoom);
 
     const hasNick = Boolean(this.settings.nickname.trim());
     this.userPill.classList.toggle('hidden', !hasNick || inRoom);
@@ -453,6 +458,20 @@ class OpenHaxApp {
     el<HTMLButtonElement>('btn-teams-modal').addEventListener('click', () => {
       renderTeamsModal();
       teamsModal.classList.toggle('hidden');
+    });
+    el<HTMLButtonElement>('btn-topbar-menu').addEventListener('click', () => {
+      renderTeamsModal();
+      teamsModal.classList.toggle('hidden');
+    });
+    el<HTMLButtonElement>('btn-toggle-roombars').addEventListener('click', () => {
+      document.body.classList.toggle('show-roombars');
+    });
+    el<HTMLButtonElement>('btn-teams-copy').addEventListener('click', () => {
+      this.btnCopyLink.click();
+    });
+    el<HTMLButtonElement>('btn-teams-leave').addEventListener('click', () => {
+      teamsModal.classList.add('hidden');
+      this.leaveCurrentRoom();
     });
     el<HTMLButtonElement>('btn-teams-close').addEventListener('click', () => teamsModal.classList.add('hidden'));
     el<HTMLButtonElement>('btn-teams-start').addEventListener('click', () => {
@@ -780,7 +799,7 @@ class OpenHaxApp {
 
     this.authError.classList.add('hidden');
     this.updateSettings({
-      nickname: nick,
+      nickname: censorText(nick),
       avatar,
       country: this.authCountry.value || this.settings.country || 'TR'
     });
@@ -1755,8 +1774,9 @@ class OpenHaxApp {
   }
 
   private sendChat(): void {
-    const text = this.chatInput.value.trim();
-    if (!text) return;
+    const raw = this.chatInput.value.trim();
+    if (!raw) return;
+    const text = censorText(raw);
     this.chatInput.value = '';
     const me = this.players.find((p) => p.id === this.myPlayerId);
     const author = me ? me.name : this.settings.nickname;
@@ -1766,17 +1786,19 @@ class OpenHaxApp {
   }
 
   private addChat(author: string, text: string, system = false, team?: Team): void {
+    const safeAuthor = system ? author : censorText(author);
+    const safeText = censorText(text);
     const row = document.createElement('div');
     row.className = 'chat-msg' + (system ? ' system' : '');
 
     if (system) {
-      row.textContent = text;
+      row.textContent = safeText;
     } else {
       const nickSpan = document.createElement('span');
       nickSpan.className = 'nick' + (team === 'red' || team === 'blue' ? ' ' + team : '');
-      nickSpan.textContent = author + ': ';
+      nickSpan.textContent = safeAuthor + ': ';
       const msgSpan = document.createElement('span');
-      msgSpan.textContent = text;
+      msgSpan.textContent = safeText;
       row.appendChild(nickSpan);
       row.appendChild(msgSpan);
     }
