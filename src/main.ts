@@ -516,19 +516,24 @@ class OpenHaxApp {
         if (nav === 'news') {
           title.textContent = '📰 Haberler & Güncellemeler';
           body.textContent =
-            '• Yeni Özel Güç Modları eklendi: Şahin Vuruşu (1.95x), Alevli Şut (1.55x), Hızlı Koşu, Mıknatıs ve Dev Oyuncu!\n' +
-            '• RaidCall tarzı oyunda kalma süresine bağlı rozet sistemi ve canlı Liderlik Tablosu aktif.\n' +
-            '• 60 Hz - 500 Hz arası ayarlanabilir fizik motoru ve 17 farklı saha (.hbs dahil) eklendi.';
+            '• Özel Güç Modları: Şahin Vuruşu (1.95x), Alevli Şut (1.55x), Hızlı Koşu, Mıknatıs ve Dev Oyuncu güçleri eklendi — ESC menüsünden tek tek açıp kapatılabilir.\n' +
+            '• RaidCall Tarzı Rozetler & Liderlik: Oyunda kalma süresine göre 🌱 -> 👑 rozetleri, gol/kurtarma/asist ve favori harita istatistikleri eklendi.\n' +
+            '• Gelişmiş Fizik & Haritalar: 16 fizik profili (v1/v2/v3), 60–500 Hz fizik motoru ve 17 saha (.hbs dahil) eklendi.\n' +
+            '• Oda Yönetimi: Fare ile sürükle-bırak takım değiştirme/at, oda giriş kilidi, otomatik kurucu devri ve ⏺ maç video kaydı aktif.';
         } else if (nav === 'about') {
-          title.textContent = '⚽ OpenHax Hakkında';
+          title.textContent = '⚽ OpenHaxModern Hakkında (Open Source)';
           body.textContent =
-            'OpenHaxModern, tarayıcı üzerinden kurulumsuz oynanabilen modern, açık kaynaklı 2D çok oyunculu futbol oyunudur. ' +
-            'WebRTC (P2P) altyapısı ile düşük ping sunar ve oda kurucusu ayrıldığında sahipliği otomatik olarak sıradaki oyuncuya devreder.';
+            'OpenHaxModern, tarayıcı üzerinde kurulum gerektirmeden oynanabilen açık kaynaklı (Open Source) modern 2D çok oyunculu futbol oyunudur.\n\n' +
+            '• Altyapı: WebRTC (PeerJS) ile düşük gecikmeli P2P maçlar, Firebase Realtime Database ile canlı lobi, üye profilleri ve genel sohbet.\n' +
+            '• Kontroller: W A S D veya Ok Tuşları ile hareket, X / Boşluk ile şut. ESC (Menü), P (Duraklat), R (Sıfırla).\n' +
+            '• Sohbet Komutları: /color #ff00ff (renk), /avatar 🔥 (simge), /nick YeniAd (isim).';
         } else {
-          title.textContent = '🌐 Topluluk & Bağlantılar';
+          title.textContent = '🌐 Topluluk & Açık Kaynak';
           body.textContent =
-            'GitHub Deposu: https://github.com/said19605353gemini-cell/open-hax-modern — ' +
-            'Arkadaşlarınızı davet linkiyle odanıza çağırabilir, üye profili açarak gol ve kurtarma sıralamasında yarışabilirsiniz.';
+            'OpenHaxModern tamamen açık kaynaklıdır ve topluluk katkılarına açıktır.\n\n' +
+            '• GitHub Kaynak Kodu: https://github.com/said19605353gemini-cell/open-hax-modern\n' +
+            '• Canlı Oyun Adresi: https://said19605353gemini-cell.github.io/open-hax-modern/\n\n' +
+            'Kurallar: Küfür ve hakaret tüm dillerde otomatik filtrelenir. Arkadaşlarınızı davet linkiyle odanıza çağırabilir, gol ve kurtarma sıralamasında yarışabilirsiniz.';
         }
         body.style.whiteSpace = 'pre-line';
         infoModal.classList.remove('hidden');
@@ -537,6 +542,66 @@ class OpenHaxApp {
     this.profileModal.addEventListener('click', (e) => {
       if (e.target === this.profileModal) this.profileModal.classList.add('hidden');
     });
+    const globalChatBox = el<HTMLDivElement>('global-chat-box');
+    const globalChatIn = el<HTMLInputElement>('global-chat-input');
+    const GLOBAL_CHAT_URL = 'https://haxturko-default-rtdb.europe-west1.firebasedatabase.app/global_chat.json';
+    let lastGlobalSend = 0;
+
+    const loadGlobalChat = async () => {
+      try {
+        const res = await fetch(`${GLOBAL_CHAT_URL}?orderBy="$key"&limitToLast=35`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = (await res.json()) as Record<string, { author: string; text: string; country?: string; badge?: string; ts?: number }> | null;
+        globalChatBox.textContent = '';
+        if (!data || typeof data !== 'object') return;
+        const rows = Object.values(data).sort((a, b) => (a.ts || 0) - (b.ts || 0));
+        for (const m of rows) {
+          if (!m || !m.text) continue;
+          const div = document.createElement('div');
+          div.className = 'chat-msg';
+          const nickSpan = document.createElement('span');
+          nickSpan.className = 'nick';
+          nickSpan.textContent = `${m.badge || ''} ${countryFlag(m.country)} ${censorText(String(m.author || 'Oyuncu').slice(0, 20))}: `;
+          const msgSpan = document.createElement('span');
+          msgSpan.textContent = censorText(String(m.text).slice(0, 160));
+          div.appendChild(nickSpan);
+          div.appendChild(msgSpan);
+          globalChatBox.appendChild(div);
+        }
+        globalChatBox.scrollTop = globalChatBox.scrollHeight;
+      } catch { /* ignore */ }
+    };
+
+    const sendGlobalChat = async () => {
+      const now = performance.now();
+      if (now - lastGlobalSend < 1400) return;
+      const raw = globalChatIn.value.trim();
+      if (!raw) return;
+      lastGlobalSend = now;
+      globalChatIn.value = '';
+      const author = censorText((this.authNick.value.trim() || this.settings.nickname || 'Misafir').slice(0, 20));
+      const text = censorText(raw.slice(0, 160));
+      const bdg = getTimeBadge(this.myProfile?.playSeconds || 0).icon;
+      const country = this.authCountry.value || this.settings.country || 'TR';
+      try {
+        await fetch(GLOBAL_CHAT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ author, text, country, badge: bdg, ts: Date.now() })
+        });
+        void loadGlobalChat();
+      } catch { /* ignore */ }
+    };
+
+    el<HTMLButtonElement>('btn-global-chat-send').addEventListener('click', () => void sendGlobalChat());
+    globalChatIn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') void sendGlobalChat();
+    });
+    void loadGlobalChat();
+    window.setInterval(() => {
+      if (this.activeScreen === 'auth') void loadGlobalChat();
+    }, 4500);
+
     el<HTMLButtonElement>('btn-profile-mine').addEventListener('click', () => {
       if (this.myProfile) void this.openProfileModal(this.myProfile);
     });

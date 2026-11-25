@@ -1205,3 +1205,15 @@ body:not(.in-room) {
   outline: 2px solid #facc15;
   background: rgba(250, 204, 21, 0.14);
 }
+
+.auth-grid {
+  max-width: 1360px;
+}
+.auth-chat-card {
+  width: 340px;
+  max-width: 95vw;
+}
+.auth-chat-card h2 {
+  margin: 0 0 10px 0;
+  font-size: 17px;
+}
