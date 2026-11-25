@@ -38,6 +38,7 @@
         <button type="button" id="btn-pause" class="btn hidden">Duraklat (P)</button>
         <button type="button" id="btn-reset" class="btn hidden">Sıfırla (R)</button>
         <button type="button" id="btn-mute" class="btn">Ses: Açık</button>
+        <button type="button" id="btn-record" class="btn hidden" title="Maç Videosu Kaydet & YouTube'a Yükle">⏺ Kayıt</button>
         <button type="button" id="btn-topbar-menu" class="btn hidden" title="Oda & Takım Menüsü (ESC)">☰ Menü</button>
         <button type="button" id="btn-toggle-roombars" class="btn hidden" title="Oda Kontrolleri / Botlar">🎛️ Oda</button>
         <select id="select-lang" class="btn" title="Dil / Language">
@@ -153,6 +154,7 @@
         <button type="button" id="btn-auth-enter" class="btn primary lg full">Üye Girişi / Kayıt &amp; Lobiye Gir</button>
         <button type="button" id="btn-guest-enter" class="btn lg full">👤 Misafir Olarak Devam Et (Şifresiz)</button>
       </div>
+      <div id="auth-top-stats" style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.12);font-size:12px;color:#cbd5e1;"></div>
     </div>
   </section>
 
@@ -165,6 +167,12 @@
           <h2>Odalar / Sunucular</h2>
           <div class="head-actions">
             <span id="dir-mode-badge" class="badge">Kontrol ediliyor...</span>
+            <select id="lobby-refresh-rate" class="btn" title="Otomatik Yenileme">
+              <option value="5000" selected>5 sn</option>
+              <option value="10000">10 sn</option>
+              <option value="15000">15 sn</option>
+              <option value="0">Kapalı</option>
+            </select>
             <button type="button" id="btn-refresh-rooms" class="btn">Yenile</button>
           </div>
         </div>
@@ -307,9 +315,9 @@
           <label class="field">
             <span>Skor Limiti</span>
             <select id="create-scorelimit">
-              <option value="0">Limitsiz</option>
+              <option value="0" selected>Limitsiz</option>
               <option value="3">3 Gol</option>
-              <option value="5" selected>5 Gol</option>
+              <option value="5">5 Gol</option>
               <option value="7">7 Gol</option>
               <option value="10">10 Gol</option>
             </select>
@@ -317,9 +325,9 @@
           <label class="field">
             <span>Süre Limiti</span>
             <select id="create-timelimit">
-              <option value="0">Limitsiz</option>
+              <option value="0" selected>Limitsiz</option>
               <option value="120">2 Dakika</option>
-              <option value="180" selected>3 Dakika</option>
+              <option value="180">3 Dakika</option>
               <option value="300">5 Dakika</option>
               <option value="420">7 Dakika</option>
               <option value="600">10 Dakika</option>
@@ -634,6 +642,17 @@
             </select>
           </label>
           <label class="row">
+            <span>Oda Maks. FPS Limiti</span>
+            <select id="set-roommaxfps">
+              <option value="0" selected>Sınırsız (Oyuncuya Bağlı)</option>
+              <option value="60">60 FPS</option>
+              <option value="75">75 FPS</option>
+              <option value="120">120 FPS</option>
+              <option value="144">144 FPS</option>
+              <option value="240">240 FPS</option>
+            </select>
+          </label>
+          <label class="row">
             <span>Top Tutuşu (<span id="lbl-ballctrl">90%</span>)</span>
             <input type="range" id="set-ballctrl" min="20" max="100" step="2" />
           </label>
@@ -672,17 +691,16 @@
           <button type="button" id="btn-teams-lock" class="btn">🔓 Kilitle</button>
           <button type="button" id="btn-teams-reset" class="btn">Reset</button>
           <button type="button" id="btn-teams-addredbot" class="btn team-btn red">+ Red Bot</button>
+          <button type="button" id="btn-teams-remredbot" class="btn team-btn red">- Red Bot</button>
           <button type="button" id="btn-teams-addbluebot" class="btn team-btn blue">+ Blue Bot</button>
-          <button type="button" id="btn-teams-rembot" class="btn">- Bot</button>
-          <select id="teams-powerup-mode" title="Özel Güç Modu" style="background:#244562;color:#fff;border:1px solid #356084;border-radius:4px;padding:4px;font-size:11px;">
-            <option value="none">Güç: Kapalı</option>
-            <option value="hawk">🦅 Şahin</option>
-            <option value="fire">🔥 Alevli</option>
-            <option value="speed">⚡ Hızlı Koşu</option>
-            <option value="magnet">🧲 Mıknatıs</option>
-            <option value="giant">🛡️ Dev</option>
-            <option value="all">🌟 Tümü</option>
+          <button type="button" id="btn-teams-rembluebot" class="btn team-btn blue">- Blue Bot</button>
+          <select id="teams-botdiff" title="Bot Zorluğu" style="background:#244562;color:#fff;border:1px solid #356084;border-radius:4px;padding:4px;font-size:11px;">
+            <option value="easy">Bot: Kolay</option>
+            <option value="medium">Bot: Orta</option>
+            <option value="hard">Bot: Zor</option>
           </select>
+          <button type="button" id="btn-powerups-modal" class="btn primary">⚡ Süper Güçler</button>
+          <div id="teams-kick-dropzone" style="border:1px dashed #ef4444;color:#fca5a5;border-radius:5px;padding:6px;text-align:center;font-size:11px;margin-top:4px;">🗑️ Atmak İçin Buraya Sürükle</div>
         </div>
         <div class="teams-columns">
           <div class="team-col">
@@ -703,6 +721,23 @@
         <button type="button" id="btn-teams-copy" class="btn">🔗 Davet Linki</button>
         <button type="button" id="btn-teams-start" class="btn primary">▶ Oyunu Başlat / Devam Et</button>
         <button type="button" id="btn-teams-leave" class="btn danger">🚪 Odadan Çık</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Powerups Checklist Modal -->
+  <div id="powerups-modal" class="modal-backdrop hidden">
+    <div class="modal-card hax-settings-card" style="width:min(360px,92vw);">
+      <div class="modal-head hax-settings-head">
+        <h2>⚡ Süper Güçler (Aç / Kapat)</h2>
+        <button type="button" id="btn-powerups-close" class="btn hax-close-btn">Kapat</button>
+      </div>
+      <div class="modal-body" style="padding-top:12px;display:flex;flex-direction:column;gap:10px;">
+        <label class="hax-check-row"><input type="checkbox" class="pw-chk" value="hawk" /><span>🦅 Şahin Vuruşu (1.95x Top Güllesi)</span></label>
+        <label class="hax-check-row"><input type="checkbox" class="pw-chk" value="fire" /><span>🔥 Alevli Şut (1.55x Alevli Top)</span></label>
+        <label class="hax-check-row"><input type="checkbox" class="pw-chk" value="speed" /><span>⚡ Hızlı Koşu (1.55x Hız)</span></label>
+        <label class="hax-check-row"><input type="checkbox" class="pw-chk" value="magnet" /><span>🧲 Mıknatıs (Top Çekimi)</span></label>
+        <label class="hax-check-row"><input type="checkbox" class="pw-chk" value="giant" /><span>🛡️ Dev Oyuncu (Büyük Boyut)</span></label>
       </div>
     </div>
   </div>

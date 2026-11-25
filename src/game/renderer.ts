@@ -382,7 +382,7 @@ export class CanvasRenderer {
         ctx.stroke();
       }
 
-      ctx.fillStyle = p.team === 'red' ? '#ea4141' : '#2d7eff';
+      ctx.fillStyle = p.customColor || (p.team === 'red' ? '#ea4141' : '#2d7eff');
       ctx.beginPath();
       ctx.arc(rx, ry, p.radius, 0, Math.PI * 2);
       ctx.fill();

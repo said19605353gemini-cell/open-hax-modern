@@ -68,7 +68,9 @@ export class GameLoop {
     if (!this.running) return;
 
     const settings = this.getSettings();
-    const fpsLimit = Number(settings.fpsLimit) || 0;
+    const userFps = Number(settings.fpsLimit) || 0;
+    const roomFps = Number(settings.roomMaxFps) || 0;
+    const fpsLimit = userFps > 0 && roomFps > 0 ? Math.min(userFps, roomFps) : userFps || roomFps;
     const physicsHz = Math.max(30, Math.min(500, Number(settings.physicsHz) || 60));
     const stepMs = 1000 / physicsHz;
     const maxSteps = Math.max(3, Math.ceil(physicsHz / 20));

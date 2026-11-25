@@ -44,6 +44,7 @@ export interface GameSettings {
   stadium: StadiumId;
   physicsProfile: PhysicsProfile;
   physicsHz?: number;
+  roomMaxFps?: number;
   ballControl: number;       // 0..100 (higher = lower player-ball bounce = tighter dribble)
   ballDamping: number;       // 0.975..0.996 per 60Hz tick
   kickPower: number;         // 3.5..8.5 px/tick impulse
@@ -70,6 +71,7 @@ export interface PlayerEntity {
   isAdmin?: boolean;
   country?: string;
   ping?: number;
+  customColor?: string;
   powerup?: PowerupType | null;
   powerupUntilTick?: number;
   x: number;
@@ -152,6 +154,7 @@ export interface SnapshotPlayer {
   adm?: boolean;
   ct?: string;
   pg?: number;
+  cc?: string;
   pw?: PowerupType | null;
   x: number;
   y: number;
@@ -166,6 +169,7 @@ export interface MatchSnapshot {
   st: StadiumId;
   pf: PhysicsProfile;
   hz?: number;
+  mf?: number;
   sc: [number, number];
   sl: number; // scoreLimit (0 = unlimited)
   tl: number; // timeLimitSeconds (0 = unlimited)

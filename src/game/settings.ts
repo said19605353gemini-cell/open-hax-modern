@@ -1,4 +1,5 @@
 import { GameSettings } from '../types';
+import { Lang } from '../i18n';
 
 const STORAGE_KEY = 'openhax_modern_settings_v2';
 
@@ -47,6 +48,15 @@ export function detectDefaultCountry(): string {
   return 'TR';
 }
 
+export function detectDefaultLang(): Lang {
+  try {
+    const raw = (navigator.language || 'tr').toLowerCase().split('-')[0];
+    const supported: Lang[] = ['tr', 'en', 'az', 'de', 'fr', 'es', 'pt', 'it', 'nl', 'pl', 'ru', 'ar'];
+    if (supported.includes(raw as Lang)) return raw as Lang;
+  } catch { /* ignore */ }
+  return 'tr';
+}
+
 export const DEFAULT_SETTINGS: GameSettings = {
   fpsLimit: 0,
   grassDetail: 'hd_stadium',
@@ -70,6 +80,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   stadium: 'classic',
   physicsProfile: 'openhax',
   physicsHz: 60,
+  roomMaxFps: 0,
   ballControl: 90,
   ballDamping: 0.9915,
   kickPower: 5.4,
@@ -81,7 +92,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   nickname: '',
   avatar: ':)',
   country: detectDefaultCountry(),
-  lang: 'tr',
+  lang: detectDefaultLang(),
   goalGifUrl: '',
   concedeGifUrl: '',
   chantGifUrl: ''

@@ -223,10 +223,6 @@ export class ProfileService {
     try {
       window.localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(profile));
     } catch { /* ignore */ }
-    if (this.isGuestSession && !profile.passHash) {
-      // Remember guest profile & stats locally without cluttering or overwriting registered members on Firebase
-      return;
-    }
     try {
       await fetch(`${FIREBASE_DB_URL}/profiles/${encodeURIComponent(profile.key)}.json`, {
         method: 'PUT',
