@@ -44,15 +44,14 @@ jobs:
           git archive --format=zip --prefix="openhax-modern-${TAG}/" -o "openhax-modern-${TAG}-source.zip" HEAD
           (cd dist && zip -r "../openhax-modern-${TAG}-dist.zip" .)
       - name: Create GitHub Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="${{ steps.pkg.outputs.tag }}"
-          gh release create "$TAG" \
-            "openhax-modern-${TAG}-source.zip" \
-            "openhax-modern-${TAG}-dist.zip" \
-            --title "OpenHax Modern ${TAG}" \
-            --generate-notes
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.pkg.outputs.tag }}
+          name: OpenHax Modern ${{ steps.pkg.outputs.tag }}
+          generate_release_notes: true
+          files: |
+            openhax-modern-${{ steps.pkg.outputs.tag }}-source.zip
+            openhax-modern-${{ steps.pkg.outputs.tag }}-dist.zip
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
