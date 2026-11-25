@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -29,6 +31,28 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
+      - name: Package source & build archives
+        id: pkg
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="v${VERSION}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            TAG="v${VERSION}-build.${GITHUB_RUN_NUMBER}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          git archive --format=zip --prefix="openhax-modern-${TAG}/" -o "openhax-modern-${TAG}-source.zip" HEAD
+          (cd dist && zip -r "../openhax-modern-${TAG}-dist.zip" .)
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.pkg.outputs.tag }}"
+          gh release create "$TAG" \
+            "openhax-modern-${TAG}-source.zip" \
+            "openhax-modern-${TAG}-dist.zip" \
+            --title "OpenHax Modern ${TAG}" \
+            --generate-notes
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
