@@ -33,7 +33,10 @@ const UPSTASH_REDIS_REST_TOKEN: string = '';
 export class RoomDirectory {
   private phpApiWorks: boolean | null =
     typeof window !== 'undefined' &&
-    (window.location.hostname.endsWith('github.io') || window.location.hostname.endsWith('pages.dev'))
+    (window.location.hostname.endsWith('github.io') ||
+      window.location.hostname.endsWith('pages.dev') ||
+      window.location.hostname.endsWith('web.app') ||
+      window.location.hostname.endsWith('firebaseapp.com'))
       ? false
       : null;
   private lastCloudRooms: PublicRoomInfo[] = [];
