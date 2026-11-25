@@ -388,10 +388,26 @@ class OpenHaxApp {
             this.joinRemoteRoom(sr.code, sr.password || '');
             restored = true;
           } else if (sr.role === 'host' && sr.kind) {
-            if (sr.roomName) this.createName.value = sr.roomName;
-            this.createType.value = sr.kind;
-            if (sr.stadium) this.createStadium.value = sr.stadium;
-            this.createPass.value = sr.password || '';
+            const fullSr = sr as typeof sr & {
+              maxPlayers?: string;
+              scoreLimit?: string;
+              timeLimit?: string;
+              botDiff?: string;
+              physProfile?: string;
+              physHz?: string;
+              powerupMode?: string;
+            };
+            if (fullSr.roomName) this.createName.value = fullSr.roomName;
+            this.createType.value = fullSr.kind || 'public';
+            if (fullSr.stadium) this.createStadium.value = fullSr.stadium;
+            if (fullSr.maxPlayers) this.createMax.value = fullSr.maxPlayers;
+            if (fullSr.scoreLimit) this.createScoreLimit.value = fullSr.scoreLimit;
+            if (fullSr.timeLimit) this.createTimeLimit.value = fullSr.timeLimit;
+            if (fullSr.botDiff) this.createBotDiff.value = fullSr.botDiff;
+            if (fullSr.physProfile) this.createPhysics.value = fullSr.physProfile;
+            if (fullSr.physHz) el<HTMLSelectElement>('create-physicshz').value = fullSr.physHz;
+            if (fullSr.powerupMode) el<HTMLSelectElement>('create-powerup').value = fullSr.powerupMode;
+            this.createPass.value = fullSr.password || '';
             this.createAndEnterRoom(true);
             restored = true;
           }
@@ -1734,6 +1750,8 @@ class OpenHaxApp {
           this.goalPending = false;
           this.goalBannerTeam = null;
           this.goalResetTicks = 0;
+          this.goalBannerEl.classList.add('hidden');
+          this.pauseBannerEl.classList.toggle('hidden', !this.paused);
           restoredMatch = true;
         }
       } catch { /* ignore */ }
@@ -1760,7 +1778,20 @@ class OpenHaxApp {
     try {
       window.sessionStorage.setItem(
         'openhax_active_room',
-        JSON.stringify({ role: 'host', kind, roomName, stadium: stadiumId, password })
+        JSON.stringify({
+          role: 'host',
+          kind,
+          roomName,
+          stadium: stadiumId,
+          password,
+          maxPlayers: String(maxPlayers),
+          scoreLimit: String(scoreLimit),
+          timeLimit: String(timeLimit),
+          botDiff,
+          physProfile,
+          physHz: String(physHz),
+          powerupMode
+        })
       );
     } catch { /* ignore */ }
     this.updateRoomUI();
