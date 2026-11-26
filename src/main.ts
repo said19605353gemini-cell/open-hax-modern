@@ -1555,7 +1555,7 @@ class OpenHaxApp {
       el<HTMLSelectElement>('set-physics-feel').value = 'custom';
     });
     el<HTMLButtonElement>('btn-reset-physics-defaults').addEventListener('click', () => {
-      if (!this.isMeAdmin()) return;
+      if (this.activeScreen === 'room' && !this.isMeAdmin()) return;
       this.customTuningActive = false;
       this.updateSettings({
         physicsProfile: DEFAULT_SETTINGS.physicsProfile,
@@ -1572,7 +1572,9 @@ class OpenHaxApp {
         surfaceFriction: DEFAULT_SETTINGS.surfaceFriction
       });
       this.syncSettingsToUI();
-      if (this.peerMgr.getRole() === 'guest') {
+      this.roomPhysics.value = DEFAULT_SETTINGS.physicsProfile;
+      this.roomPhysicsFeel.value = DEFAULT_SETTINGS.physicsFeel || 'standard';
+      if (this.activeScreen === 'room' && this.peerMgr.getRole() === 'guest') {
         this.dispatchAdminAction('set_physics', undefined, DEFAULT_SETTINGS.physicsProfile);
         this.dispatchAdminAction('set_physics_feel', undefined, DEFAULT_SETTINGS.physicsFeel || 'standard');
         this.dispatchAdminAction('set_physicshz', undefined, DEFAULT_SETTINGS.physicsHz || 60);
