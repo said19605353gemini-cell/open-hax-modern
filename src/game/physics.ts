@@ -312,9 +312,9 @@ function getProfileParams(profile: PhysicsProfile): PhysicsParams {
     playerPlayerRestitution: 1.0,             // materials.jsx playersContact.restitution = 1
     playerBallRestitution: 0.1,               // materials.jsx playerBallContact.restitution = 0.1
     playerWorldRestitution: 0.0,              // materials.jsx playerWorldContact.restitution = 0
-    ballWorldRestitution: 0.78,               // game.jsx p2.restitution = 0.75..0.9
+    ballWorldRestitution: 0.8,                // materials.jsx / game.jsx line restitution
     accel: 0.125,                             // crisp 60Hz response up to P2 maxVelocity=10 (3.333 px/tick)
-    kickAccel: 0.095,
+    kickAccel: 0.125,                         // open-hax-master keeps full thrust while holding X
     kickImpulse: 5.4,                         // matches open-hax kick shot strength without 60Hz audio spam
     maxPlayerSpeed: 10 * 20 / 60,             // 3.3333 px/tick = 200 px/s (exact constrainVelocity 10)
     maxBallSpeed: 10.8
