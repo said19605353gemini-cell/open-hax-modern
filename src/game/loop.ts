@@ -78,7 +78,7 @@ export class GameLoop {
 
   private scheduleNext(fpsLimit: number): void {
     if (!this.running) return;
-    if (document.hidden) {
+    if (document.hidden || (fpsLimit > 0 && fpsLimit <= 62)) {
       this.rafId = window.requestAnimationFrame(this.frame);
       return;
     }
@@ -169,7 +169,7 @@ export class GameLoop {
       if (steps >= maxSteps && this.accumulator > stepMs) {
         this.accumulator = 0;
       }
-      alpha = fpsLimit === 0 ? Math.max(0, Math.min(1, this.accumulator / stepMs)) : 1;
+      alpha = Math.max(0, Math.min(1, this.accumulator / stepMs));
     }
 
     this.onRender(alpha);

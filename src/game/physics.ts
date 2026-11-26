@@ -7,6 +7,7 @@ import {
   INPUT_LEFT,
   INPUT_RIGHT,
   INPUT_UP,
+  PhysicsFeelMode,
   PhysicsProfile,
   PlayerEntity,
   PowerupType,
@@ -466,6 +467,78 @@ function clampArenaBounds(
   }
 }
 
+interface FeelParams {
+  startBoostMul: number;
+  moveAccelMul: number;
+  brakeMul: number;
+  noKickSlowdown: boolean;
+  movingDampingOverride?: number;
+  stopDampingOverride?: number;
+}
+
+function getFeelParams(
+  mode?: PhysicsFeelMode,
+  cfg?: { startAccelMul?: number; stopFriction?: number; surfaceFriction?: number }
+): FeelParams {
+  switch (mode) {
+    case 'snappy':
+      return {
+        startBoostMul: 2.2,
+        moveAccelMul: 1.45,
+        brakeMul: 2.1,
+        noKickSlowdown: true,
+        stopDampingOverride: 0.78
+      };
+    case 'instant_stop':
+      return {
+        startBoostMul: 2.6,
+        moveAccelMul: 1.75,
+        brakeMul: 2.6,
+        noKickSlowdown: true,
+        stopDampingOverride: 0.62
+      };
+    case 'drift_ice':
+      return {
+        startBoostMul: 1.0,
+        moveAccelMul: 0.95,
+        brakeMul: 1.15,
+        noKickSlowdown: true,
+        movingDampingOverride: 0.992,
+        stopDampingOverride: 0.993
+      };
+    case 'smooth_glide':
+      return {
+        startBoostMul: 1.35,
+        moveAccelMul: 1.18,
+        brakeMul: 1.5,
+        noKickSlowdown: true,
+        movingDampingOverride: 0.978,
+        stopDampingOverride: 0.94
+      };
+    case 'custom': {
+      const startMul = Math.max(0.6, Math.min(3.0, Number(cfg?.startAccelMul) || 1.4));
+      const stopFric = Math.max(0.55, Math.min(0.995, Number(cfg?.stopFriction) || 0.82));
+      const surfFric = Math.max(0.88, Math.min(0.995, Number(cfg?.surfaceFriction) || 0.974));
+      return {
+        startBoostMul: startMul,
+        moveAccelMul: Math.max(0.85, Math.min(2.2, 0.75 + startMul * 0.4)),
+        brakeMul: Math.max(1.2, startMul * 1.1),
+        noKickSlowdown: true,
+        movingDampingOverride: surfFric,
+        stopDampingOverride: stopFric
+      };
+    }
+    case 'standard':
+    default:
+      return {
+        startBoostMul: 1.0,
+        moveAccelMul: 1.0,
+        brakeMul: 1.25,
+        noKickSlowdown: false
+      };
+  }
+}
+
 export function stepPhysicsTick(
   players: PlayerEntity[],
   ball: BallEntity,
@@ -476,11 +549,18 @@ export function stepPhysicsTick(
   goalPending: boolean,
   botAvoidMemory: Map<string, number>,
   tuning?: Pick<GameSettings, 'ballControl' | 'ballDamping' | 'kickPower' | 'playerSpeed' | 'wallBounce'>,
-  physicsHz = 60
+  physicsHz = 60,
+  feelConfig?: {
+    physicsFeel?: PhysicsFeelMode;
+    startAccelMul?: number;
+    stopFriction?: number;
+    surfaceFriction?: number;
+  }
 ): StepResult {
   const hz = Math.max(30, Math.min(500, physicsHz || 60));
   const dtScale = 60 / hz;
   const cfg = getProfileParams(profile);
+  const feel = getFeelParams(feelConfig?.physicsFeel, feelConfig);
   if (tuning) {
     // ballControl 0..100 maps to playerBallRestitution 0.65..0.02 (higher control = tighter dribble)
     cfg.playerBallRestitution = Math.max(0.02, Math.min(0.7, 0.65 - (tuning.ballControl / 100) * 0.63));
@@ -510,6 +590,7 @@ export function stepPhysicsTick(
       else blueBots.push(p);
     }
   }
+  const playerMoving = new Uint8Array(activePlayers.length);
 
   let kicked = false;
   let powerKickType: PowerupType | null = null;
@@ -565,14 +646,21 @@ export function stepPhysicsTick(
 
     // Diagonal normalization matching open-hax-master (1) Math.sqrt(thrust^2 / 2)
     if (dx !== 0 || dy !== 0) {
+      playerMoving[i] = 1;
       const invLen = dx !== 0 && dy !== 0 ? Math.SQRT1_2 : 1;
       dx *= invLen;
       dy *= invLen;
 
       const dot = dx * p.vx + dy * p.vy;
-      const brakeMul = dot < -0.4 ? 1.25 : 1.0;
+      const accelPhaseMul =
+        dot < -0.35
+          ? feel.brakeMul
+          : dot < cfg.maxPlayerSpeed * 0.45
+            ? feel.startBoostMul
+            : 1.0;
       const spdMul = p.powerup === 'speed' ? 1.55 : 1.0;
-      const accel = (p.kickArmed ? cfg.kickAccel : cfg.accel) * botSpeedScale * brakeMul * dtScale * spdMul;
+      const baseAccel = p.kickArmed && !feel.noKickSlowdown ? cfg.kickAccel : cfg.accel;
+      const accel = baseAccel * feel.moveAccelMul * botSpeedScale * accelPhaseMul * dtScale * spdMul;
       p.vx += dx * accel;
       p.vy += dy * accel;
     }
@@ -609,7 +697,7 @@ export function stepPhysicsTick(
         kicked = true;
         touchedById = p.id;
         if ((p.team === 'red' && redDanger && ball.vx > prevBallVx + 1.5) ||
-            (p.team === 'blue' && blueDanger && ball.vx < prevBallVx - 1.5)) {
+          (p.team === 'blue' && blueDanger && ball.vx < prevBallVx - 1.5)) {
           savedById = p.id;
         }
       }
@@ -681,7 +769,7 @@ export function stepPhysicsTick(
       if (hit) {
         touchedById = ap.id;
         if ((ap.team === 'red' && redDanger && ball.vx > prevBallVx + 1.2) ||
-            (ap.team === 'blue' && blueDanger && ball.vx < prevBallVx - 1.2)) {
+          (ap.team === 'blue' && blueDanger && ball.vx < prevBallVx - 1.2)) {
           savedById = ap.id;
         }
       }
@@ -714,11 +802,13 @@ export function stepPhysicsTick(
     clampArenaBounds(ball, stadium.canvasWidth, stadium.canvasHeight, cfg.ballWorldRestitution);
   }
 
-  const pDamp = Math.pow(cfg.playerDamping, dtScale);
+  const pMoveDamp = Math.pow(feel.movingDampingOverride ?? cfg.playerDamping, dtScale);
+  const pStopDamp = Math.pow(feel.stopDampingOverride ?? cfg.playerDamping, dtScale);
   const bDamp = Math.pow(cfg.ballDamping, dtScale);
   for (let i = 0; i < activePlayers.length; i++) {
-    activePlayers[i].vx *= pDamp;
-    activePlayers[i].vy *= pDamp;
+    const damp = playerMoving[i] ? pMoveDamp : pStopDamp;
+    activePlayers[i].vx *= damp;
+    activePlayers[i].vy *= damp;
   }
   ball.vx *= bDamp;
   ball.vy *= bDamp;

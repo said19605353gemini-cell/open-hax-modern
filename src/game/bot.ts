@@ -21,15 +21,75 @@ const DIFFICULTY_CFG: Record<
   pro: { lookAhead: 18, speedScale: 1.0, kickBias: 0, aimPrecision: 1.0, reactionMask: 0 }
 };
 
-function reflectY(y: number, minY: number, maxY: number): number {
-  const span = maxY - minY;
-  if (span <= 0) return y;
-  let rel = y - minY;
+function reflectCoord(val: number, minVal: number, maxVal: number): number {
+  const span = maxVal - minVal;
+  if (span <= 0) return val;
+  let rel = val - minVal;
   while (rel < 0 || rel > span) {
     if (rel < 0) rel = -rel;
     if (rel > span) rel = 2 * span - rel;
   }
-  return minY + rel;
+  return minVal + rel;
+}
+
+/** Simulates damped ball trajectory with wall reflections to find the earliest reachable point. */
+function predictBallInterception(
+  bot: PlayerEntity,
+  ball: BallEntity,
+  stadium: StadiumConfig,
+  maxLookAhead: number
+): { x: number; y: number } {
+  const minX = stadium.pitchX + ball.radius;
+  const maxX = stadium.pitchX + stadium.pitchWidth - ball.radius;
+  const minY = stadium.pitchY + ball.radius;
+  const maxY = stadium.pitchY + stadium.pitchHeight - ball.radius;
+  const centerY = stadium.pitchY + stadium.pitchHeight / 2;
+
+  let bx = ball.x;
+  let by = ball.y;
+  let bvx = ball.vx;
+  let bvy = ball.vy;
+  const estBotSpeed = 3.4;
+
+  for (let t = 1; t <= maxLookAhead; t++) {
+    bx += bvx;
+    by += bvy;
+    bvx *= 0.99;
+    bvy *= 0.99;
+
+    by = reflectCoord(by, minY, maxY);
+    if (Math.abs(by - centerY) > stadium.goalHalfHeight) {
+      bx = reflectCoord(bx, minX, maxX);
+    } else {
+      bx = Math.max(minX - 18, Math.min(maxX + 18, bx));
+    }
+
+    const dist = Math.hypot(bx - bot.x, by - bot.y);
+    if (dist <= estBotSpeed * t + bot.radius + ball.radius) {
+      return { x: bx, y: by };
+    }
+  }
+  return {
+    x: Math.max(minX, Math.min(maxX, bx)),
+    y: Math.max(minY, Math.min(maxY, by))
+  };
+}
+
+function wouldScoreOwnGoal(
+  shotDirX: number,
+  shotDirY: number,
+  ball: BallEntity,
+  ownGoalX: number,
+  centerY: number,
+  goalHalfHeight: number,
+  isBlue: boolean
+): boolean {
+  const towardOwn = isBlue ? shotDirX > 0.22 : shotDirX < -0.22;
+  if (!towardOwn || Math.abs(shotDirX) < 1e-4) return false;
+  const stepsToGoal = (ownGoalX - ball.x) / shotDirX;
+  if (stepsToGoal < 0 || stepsToGoal > 260) return false;
+  const projY = ball.y + shotDirY * stepsToGoal;
+  return Math.abs(projY - centerY) <= goalHalfHeight + 22;
 }
 
 function getFormationHome(
@@ -126,9 +186,9 @@ export function computeBotInput(
   const targetGoalX = isBlue ? stadium.pitchX : stadium.pitchX + stadium.pitchWidth;
 
   const rawDist = Math.hypot(ball.x - bot.x, ball.y - bot.y);
-  const dynLook = Math.min(cfg.lookAhead, Math.max(2, Math.round(rawDist / 18)));
-  const predX = Math.max(minX, Math.min(maxX, ball.x + ball.vx * dynLook));
-  const predY = reflectY(ball.y + ball.vy * dynLook, minY, maxY);
+  const pred = predictBallInterception(bot, ball, stadium, cfg.lookAhead);
+  const predX = pred.x;
+  const predY = pred.y;
 
   const teammates = allPlayers.filter((p) => p.team === bot.team && p.id !== bot.id);
   const opponents = allPlayers.filter((p) => p.team !== bot.team && p.team !== 'spec');
@@ -146,9 +206,18 @@ export function computeBotInput(
   }
   const isPrimaryChaser = !home.isKeeper && rawDist <= closestOutfieldDist + 14;
 
-  // Smart corner target in opponent goal
-  const cornerSign = predY >= centerY ? -1 : 1;
-  const cornerOffset = stadium.goalHalfHeight * 0.55 * cfg.aimPrecision;
+  // Smart corner target: pick the open corner furthest from the closest opponent near goal
+  let nearestOppKeeperY = centerY;
+  let minGoalOppDist = Infinity;
+  for (const opp of opponents) {
+    const d = Math.hypot(opp.x - targetGoalX, opp.y - centerY);
+    if (d < minGoalOppDist) {
+      minGoalOppDist = d;
+      nearestOppKeeperY = opp.y;
+    }
+  }
+  const cornerSign = minGoalOppDist < 150 ? (nearestOppKeeperY >= centerY ? -1 : 1) : (predY >= centerY ? -1 : 1);
+  const cornerOffset = stadium.goalHalfHeight * 0.65 * cfg.aimPrecision;
   let aimTargetX = targetGoalX;
   let aimTargetY = centerY + cornerSign * cornerOffset;
 
@@ -189,14 +258,18 @@ export function computeBotInput(
   let desiredY: number;
 
   if (home.isKeeper) {
-    const ballInBox = Math.abs(ball.x - ownGoalX) < 125 && Math.abs(ball.y - centerY) < stadium.goalHalfHeight + 70;
-    if (ballInBox && (isBlue ? bot.x >= ball.x - 6 : bot.x <= ball.x + 6)) {
-      // Rush out slightly to clear
-      desiredX = predX + (isBlue ? 18 : -18);
+    const ballInBox = Math.abs(ball.x - ownGoalX) < 145 && Math.abs(ball.y - centerY) < stadium.goalHalfHeight + 75;
+    if (ballInBox && (isBlue ? bot.x >= ball.x - 4 : bot.x <= ball.x + 4)) {
+      // Rush out decisively to clear behind the ball
+      desiredX = predX + (isBlue ? 20 : -20);
       desiredY = predY;
     } else {
-      desiredX = home.x;
-      desiredY = Math.max(centerY - stadium.goalHalfHeight + 6, Math.min(centerY + stadium.goalHalfHeight - 6, predY));
+      // Position on the shot-blocking line between ball and goal center
+      const guardX = isBlue ? ownGoalX - 24 : ownGoalX + 24;
+      const t = Math.min(1, Math.max(0, Math.abs(guardX - ownGoalX) / Math.max(20, Math.abs(predX - ownGoalX))));
+      const blockY = centerY + (predY - centerY) * (0.45 + t * 0.55);
+      desiredX = guardX;
+      desiredY = Math.max(centerY - stadium.goalHalfHeight + 6, Math.min(centerY + stadium.goalHalfHeight - 6, blockY));
     }
   } else if (!isPrimaryChaser) {
     // Hold formation position + make supporting run into open space, never clumping on the ball
@@ -275,10 +348,20 @@ export function computeBotInput(
   const alignment = shotDirX * (toTargetX / toTargetDist) + shotDirY * (toTargetY / toTargetDist);
   const aimedForward = isBlue ? ballDx < -2 : ballDx > 2;
   const clearAction = alignment > (passingToMate ? 0.62 : difficulty === 'pro' ? 0.55 : 0.35);
+  const safeFromOwnGoal = !wouldScoreOwnGoal(
+    shotDirX,
+    shotDirY,
+    ball,
+    ownGoalX,
+    centerY,
+    stadium.goalHalfHeight,
+    isBlue
+  );
 
   if (
     ballDist <= bot.radius + ball.radius + 7 &&
     aimedForward &&
+    safeFromOwnGoal &&
     (clearAction || (home.isKeeper && emergencyDefend)) &&
     currentTick >= bot.nextKickTick + cfg.kickBias
   ) {

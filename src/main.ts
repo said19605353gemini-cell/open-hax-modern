@@ -8,6 +8,7 @@ import {
   GoalParticle,
   MatchSnapshot,
   PerfTelemetry,
+  PhysicsFeelMode,
   PhysicsProfile,
   PlayerEntity,
   PowerupMode,
@@ -1390,6 +1391,22 @@ class OpenHaxApp {
     bindRange('set-kickpwr', 'lbl-kickpwr', (v) => v.toFixed(1), (v) => this.updateSettings({ kickPower: v }));
     bindRange('set-pspd', 'lbl-pspd', (v) => v.toFixed(1), (v) => this.updateSettings({ playerSpeed: v }));
     bindRange('set-wallb', 'lbl-wallb', (v) => v.toFixed(2), (v) => this.updateSettings({ wallBounce: v }));
+    el<HTMLSelectElement>('set-physics-feel').addEventListener('change', (e) => {
+      const mode = (e.target as HTMLSelectElement).value as PhysicsFeelMode;
+      this.updateSettings({ physicsFeel: mode });
+    });
+    bindRange('set-startaccel', 'lbl-startaccel', (v) => v.toFixed(1) + 'x', (v) => {
+      this.updateSettings({ physicsFeel: 'custom', startAccelMul: v });
+      el<HTMLSelectElement>('set-physics-feel').value = 'custom';
+    });
+    bindRange('set-stopfriction', 'lbl-stopfriction', (v) => v.toFixed(2), (v) => {
+      this.updateSettings({ physicsFeel: 'custom', stopFriction: v });
+      el<HTMLSelectElement>('set-physics-feel').value = 'custom';
+    });
+    bindRange('set-surfacefriction', 'lbl-surfacefriction', (v) => v.toFixed(3), (v) => {
+      this.updateSettings({ physicsFeel: 'custom', surfaceFriction: v });
+      el<HTMLSelectElement>('set-physics-feel').value = 'custom';
+    });
   }
 
   private async submitGuestAuth(): Promise<void> {
@@ -1797,6 +1814,7 @@ class OpenHaxApp {
     const botPreset = this.createBots.value;
     const botDiff = this.createBotDiff.value as BotDifficulty;
     const physProfile = this.createPhysics.value as PhysicsProfile;
+    const physFeel = el<HTMLSelectElement>('create-physics-feel').value as PhysicsFeelMode;
     const physHz = 60;
     const rawCreateFps = el<HTMLInputElement>('create-roommaxfps-custom').value.trim();
     const parsedCreateFps = rawCreateFps !== '' ? Number(rawCreateFps) : Number(el<HTMLSelectElement>('create-roommaxfps').value);
@@ -1828,7 +1846,14 @@ class OpenHaxApp {
     this.botCounter = 1;
     this.chatBox.innerHTML = '';
 
-    this.updateSettings({ stadium: stadiumId, botDifficulty: botDiff, physicsProfile: physProfile, physicsHz: physHz, roomMaxFps });
+    this.updateSettings({
+      stadium: stadiumId,
+      botDifficulty: botDiff,
+      physicsProfile: physProfile,
+      physicsFeel: physFeel,
+      physicsHz: physHz,
+      roomMaxFps
+    });
     this.roomBotDiff.value = botDiff;
     this.roomStadium.value = stadiumId;
     this.roomPhysics.value = physProfile;
@@ -2470,6 +2495,13 @@ class OpenHaxApp {
     el<HTMLSpanElement>('lbl-pspd').textContent = Number(s.playerSpeed).toFixed(1);
     el<HTMLInputElement>('set-wallb').value = String(s.wallBounce);
     el<HTMLSpanElement>('lbl-wallb').textContent = Number(s.wallBounce).toFixed(2);
+    el<HTMLSelectElement>('set-physics-feel').value = s.physicsFeel || 'snappy';
+    el<HTMLInputElement>('set-startaccel').value = String(s.startAccelMul ?? 1.4);
+    el<HTMLSpanElement>('lbl-startaccel').textContent = Number(s.startAccelMul ?? 1.4).toFixed(1) + 'x';
+    el<HTMLInputElement>('set-stopfriction').value = String(s.stopFriction ?? 0.82);
+    el<HTMLSpanElement>('lbl-stopfriction').textContent = Number(s.stopFriction ?? 0.82).toFixed(2);
+    el<HTMLInputElement>('set-surfacefriction').value = String(s.surfaceFriction ?? 0.974);
+    el<HTMLSpanElement>('lbl-surfacefriction').textContent = Number(s.surfaceFriction ?? 0.974).toFixed(3);
     this.roomBotDiff.value = s.botDifficulty;
     this.roomStadium.value = s.stadium;
     el<HTMLSelectElement>('select-lang').value = s.lang || 'tr';
@@ -2889,7 +2921,8 @@ class OpenHaxApp {
       this.goalPending,
       this.botAvoidMemory,
       this.customTuningActive ? this.settings : undefined,
-      physicsHz
+      physicsHz,
+      this.settings
     );
 
     if (res.touchedById) {
