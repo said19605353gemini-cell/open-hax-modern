@@ -412,6 +412,17 @@ class OpenHaxApp {
     window.addEventListener('beforeunload', () => {
       if (this.activeScreen === 'room') this.saveMatchSnapshot();
     });
+
+    // Fetch live physics config from Firebase RTDB (read-only from client)
+    void fetch('https://haxturko53-default-rtdb.firebaseio.com/config/physics.json', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((cfg) => {
+        if (cfg && typeof cfg === 'object') {
+          this.updateSettings(cfg as Partial<GameSettings>);
+          this.syncSettingsToUI();
+        }
+      })
+      .catch(() => { /* fallback to DEFAULT_SETTINGS */ });
     let restored = false;
     try {
       const savedScreen = window.sessionStorage.getItem('openhax_active_screen');
