@@ -859,6 +859,8 @@ class OpenHaxApp {
       this.roomStadium.disabled = !isAdm;
       this.roomPhysics.disabled = !isAdm;
       this.roomPhysicsFeel.disabled = !isAdm;
+      el<HTMLSelectElement>('room-physicshz').disabled = !isAdm;
+      el<HTMLButtonElement>('btn-room-reset-physics').disabled = !isAdm;
       el<HTMLButtonElement>('btn-room-upload-hbs').classList.toggle('hidden', !isAdm);
       const canEditPhysics = this.activeScreen === 'room' && isAdm;
       const physicsPane = document.querySelector<HTMLElement>('[data-pane="physics"]');
@@ -1304,6 +1306,21 @@ class OpenHaxApp {
       }
       this.updateSettings({ physicsFeel: mode });
       el<HTMLSelectElement>('set-physics-feel').value = mode;
+    });
+
+    el<HTMLSelectElement>('room-physicshz').addEventListener('change', () => {
+      if (!this.isMeAdmin()) return;
+      const hz = Number(el<HTMLSelectElement>('room-physicshz').value) || 60;
+      if (this.peerMgr.getRole() === 'guest') {
+        this.dispatchAdminAction('set_physicshz', undefined, hz);
+        return;
+      }
+      this.updateSettings({ physicsHz: hz });
+      el<HTMLSelectElement>('set-physicshz').value = String(hz);
+    });
+
+    el<HTMLButtonElement>('btn-room-reset-physics').addEventListener('click', () => {
+      el<HTMLButtonElement>('btn-reset-physics-defaults').click();
     });
 
     el<HTMLButtonElement>('btn-chat-send').addEventListener('click', () => this.sendChat());
