@@ -849,7 +849,12 @@ class OpenHaxApp {
       this.roomPhysics.disabled = !isAdm;
       this.roomPhysicsFeel.disabled = !isAdm;
       el<HTMLButtonElement>('btn-room-upload-hbs').classList.toggle('hidden', !isAdm);
-      document.querySelector<HTMLElement>('[data-tab="physics"]')?.classList.toggle('hidden', !isAdm);
+      const physicsPane = document.querySelector<HTMLElement>('[data-pane="physics"]');
+      if (physicsPane) {
+        physicsPane.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLButtonElement>('input, select, button').forEach((ctrl) => {
+          ctrl.disabled = !isAdm;
+        });
+      }
       el<HTMLSelectElement>('teams-botdiff').value = this.settings.botDifficulty;
       el<HTMLButtonElement>('btn-teams-lock').textContent = this.teamsLocked ? '🔒 Takım Kilitli' : '🔓 Takım Kilitle';
       el<HTMLButtonElement>('btn-teams-roomlock').textContent = this.roomEntryLocked ? '🔒 Oda Giriş: Kilitli' : '🚪 Oda Giriş: Açık';
