@@ -1330,6 +1330,18 @@ class OpenHaxApp {
         this.chatInput.blur();
       }
     });
+    let macroWarnedAt = 0;
+    this.chatInput.addEventListener('input', () => {
+      if (!this.paused) return;
+      const val = this.chatInput.value;
+      if (/(.)\1{4,}/.test(val) && Date.now() - macroWarnedAt > 4000) {
+        macroWarnedAt = Date.now();
+        const me = this.players.find((p) => p.id === this.myPlayerId)?.name || this.settings.nickname || 'Oyuncu';
+        const msg = `⚠️ ${me}: Seri tuş / makro şüphesi (${val.length} karakter)!`;
+        this.addChat('Sistem', msg, true);
+        this.peerMgr.broadcastChat('Sistem', msg, undefined);
+      }
+    });
 
     // Settings modal
     this.settingsModal.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((btn) => {
@@ -2543,7 +2555,10 @@ class OpenHaxApp {
       this.updateRoomUI();
     } else if (cmd === 'toggle_pause') {
       this.togglePause();
-      if (this.paused) this.chatInput.focus();
+      if (this.paused) {
+        this.chatInput.focus();
+        this.addChat('Sistem', '🔍 Makro Testi: Şimdi 1 kere X tuşuna basın (seri/makro basanlar sohbete xxxx yazacaktır).', true);
+      }
     } else if (cmd === 'reset_match') {
       this.resetMatch();
     } else if (cmd === 'add_bot' && (value === 'red' || value === 'blue')) {
