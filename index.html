@@ -35,14 +35,17 @@
 
       <div class="topbar-actions">
         <button type="button" id="btn-change-name" class="btn hidden">Ad Değiştir</button>
-        <button type="button" id="btn-logout-home" class="btn danger hidden" title="Ana Sayfaya Git / Hesaptan Çık">🏠 Ana Sayfa / Çıkış</button>
+        <button type="button" id="btn-logout-home" class="btn danger hidden" title="Ana Sayfaya Git / Hesaptan Çık">🏠
+          Ana Sayfa / Çıkış</button>
         <button type="button" id="btn-profile" class="btn hidden">👤 Profil</button>
         <button type="button" id="btn-pause" class="btn hidden">Duraklat (P)</button>
         <button type="button" id="btn-reset" class="btn hidden">Sıfırla (R)</button>
         <button type="button" id="btn-mute" class="btn">Ses: Açık</button>
-        <button type="button" id="btn-record" class="btn hidden" title="Maç Videosu Kaydet & YouTube'a Yayınla">⏺ Kaydet</button>
+        <button type="button" id="btn-record" class="btn hidden" title="Maç Videosu Kaydet & YouTube'a Yayınla">⏺
+          Kaydet</button>
         <button type="button" id="btn-record-pause" class="btn hidden" title="Kaydı Duraklat / Devam Et">⏸</button>
-        <button type="button" id="btn-room-yt-connect" class="btn hidden" title="Kendi YouTube Hesabını Bağla & Onayla">📺 YT Bağla</button>
+        <button type="button" id="btn-room-yt-connect" class="btn hidden"
+          title="Kendi YouTube Hesabını Bağla & Onayla">📺 YT Bağla</button>
         <select id="room-yt-privacy" class="btn hidden" title="YouTube Yayın Gizliliği">
           <option value="public">YT: Açık</option>
           <option value="unlisted" selected>YT: Liste Dışı</option>
@@ -141,7 +144,8 @@
         <h1>OpenHax'e Hoş Geldin</h1>
         <p class="subtitle">Sahaya çıkmadan önce oyuncu adını ve avatarını belirle.</p>
         <blockquote class="auth-quote">
-          “Dünya bir misafirhanedir. İnsan ise onda az duracaktır ve vazifesi çok bir misafirdir ve kısa bir ömürde hayat-ı ebediyeye lazım olan levazımatı tedarik etmekle mükelleftir.”
+          “Dünya bir misafirhanedir. İnsan ise onda az duracaktır ve vazifesi çok bir misafirdir ve kısa bir ömürde
+          hayat-ı ebediyeye lazım olan levazımatı tedarik etmekle mükelleftir.”
         </blockquote>
         <div id="invite-notice" class="notice hidden"></div>
 
@@ -252,7 +256,8 @@
   <!-- SCREEN 2: Server / Room Browser & Room Creator -->
   <section id="view-lobby" class="screen lobby-screen hidden">
     <blockquote class="auth-quote">
-      “Dünya bir misafirhanedir. İnsan ise onda az duracaktır ve vazifesi çok bir misafirdir ve kısa bir ömürde hayat-ı ebediyeye lazım olan levazımatı tedarik etmekle mükelleftir.”
+      “Dünya bir misafirhanedir. İnsan ise onda az duracaktır ve vazifesi çok bir misafirdir ve kısa bir ömürde hayat-ı
+      ebediyeye lazım olan levazımatı tedarik etmekle mükelleftir.”
     </blockquote>
     <div class="lobby-grid">
       <!-- Left: Global Chat -->
@@ -388,7 +393,8 @@
             <div style="display:flex;gap:6px;margin-top:6px;">
               <input type="file" id="hbs-file-input" accept=".hbs,.hbys,.json" class="hidden" />
               <button type="button" id="btn-create-upload-hbs" class="btn" style="flex:1;">📂 .hbs/.hbys Yükle</button>
-              <button type="button" id="btn-create-download-hbs" class="btn" style="flex:1;">📥 Harita İndir (.hbs)</button>
+              <button type="button" id="btn-create-download-hbs" class="btn" style="flex:1;">📥 Harita İndir
+                (.hbs)</button>
             </div>
           </label>
 
@@ -495,7 +501,8 @@
                 <option value="240">240 FPS</option>
                 <option value="500">500 FPS</option>
               </select>
-              <input type="number" id="create-roommaxfps-custom" min="0" max="1000" step="1" placeholder="Elle (0=∞)" style="width:92px;" title="Elle FPS gir (0 = Sınırsız)" />
+              <input type="number" id="create-roommaxfps-custom" min="0" max="1000" step="1" placeholder="Elle (0=∞)"
+                style="width:92px;" title="Elle FPS gir (0 = Sınırsız)" />
             </div>
           </label>
           <label class="field">
@@ -572,8 +579,10 @@
           <option value="hbs_huge">HBS: Huge</option>
           <option value="custom_hbs">Özel .hbs Haritası</option>
         </select>
-        <button type="button" id="btn-room-upload-hbs" class="btn" title=".hbs / .hbys Harita Yükle">📂 .hbs Yükle</button>
-        <button type="button" id="btn-room-download-hbs" class="btn" title="Mevcut Haritayı .hbs Olarak İndir">📥 .hbs İndir</button>
+        <button type="button" id="btn-room-upload-hbs" class="btn" title=".hbs / .hbys Harita Yükle">📂 .hbs
+          Yükle</button>
+        <button type="button" id="btn-room-download-hbs" class="btn" title="Mevcut Haritayı .hbs Olarak İndir">📥 .hbs
+          İndir</button>
         <select id="room-physics" title="Oda Fizik Profili">
           <option value="openhax">Fizik: OpenHax</option>
           <option value="classic_hax">Fizik: Klasik</option>
@@ -601,7 +610,8 @@
           <option value="60">Oda FPS: 60</option>
           <option value="30">Oda FPS: 30</option>
         </select>
-        <input type="number" id="room-fps-custom" min="0" max="1000" step="1" placeholder="FPS" style="width:60px;padding:3px 6px;" title="Elle Oda FPS Limiti (0 = Sınırsız)" />
+        <input type="number" id="room-fps-custom" min="0" max="1000" step="1" placeholder="FPS"
+          style="width:60px;padding:3px 6px;" title="Elle Oda FPS Limiti (0 = Sınırsız)" />
       </div>
       <div id="roster-strip" class="roster-strip"></div>
     </section>
@@ -687,7 +697,8 @@
                 <option value="60">60 FPS</option>
                 <option value="30">30 FPS (Güç Tasarrufu)</option>
               </select>
-              <input type="number" id="set-fps-custom" min="0" max="1000" step="1" placeholder="Elle" class="hax-txt-in" style="width:68px;" title="Elle FPS gir (0 = Sınırsız)" />
+              <input type="number" id="set-fps-custom" min="0" max="1000" step="1" placeholder="Elle" class="hax-txt-in"
+                style="width:68px;" title="Elle FPS gir (0 = Sınırsız)" />
             </div>
           </div>
           <div class="hax-opt-row">
@@ -750,8 +761,10 @@
             </select>
           </div>
           <label class="hax-check-row"><input type="checkbox" id="set-balltrail" /><span>Top İz Efekti</span></label>
-          <label class="hax-check-row"><input type="checkbox" id="set-goalnets" /><span>Kale Ağları &amp; Saha Detayları</span></label>
-          <label class="hax-check-row"><input type="checkbox" id="set-perfboost" /><span>Performans Modu (Hafif Çizim / Yüksek FPS)</span></label>
+          <label class="hax-check-row"><input type="checkbox" id="set-goalnets" /><span>Kale Ağları &amp; Saha
+              Detayları</span></label>
+          <label class="hax-check-row"><input type="checkbox" id="set-perfboost" /><span>Performans Modu (Hafif Çizim /
+              Yüksek FPS)</span></label>
           <label class="hax-check-row"><input type="checkbox" id="set-aa" /><span>Kenar Yumuşatma</span></label>
           <label class="hax-check-row"><input type="checkbox" id="set-shadows" /><span>Yumuşak Gölgeler</span></label>
           <label class="hax-check-row"><input type="checkbox" id="set-particles" /><span>Gol Parçacıkları</span></label>
@@ -899,7 +912,8 @@
                 <option value="240">240 FPS</option>
                 <option value="500">500 FPS</option>
               </select>
-              <input type="number" id="set-roommaxfps-custom" min="0" max="1000" step="1" placeholder="Elle" class="hax-txt-in" style="width:68px;" title="Elle Oda FPS gir (0 = Sınırsız)" />
+              <input type="number" id="set-roommaxfps-custom" min="0" max="1000" step="1" placeholder="Elle"
+                class="hax-txt-in" style="width:68px;" title="Elle Oda FPS gir (0 = Sınırsız)" />
             </div>
           </label>
           <label class="row">
