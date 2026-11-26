@@ -1414,7 +1414,10 @@ class OpenHaxApp {
     });
     bindCheck('set-perfboost', (v) => this.updateSettings({ perfBoost: v }));
     bindCheck('set-goalnets', (v) => this.updateSettings({ showGoalNets: v }));
-    bindSelect('set-goalnetstyle', (v) => this.updateSettings({ goalNetStyle: v as GameSettings['goalNetStyle'] }));
+    bindSelect('set-goalnetstyle', (v) => {
+      this.updateSettings({ goalNetStyle: v as GameSettings['goalNetStyle'], showGoalNets: true });
+      el<HTMLInputElement>('set-goalnets').checked = true;
+    });
     bindCheck('set-crowd', (v) => this.updateSettings({ crowdEnabled: v }));
     bindSelect('set-ballstyle', (v) => this.updateSettings({ ballStyle: v as GameSettings['ballStyle'] }));
     bindCheck('set-balltrail', (v) => this.updateSettings({ ballTrail: v }));
