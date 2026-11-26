@@ -7,5 +7,8 @@ export default defineConfig({
     assetsDir: 'assets',
     sourcemap: false,
     minify: 'esbuild'
+  },
+  esbuild: {
+    drop: ['console', 'debugger']
   }
 });

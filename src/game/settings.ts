@@ -116,7 +116,7 @@ export function detectDefaultLang(): Lang {
   return 'tr';
 }
 
-export const DEFAULT_SETTINGS: GameSettings = {
+export const DEFAULT_SETTINGS: GameSettings = Object.freeze({
   fpsLimit: 60,
   grassDetail: 'hd_stadium',
   ballStyle: 'soccer',
@@ -164,7 +164,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   goalGifUrl: '',
   concedeGifUrl: '',
   chantGifUrl: ''
-};
+});
 
 export const PERFORMANCE_PRESETS: Record<string, Partial<GameSettings>> = {
   balanced: {
