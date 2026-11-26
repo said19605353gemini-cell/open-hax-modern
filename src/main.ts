@@ -375,6 +375,34 @@ class OpenHaxApp {
     window.setInterval(() => {
       if (this.activeScreen === 'room') this.saveMatchSnapshot();
     }, 1000);
+
+    // Anti-Cheat: Speedhack / clock-tamper detector (compares performance.now vs Date.now)
+    let acLastPerf = performance.now();
+    let acLastWall = Date.now();
+    let acStrikes = 0;
+    window.setInterval(() => {
+      const nowPerf = performance.now();
+      const nowWall = Date.now();
+      const dPerf = nowPerf - acLastPerf;
+      const dWall = nowWall - acLastWall;
+      acLastPerf = nowPerf;
+      acLastWall = nowWall;
+      if (dWall >= 3000 && dWall <= 12000) {
+        const ratio = dPerf / dWall;
+        if (ratio > 1.35 || ratio < 0.65) {
+          acStrikes++;
+          if (acStrikes >= 2 && this.activeScreen === 'room') {
+            this.paused = true;
+            acStrikes = 0;
+            if (this.peerMgr.getRole() === 'guest') {
+              this.btnLeaveRoom.click();
+            }
+          }
+        } else {
+          acStrikes = 0;
+        }
+      }
+    }, 4000);
     window.addEventListener('beforeunload', () => {
       if (this.activeScreen === 'room') this.saveMatchSnapshot();
     });
