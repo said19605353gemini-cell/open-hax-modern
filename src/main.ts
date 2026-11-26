@@ -1006,6 +1006,27 @@ class OpenHaxApp {
       this.ctxMenu.classList.add('hidden');
     });
 
+    const isLocalDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    if (!isLocalDev) {
+      window.addEventListener('keydown', (e) => {
+        const key = e.key.toUpperCase();
+        if (
+          e.key === 'F12' ||
+          ((e.ctrlKey || e.metaKey) && e.shiftKey && (key === 'I' || key === 'J' || key === 'C')) ||
+          ((e.ctrlKey || e.metaKey) && key === 'U')
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }, true);
+      document.addEventListener('contextmenu', (e) => {
+        const tag = (e.target as HTMLElement | null)?.tagName;
+        if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
+          e.preventDefault();
+        }
+      });
+    }
+
     this.btnDebug.addEventListener('click', () => {
       this.debugModal.classList.toggle('hidden');
       if (!this.debugModal.classList.contains('hidden')) {
