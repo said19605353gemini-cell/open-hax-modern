@@ -624,19 +624,6 @@ class OpenHaxApp {
       } else if (this.activeScreen === 'room') {
         if (e.code === 'KeyP' && this.isMeAdmin()) this.dispatchAdminAction('toggle_pause');
         else if (e.code === 'KeyR' && this.isMeAdmin()) this.dispatchAdminAction('reset_match');
-        else if (!this.paused && !e.repeat && (e.code === 'KeyX' || e.code === 'Space')) {
-          const now = performance.now();
-          const dt = now - (this as unknown as { _lastKickAt?: number })._lastKickAt!;
-          (this as unknown as { _lastKickAt?: number })._lastKickAt = now;
-          const lastWarn = (this as unknown as { _lastKickWarn?: number })._lastKickWarn || 0;
-          if (dt > 0 && dt < 15 && now - lastWarn > 5000) {
-            (this as unknown as { _lastKickWarn?: number })._lastKickWarn = now;
-            const me = this.players.find((p) => p.id === this.myPlayerId)?.name || this.settings.nickname || 'Oyuncu';
-            const msg = `⚠️ ${me}: Çift tuş / makro şüphesi (${Math.round(dt)} ms)!`;
-            this.addChat('Sistem', msg, true);
-            this.peerMgr.broadcastChat('Sistem', msg, undefined);
-          }
-        }
       }
     });
 
