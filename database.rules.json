@@ -1,0 +1,22 @@
+{
+  "rules": {
+    "rooms": {
+      ".read": true,
+      "$code": {
+        ".write": true,
+        ".validate": "newData.hasChildren(['code', 'name', 'hostName', 'players', 'maxPlayers', 'updatedAt']) && newData.child('name').isString() && newData.child('name').val().length <= 60 && newData.child('players').isNumber() && newData.child('players').val() >= 0 && newData.child('players').val() <= 30 && newData.child('maxPlayers').isNumber() && newData.child('maxPlayers').val() >= 2 && newData.child('maxPlayers').val() <= 30"
+      }
+    },
+    "profiles": {
+      ".read": true,
+      "$key": {
+        ".write": true,
+        ".validate": "newData.hasChildren(['username', 'key']) && newData.child('username').isString() && newData.child('username').val().length <= 32 && (!newData.child('goals').exists() || (newData.child('goals').isNumber() && newData.child('goals').val() >= 0)) && (!newData.child('wins').exists() || (newData.child('wins').isNumber() && newData.child('wins').val() >= 0)) && (!newData.child('matches').exists() || (newData.child('matches').isNumber() && newData.child('matches').val() >= 0))"
+      }
+    },
+    "signaling": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}
