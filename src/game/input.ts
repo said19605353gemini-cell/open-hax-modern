@@ -1,6 +1,25 @@
 import { INPUT_DOWN, INPUT_KICK, INPUT_LEFT, INPUT_RIGHT, INPUT_UP } from '../types';
 
 const PREVENT_SCROLL_CODES = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space']);
+const ALLOWED_GAME_CODES = new Set([
+  'ArrowUp',
+  'ArrowDown',
+  'ArrowLeft',
+  'ArrowRight',
+  'KeyW',
+  'KeyA',
+  'KeyS',
+  'KeyD',
+  'KeyX',
+  'Space',
+  'ShiftLeft',
+  'ShiftRight',
+  'ControlLeft',
+  'ControlRight',
+  'KeyV',
+  'KeyF',
+  'Enter'
+]);
 
 function isEditable(el: EventTarget | null): boolean {
   if (!el || !(el instanceof HTMLElement)) {
@@ -36,10 +55,13 @@ export class InputController {
   }
 
   private onKeyDown = (e: KeyboardEvent): void => {
+    // Reject synthetic/injected keyboard events from scripts or browser extensions
+    if (!e.isTrusted) return;
     if (isEditable(document.activeElement) || isEditable(e.target)) {
       this.keys.clear();
       return;
     }
+    if (!ALLOWED_GAME_CODES.has(e.code)) return;
     if (PREVENT_SCROLL_CODES.has(e.code)) {
       e.preventDefault();
     }
@@ -47,6 +69,8 @@ export class InputController {
   };
 
   private onKeyUp = (e: KeyboardEvent): void => {
+    if (!e.isTrusted) return;
+    if (!ALLOWED_GAME_CODES.has(e.code)) return;
     this.keys.delete(e.code);
   };
 

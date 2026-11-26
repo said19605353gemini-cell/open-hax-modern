@@ -2824,7 +2824,7 @@ class OpenHaxApp {
 
   private handlePeerInput(peerId: string, bits: number): void {
     const p = this.players.find((pl) => pl.id === peerId);
-    if (p) p.inputBits = bits;
+    if (p) p.inputBits = (Number(bits) || 0) & 31;
   }
 
   private handlePeerTeam(peerId: string, team: Team, bypassLock = false): void {
