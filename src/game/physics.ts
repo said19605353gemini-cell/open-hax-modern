@@ -472,6 +472,7 @@ interface FeelParams {
   moveAccelMul: number;
   brakeMul: number;
   noKickSlowdown: boolean;
+  directArrow?: boolean;
   movingDampingOverride?: number;
   stopDampingOverride?: number;
 }
@@ -481,6 +482,16 @@ function getFeelParams(
   cfg?: { startAccelMul?: number; stopFriction?: number; surfaceFriction?: number }
 ): FeelParams {
   switch (mode) {
+    case 'direct_arrow':
+      return {
+        startBoostMul: 1.0,
+        moveAccelMul: 1.0,
+        brakeMul: 1.0,
+        noKickSlowdown: true,
+        directArrow: true,
+        movingDampingOverride: 1.0,
+        stopDampingOverride: 0.45
+      };
     case 'snappy':
       return {
         startBoostMul: 2.2,
@@ -651,18 +662,24 @@ export function stepPhysicsTick(
       dx *= invLen;
       dy *= invLen;
 
-      const dot = dx * p.vx + dy * p.vy;
-      const accelPhaseMul =
-        dot < -0.35
-          ? feel.brakeMul
-          : dot < cfg.maxPlayerSpeed * 0.45
-            ? feel.startBoostMul
-            : 1.0;
       const spdMul = p.powerup === 'speed' ? 1.55 : 1.0;
-      const baseAccel = p.kickArmed && !feel.noKickSlowdown ? cfg.kickAccel : cfg.accel;
-      const accel = baseAccel * feel.moveAccelMul * botSpeedScale * accelPhaseMul * dtScale * spdMul;
-      p.vx += dx * accel;
-      p.vy += dy * accel;
+      if (feel.directArrow) {
+        const targetSpd = cfg.maxPlayerSpeed * botSpeedScale * spdMul;
+        p.vx = dx * targetSpd;
+        p.vy = dy * targetSpd;
+      } else {
+        const dot = dx * p.vx + dy * p.vy;
+        const accelPhaseMul =
+          dot < -0.35
+            ? feel.brakeMul
+            : dot < cfg.maxPlayerSpeed * 0.45
+              ? feel.startBoostMul
+              : 1.0;
+        const baseAccel = p.kickArmed && !feel.noKickSlowdown ? cfg.kickAccel : cfg.accel;
+        const accel = baseAccel * feel.moveAccelMul * botSpeedScale * accelPhaseMul * dtScale * spdMul;
+        p.vx += dx * accel;
+        p.vy += dy * accel;
+      }
     }
 
     if (p.powerup === 'magnet') {

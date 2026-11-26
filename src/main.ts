@@ -209,6 +209,7 @@ class OpenHaxApp {
   private roomBotDiff = el<HTMLSelectElement>('room-botdiff');
   private roomStadium = el<HTMLSelectElement>('room-stadium');
   private roomPhysics = el<HTMLSelectElement>('room-physics');
+  private roomPhysicsFeel = el<HTMLSelectElement>('room-physics-feel');
   private rosterStrip = el<HTMLDivElement>('roster-strip');
   private fpsHudEl = el<HTMLDivElement>('fps-hud');
   private goalBannerEl = el<HTMLDivElement>('goal-banner');
@@ -1217,6 +1218,13 @@ class OpenHaxApp {
       el<HTMLSelectElement>('set-physics').value = pf;
     });
 
+    this.roomPhysicsFeel.addEventListener('change', () => {
+      if (!this.isMeAdmin()) return;
+      const mode = this.roomPhysicsFeel.value as PhysicsFeelMode;
+      this.updateSettings({ physicsFeel: mode });
+      el<HTMLSelectElement>('set-physics-feel').value = mode;
+    });
+
     el<HTMLButtonElement>('btn-chat-send').addEventListener('click', () => this.sendChat());
     this.chatInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
@@ -1915,6 +1923,7 @@ class OpenHaxApp {
     this.roomBotDiff.value = botDiff;
     this.roomStadium.value = stadiumId;
     this.roomPhysics.value = physProfile;
+    this.roomPhysicsFeel.value = physFeel;
     el<HTMLSelectElement>('room-fps-select').value = String(roomMaxFps);
     el<HTMLInputElement>('room-fps-custom').value = String(roomMaxFps);
 
@@ -2554,6 +2563,7 @@ class OpenHaxApp {
     el<HTMLInputElement>('set-wallb').value = String(s.wallBounce);
     el<HTMLSpanElement>('lbl-wallb').textContent = Number(s.wallBounce).toFixed(2);
     el<HTMLSelectElement>('set-physics-feel').value = s.physicsFeel || 'snappy';
+    this.roomPhysicsFeel.value = s.physicsFeel || 'snappy';
     el<HTMLInputElement>('set-startaccel').value = String(s.startAccelMul ?? 1.4);
     el<HTMLSpanElement>('lbl-startaccel').textContent = Number(s.startAccelMul ?? 1.4).toFixed(1) + 'x';
     el<HTMLInputElement>('set-stopfriction').value = String(s.stopFriction ?? 0.82);
