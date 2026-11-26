@@ -140,6 +140,7 @@ export const DEFAULT_SETTINGS: GameSettings = Object.freeze({
   youtubePrivacy: 'unlisted',
   perfBoost: false,
   showGoalNets: true,
+  goalNetStyle: 'classic',
   crowdEnabled: true,
   stadium: 'classic',
   physicsProfile: 'openhax',

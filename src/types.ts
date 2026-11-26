@@ -7,6 +7,7 @@ export type PhysicsProfile = 'openhax' | 'classic_hax' | 'classic_hax_v2' | 'pro
 export type PhysicsFeelMode = 'standard' | 'snappy' | 'instant_stop' | 'direct_arrow' | 'drift_ice' | 'smooth_glide' | 'custom';
 export type GrassDetail = 'standard' | 'hd_stadium' | 'night_neon' | 'arena_pro' | 'retro_arcade' | 'flat';
 export type BallStyle = 'classic' | 'soccer' | 'champions' | 'fire' | 'neon' | 'gold' | 'beach' | 'tennis';
+export type GoalNetStyle = 'classic' | 'diamond' | 'team' | 'neon' | 'gold';
 export type PowerupMode = 'none' | 'hawk' | 'fire' | 'speed' | 'magnet' | 'giant' | 'all';
 export type PowerupType = 'hawk' | 'fire' | 'speed' | 'magnet' | 'giant';
 
@@ -46,6 +47,7 @@ export interface GameSettings {
   youtubePrivacy?: 'public' | 'unlisted' | 'private';
   perfBoost?: boolean;
   showGoalNets?: boolean;
+  goalNetStyle?: GoalNetStyle;
   crowdEnabled?: boolean;
   stadium: StadiumId;
   physicsProfile: PhysicsProfile;

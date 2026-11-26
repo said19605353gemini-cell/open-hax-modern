@@ -147,26 +147,49 @@ export class CanvasRenderer {
       ctx.stroke();
 
       if (settings.showGoalNets !== false) {
-        // Goal net crosshatch mesh (horizontal + vertical)
+        // Goal net crosshatch mesh (style-aware)
         ctx.save();
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.24)';
-        ctx.lineWidth = 1;
-        for (let y = cy - goalHalfHeight + 8; y < cy + goalHalfHeight; y += 10) {
-          ctx.beginPath();
-          ctx.moveTo(pitchX - goalDepth, y);
-          ctx.lineTo(pitchX, y);
-          ctx.moveTo(pitchX + pitchWidth, y);
-          ctx.lineTo(pitchX + pitchWidth + goalDepth, y);
-          ctx.stroke();
-        }
-        for (let x = 8; x < goalDepth; x += 10) {
-          ctx.beginPath();
-          ctx.moveTo(pitchX - x, cy - goalHalfHeight);
-          ctx.lineTo(pitchX - x, cy + goalHalfHeight);
-          ctx.moveTo(pitchX + pitchWidth + x, cy - goalHalfHeight);
-          ctx.lineTo(pitchX + pitchWidth + x, cy + goalHalfHeight);
-          ctx.stroke();
-        }
+        const netStyle = settings.goalNetStyle || 'classic';
+        const leftColor =
+          netStyle === 'team' ? 'rgba(239, 68, 68, 0.36)' :
+          netStyle === 'neon' ? 'rgba(34, 211, 238, 0.42)' :
+          netStyle === 'gold' ? 'rgba(250, 204, 21, 0.38)' :
+          'rgba(255, 255, 255, 0.24)';
+        const rightColor =
+          netStyle === 'team' ? 'rgba(59, 130, 246, 0.36)' :
+          netStyle === 'neon' ? 'rgba(232, 121, 249, 0.42)' :
+          netStyle === 'gold' ? 'rgba(250, 204, 21, 0.38)' :
+          'rgba(255, 255, 255, 0.24)';
+        ctx.lineWidth = netStyle === 'neon' ? 1.4 : 1;
+
+        const drawNetSide = (x0: number, x1: number, color: string) => {
+          ctx.strokeStyle = color;
+          if (netStyle === 'diamond') {
+            for (let y = cy - goalHalfHeight; y < cy + goalHalfHeight; y += 12) {
+              ctx.beginPath();
+              ctx.moveTo(x0, y);
+              ctx.lineTo(x1, Math.min(cy + goalHalfHeight, y + 12));
+              ctx.moveTo(x1, y);
+              ctx.lineTo(x0, Math.min(cy + goalHalfHeight, y + 12));
+              ctx.stroke();
+            }
+          } else {
+            for (let y = cy - goalHalfHeight + 8; y < cy + goalHalfHeight; y += 10) {
+              ctx.beginPath();
+              ctx.moveTo(x0, y);
+              ctx.lineTo(x1, y);
+              ctx.stroke();
+            }
+            for (let x = x0 + 8; x < x1; x += 10) {
+              ctx.beginPath();
+              ctx.moveTo(x, cy - goalHalfHeight);
+              ctx.lineTo(x, cy + goalHalfHeight);
+              ctx.stroke();
+            }
+          }
+        };
+        drawNetSide(pitchX - goalDepth, pitchX, leftColor);
+        drawNetSide(pitchX + pitchWidth, pitchX + pitchWidth + goalDepth, rightColor);
         ctx.restore();
       }
 
