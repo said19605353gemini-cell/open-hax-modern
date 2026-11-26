@@ -294,14 +294,18 @@ export function computeBotInput(
     desiredY = predY + dirY * approachDist;
 
     const wrongSide = isBlue ? bot.x < predX + 2 : bot.x > predX - 2;
-    if (wrongSide && Math.abs(bot.y - predY) < 36) {
+    if (wrongSide && Math.abs(bot.y - predY) < 34) {
       let side = avoidMemory.get(bot.id) ?? 1;
-      if (Math.abs(bot.y - predY) > 6) {
+      if (predY - minY < 56) {
+        side = 1;
+      } else if (maxY - predY < 56) {
+        side = -1;
+      } else if (Math.abs(bot.y - predY) > 6) {
         side = bot.y < predY ? -1 : 1;
-        avoidMemory.set(bot.id, side);
       }
-      desiredX = predX + (isBlue ? 48 : -48);
-      desiredY = predY + side * 50;
+      avoidMemory.set(bot.id, side);
+      desiredX = predX + (isBlue ? 30 : -30);
+      desiredY = Math.max(minY + 12, Math.min(maxY - 12, predY + side * 34));
     }
   }
 
@@ -310,8 +314,8 @@ export function computeBotInput(
     const mdx = desiredX - mate.x;
     const mdy = desiredY - mate.y;
     const mDist = Math.hypot(mdx, mdy);
-    if (mDist > 0.1 && mDist < 54) {
-      const push = (54 - mDist) * 0.7;
+    if (mDist > 0.1 && mDist < 48) {
+      const push = (48 - mDist) * 0.65;
       desiredX += (mdx / mDist) * push;
       desiredY += (mdy / mDist) * push;
     }
@@ -324,17 +328,18 @@ export function computeBotInput(
   desiredX = Math.max(minX, Math.min(maxX, desiredX));
   desiredY = Math.max(minY, Math.min(maxY, desiredY));
 
-  const dx = desiredX - bot.x;
-  const dy = desiredY - bot.y;
+  // Velocity-compensated PD steering so bots move in smooth diagonals without overshooting
+  const dx = desiredX - (bot.x + bot.vx * 2.4);
+  const dy = desiredY - (bot.y + bot.vy * 2.4);
   const dist = Math.hypot(dx, dy);
 
   let bits = 0;
-  if (dist > 3.5) {
-    const threshold = Math.max(2.5, dist * 0.22);
-    if (dx < -threshold) bits |= INPUT_LEFT;
-    else if (dx > threshold) bits |= INPUT_RIGHT;
-    if (dy < -threshold) bits |= INPUT_UP;
-    else if (dy > threshold) bits |= INPUT_DOWN;
+  if (dist > 2.8) {
+    const thresh = Math.max(1.8, dist * 0.16);
+    if (dx < -thresh) bits |= INPUT_LEFT;
+    else if (dx > thresh) bits |= INPUT_RIGHT;
+    if (dy < -thresh) bits |= INPUT_UP;
+    else if (dy > thresh) bits |= INPUT_DOWN;
   }
 
   const ballDx = ball.x - bot.x;
@@ -347,7 +352,16 @@ export function computeBotInput(
   const toTargetDist = Math.hypot(toTargetX, toTargetY) || 1;
   const alignment = shotDirX * (toTargetX / toTargetDist) + shotDirY * (toTargetY / toTargetDist);
   const aimedForward = isBlue ? ballDx < -2 : ballDx > 2;
-  const clearAction = alignment > (passingToMate ? 0.62 : difficulty === 'pro' ? 0.55 : 0.35);
+
+  let nearestOppDist = 999;
+  for (const opp of opponents) {
+    const od = Math.hypot(opp.x - ball.x, opp.y - ball.y);
+    if (od < nearestOppDist) nearestOppDist = od;
+  }
+  const inShootingRange = distToOppGoal < stadium.pitchWidth * 0.5;
+  const shouldShootOrPass = inShootingRange || passingToMate || nearestOppDist < 68 || emergencyDefend;
+  const clearAction =
+    shouldShootOrPass && alignment > (passingToMate ? 0.6 : difficulty === 'pro' ? 0.52 : 0.35);
   const safeFromOwnGoal = !wouldScoreOwnGoal(
     shotDirX,
     shotDirY,

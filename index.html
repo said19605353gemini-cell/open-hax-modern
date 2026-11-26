@@ -383,7 +383,13 @@
               <option value="hbs_big">HBS: Big (1100x540)</option>
               <option value="hbs_big_easy">HBS: Big Easy (1100x540)</option>
               <option value="hbs_huge">HBS: Huge (1400x700)</option>
+              <option value="custom_hbs">Özel .hbs Haritası</option>
             </select>
+            <div style="display:flex;gap:6px;margin-top:6px;">
+              <input type="file" id="hbs-file-input" accept=".hbs,.hbys,.json" class="hidden" />
+              <button type="button" id="btn-create-upload-hbs" class="btn" style="flex:1;">📂 .hbs/.hbys Yükle</button>
+              <button type="button" id="btn-create-download-hbs" class="btn" style="flex:1;">📥 Harita İndir (.hbs)</button>
+            </div>
           </label>
 
           <label class="field">
@@ -564,7 +570,10 @@
           <option value="hbs_big">HBS: Big</option>
           <option value="hbs_big_easy">HBS: Big Easy</option>
           <option value="hbs_huge">HBS: Huge</option>
+          <option value="custom_hbs">Özel .hbs Haritası</option>
         </select>
+        <button type="button" id="btn-room-upload-hbs" class="btn" title=".hbs / .hbys Harita Yükle">📂 .hbs Yükle</button>
+        <button type="button" id="btn-room-download-hbs" class="btn" title="Mevcut Haritayı .hbs Olarak İndir">📥 .hbs İndir</button>
         <select id="room-physics" title="Oda Fizik Profili">
           <option value="openhax">Fizik: OpenHax</option>
           <option value="classic_hax">Fizik: Klasik</option>

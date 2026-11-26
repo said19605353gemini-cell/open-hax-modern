@@ -87,8 +87,187 @@ export const STADIUMS: Record<StadiumId, StadiumConfig> = {
   hbs_rounded: buildStadium('hbs_rounded', 'HBS: Rounded (740x400)', 800, 460, 30, 30, 64, 22, 70),
   hbs_big: buildStadium('hbs_big', 'HBS: Big (1100x540)', 1180, 600, 40, 30, 80, 26, 88),
   hbs_big_easy: buildStadium('hbs_big_easy', 'HBS: Big Easy (1100x540)', 1180, 600, 40, 30, 95, 26, 88),
-  hbs_huge: buildStadium('hbs_huge', 'HBS: Huge (1400x700)', 1480, 760, 40, 30, 100, 28, 105)
+  hbs_huge: buildStadium('hbs_huge', 'HBS: Huge (1400x700)', 1480, 760, 40, 30, 100, 28, 105),
+  custom_hbs: buildStadium('custom_hbs', 'Özel .hbs Haritası', 860, 460, 30, 30, 70, 22, 75)
 };
+
+export function setCustomHbsStadium(cfg: StadiumConfig): void {
+  STADIUMS.custom_hbs = { ...cfg, id: 'custom_hbs' };
+}
+
+function mapHbsMask(cMask?: string[]): StadiumSegment['mask'] {
+  if (!cMask || cMask.length === 0) return 'both';
+  const hasBall = cMask.includes('ball') || cMask.includes('all');
+  const hasPlayer =
+    cMask.includes('red') ||
+    cMask.includes('blue') ||
+    cMask.includes('player') ||
+    cMask.includes('all');
+  if (hasBall && hasPlayer) return 'both';
+  if (hasBall) return 'ball';
+  if (hasPlayer) return 'player';
+  return 'none';
+}
+
+function normalizeHbsColor(col?: string, fallback = '#ffffff'): string {
+  if (!col || typeof col !== 'string') return fallback;
+  const c = col.trim();
+  if (c.startsWith('#')) return c;
+  if (/^[0-9a-fA-F]{6}$/.test(c)) return '#' + c;
+  return fallback;
+}
+
+/** Parses standard HaxBall .hbs / .hbys JSON into an OpenHax StadiumConfig. */
+export function parseHbsToStadium(jsonText: string, fileName?: string): StadiumConfig {
+  const raw = JSON.parse(jsonText) as {
+    name?: string;
+    width?: number;
+    height?: number;
+    bg?: { width?: number; height?: number; kickOffRadius?: number };
+    vertexes?: Array<{ x: number; y: number }>;
+    segments?: Array<{
+      v0: number;
+      v1: number;
+      bCoef?: number;
+      cMask?: string[];
+      color?: string;
+      vis?: boolean;
+    }>;
+    goals?: Array<{ p0: [number, number]; p1: [number, number]; team?: string }>;
+    discs?: Array<{ pos: [number, number]; radius?: number; bCoef?: number; color?: string }>;
+  };
+
+  const bgW = Number(raw.bg?.width) || Number(raw.width) * 1.85 || 740;
+  const bgH = Number(raw.bg?.height) || Number(raw.height) * 1.85 || 400;
+  const pitchWidth = Math.max(420, Math.min(1800, Math.round(bgW * 2 > 1800 ? bgW : bgW)));
+  const pitchHeight = Math.max(260, Math.min(1000, Math.round(bgH * 2 > 1000 ? bgH : bgH)));
+  const marginX = 40;
+  const marginY = 34;
+  const canvasWidth = pitchWidth + marginX * 2;
+  const canvasHeight = pitchHeight + marginY * 2;
+  const cx = marginX + pitchWidth / 2;
+  const cy = marginY + pitchHeight / 2;
+
+  let goalHalfHeight = 64;
+  if (Array.isArray(raw.goals) && raw.goals.length > 0) {
+    const g = raw.goals[0];
+    if (Array.isArray(g.p0) && Array.isArray(g.p1)) {
+      const span = Math.abs(Number(g.p1[1]) - Number(g.p0[1]));
+      if (span > 20) goalHalfHeight = Math.round(span / 2);
+    }
+  }
+
+  const base = buildStadium(
+    'custom_hbs',
+    (raw.name || fileName?.replace(/\.(hbs|hbys|json)$/i, '') || 'Özel .hbs Haritası').slice(0, 36),
+    canvasWidth,
+    canvasHeight,
+    marginX,
+    marginY,
+    goalHalfHeight,
+    24,
+    Number(raw.bg?.kickOffRadius) || 70
+  );
+
+  const verts = Array.isArray(raw.vertexes) ? raw.vertexes : [];
+  const parsedSegs: StadiumSegment[] = [];
+  if (Array.isArray(raw.segments)) {
+    for (const s of raw.segments) {
+      const v0 = verts[s.v0];
+      const v1 = verts[s.v1];
+      if (!v0 || !v1) continue;
+      parsedSegs.push({
+        x1: cx + Number(v0.x || 0),
+        y1: cy + Number(v0.y || 0),
+        x2: cx + Number(v1.x || 0),
+        y2: cy + Number(v1.y || 0),
+        bCoef: typeof s.bCoef === 'number' ? s.bCoef : 0.75,
+        mask: mapHbsMask(s.cMask),
+        color: normalizeHbsColor(s.color, '#ffffff'),
+        width: 2.5,
+        alpha: s.vis === false ? 0 : 0.95
+      });
+    }
+  }
+
+  const parsedPosts = Array.isArray(raw.discs) && raw.discs.length > 0
+    ? raw.discs
+        .filter((d) => Array.isArray(d.pos))
+        .map((d) => ({
+          x: cx + Number(d.pos[0] || 0),
+          y: cy + Number(d.pos[1] || 0),
+          radius: Math.max(4, Number(d.radius) || 8),
+          bCoef: typeof d.bCoef === 'number' ? d.bCoef : 0.7,
+          color: normalizeHbsColor(d.color, '#ffffff')
+        }))
+    : base.posts;
+
+  return {
+    ...base,
+    segments: parsedSegs.length > 0 ? [...base.segments, ...parsedSegs] : base.segments,
+    posts: parsedPosts
+  };
+}
+
+/** Exports an OpenHax StadiumConfig as a downloadable HaxBall .hbs JSON string. */
+export function stadiumToHbsJson(stadium: StadiumConfig): string {
+  const cx = stadium.pitchX + stadium.pitchWidth / 2;
+  const cy = stadium.pitchY + stadium.pitchHeight / 2;
+  const hw = stadium.pitchWidth / 2;
+  const hh = stadium.pitchHeight / 2;
+  const ghh = stadium.goalHalfHeight;
+
+  const vertexes = [
+    { x: -hw, y: -hh },
+    { x: hw, y: -hh },
+    { x: hw, y: -ghh },
+    { x: hw, y: ghh },
+    { x: hw, y: hh },
+    { x: -hw, y: hh },
+    { x: -hw, y: ghh },
+    { x: -hw, y: -ghh }
+  ];
+
+  const segments = [
+    { v0: 0, v1: 1, bCoef: 0.8, cMask: ['ball'], color: 'FFFFFF' },
+    { v0: 4, v1: 5, bCoef: 0.8, cMask: ['ball'], color: 'FFFFFF' },
+    { v0: 0, v1: 7, bCoef: 0.8, cMask: ['ball'], color: 'FFFFFF' },
+    { v0: 6, v1: 5, bCoef: 0.8, cMask: ['ball'], color: 'FFFFFF' },
+    { v0: 1, v1: 2, bCoef: 0.8, cMask: ['ball'], color: 'FFFFFF' },
+    { v0: 3, v1: 4, bCoef: 0.8, cMask: ['ball'], color: 'FFFFFF' }
+  ];
+
+  const discs = stadium.posts.map((p) => ({
+    pos: [Math.round(p.x - cx), Math.round(p.y - cy)],
+    radius: p.radius,
+    bCoef: p.bCoef,
+    invMass: 0,
+    color: p.color.replace('#', '')
+  }));
+
+  const hbs = {
+    name: stadium.label,
+    width: Math.round(hw + 40),
+    height: Math.round(hh + 34),
+    spawnDistance: Math.round(hw * 0.55),
+    bg: {
+      type: 'grass',
+      width: Math.round(hw),
+      height: Math.round(hh),
+      kickOffRadius: stadium.centerCircleRadius,
+      cornerRadius: 0
+    },
+    vertexes,
+    segments,
+    goals: [
+      { p0: [-hw, -ghh], p1: [-hw, ghh], team: 'red' },
+      { p0: [hw, -ghh], p1: [hw, ghh], team: 'blue' }
+    ],
+    discs
+  };
+
+  return JSON.stringify(hbs, null, 2);
+}
 
 export function getStadium(id: StadiumId): StadiumConfig {
   return STADIUMS[id] || STADIUMS.classic;

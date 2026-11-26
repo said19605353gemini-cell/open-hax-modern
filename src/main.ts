@@ -28,7 +28,7 @@ import {
   saveSettings
 } from './game/settings';
 import { censorText } from './game/profanity';
-import { getStadium, STADIUMS } from './game/stadiums';
+import { getStadium, parseHbsToStadium, setCustomHbsStadium, STADIUMS, stadiumToHbsJson } from './game/stadiums';
 import { resetPositionsForKickoff, stepPhysicsTick } from './game/physics';
 import { InputController } from './game/input';
 import { CanvasRenderer } from './game/renderer';
@@ -1084,6 +1084,64 @@ class OpenHaxApp {
       } else {
         this.createAndEnterRoom();
       }
+    });
+
+    // .hbs / .hbys custom map upload & download
+    const hbsInput = el<HTMLInputElement>('hbs-file-input');
+    const triggerHbsUpload = () => {
+      hbsInput.value = '';
+      hbsInput.click();
+    };
+    const downloadHbsMap = (stId: StadiumId) => {
+      const st = this.activeScreen === 'room' ? this.stadium : getStadium(stId);
+      const json = stadiumToHbsJson(st);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const safeName = (st.label || st.id).replace(/[^a-zA-Z0-9_-]+/g, '_').toLowerCase();
+      a.download = `${safeName}.hbs`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    };
+
+    el<HTMLButtonElement>('btn-create-upload-hbs').addEventListener('click', triggerHbsUpload);
+    el<HTMLButtonElement>('btn-room-upload-hbs').addEventListener('click', () => {
+      if (!this.isMeAdmin()) return;
+      triggerHbsUpload();
+    });
+    el<HTMLButtonElement>('btn-create-download-hbs').addEventListener('click', () => {
+      downloadHbsMap(this.createStadium.value as StadiumId);
+    });
+    el<HTMLButtonElement>('btn-room-download-hbs').addEventListener('click', () => {
+      downloadHbsMap(this.roomStadium.value as StadiumId);
+    });
+
+    hbsInput.addEventListener('change', () => {
+      const file = hbsInput.files?.[0];
+      if (!file) return;
+      void file.text().then((txt) => {
+        try {
+          const parsed = parseHbsToStadium(txt, file.name);
+          setCustomHbsStadium(parsed);
+          const optCreate = this.createStadium.querySelector<HTMLOptionElement>('option[value="custom_hbs"]');
+          const optRoom = this.roomStadium.querySelector<HTMLOptionElement>('option[value="custom_hbs"]');
+          if (optCreate) optCreate.textContent = 'Özel: ' + parsed.label;
+          if (optRoom) optRoom.textContent = 'Özel: ' + parsed.label;
+          this.createStadium.value = 'custom_hbs';
+          this.roomStadium.value = 'custom_hbs';
+          if (this.activeScreen === 'room' && this.isMeAdmin()) {
+            this.updateSettings({ stadium: 'custom_hbs' });
+            resetPositionsForKickoff(this.players, this.ball, this.stadium);
+          } else {
+            this.lobbyError.classList.add('hidden');
+          }
+        } catch {
+          window.alert('Geçersiz .hbs / .hbys harita dosyası! Lütfen geçerli bir HaxBall stadium JSON dosyası seçin.');
+        }
+      });
     });
 
     // Screen 3: Room controls
