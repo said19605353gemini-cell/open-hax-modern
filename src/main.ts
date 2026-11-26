@@ -1080,7 +1080,7 @@ class OpenHaxApp {
       document.addEventListener('contextmenu', (e) => {
         const target = e.target as HTMLElement | null;
         const tag = target?.tagName;
-        if (tag !== 'INPUT' && tag !== 'TEXTAREA' && !target?.closest('.team-player-row, #teams-modal, #ctx-menu')) {
+        if (tag !== 'INPUT' && tag !== 'TEXTAREA' && !target?.closest('.team-player-row, #teams-modal, #player-ctx-menu')) {
           e.preventDefault();
         }
       });
