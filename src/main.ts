@@ -3115,6 +3115,10 @@ class OpenHaxApp {
           this.goalResetTicks = Math.round(3.5 * physicsHz);
           this.goalBannerTeam = this.scoreRed >= this.scoreBlue ? 'red' : 'blue';
           this.audio.play('end');
+          this.pendingNetEvents |= 8;
+          if (el<HTMLDivElement>('teams-modal').classList.contains('hidden')) {
+            el<HTMLButtonElement>('btn-room-teams').click();
+          }
           const msg =
             this.scoreRed === this.scoreBlue
               ? 'Sure doldu! Mac berabere bitti (' + this.scoreRed + '-' + this.scoreBlue + ')'
