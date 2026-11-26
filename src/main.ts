@@ -860,10 +860,11 @@ class OpenHaxApp {
       this.roomPhysics.disabled = !isAdm;
       this.roomPhysicsFeel.disabled = !isAdm;
       el<HTMLButtonElement>('btn-room-upload-hbs').classList.toggle('hidden', !isAdm);
+      const canEditPhysics = this.activeScreen === 'room' && isAdm;
       const physicsPane = document.querySelector<HTMLElement>('[data-pane="physics"]');
       if (physicsPane) {
         physicsPane.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLButtonElement>('input, select, button').forEach((ctrl) => {
-          ctrl.disabled = !isAdm;
+          ctrl.disabled = !canEditPhysics;
         });
       }
       el<HTMLSelectElement>('teams-botdiff').value = this.settings.botDifficulty;
@@ -1555,7 +1556,7 @@ class OpenHaxApp {
       el<HTMLSelectElement>('set-physics-feel').value = 'custom';
     });
     el<HTMLButtonElement>('btn-reset-physics-defaults').addEventListener('click', () => {
-      if (this.activeScreen === 'room' && !this.isMeAdmin()) return;
+      if (this.activeScreen !== 'room' || !this.isMeAdmin()) return;
       this.customTuningActive = false;
       this.updateSettings({
         physicsProfile: DEFAULT_SETTINGS.physicsProfile,
