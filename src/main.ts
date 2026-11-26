@@ -1572,8 +1572,13 @@ class OpenHaxApp {
         surfaceFriction: DEFAULT_SETTINGS.surfaceFriction
       });
       this.syncSettingsToUI();
+      el<HTMLSelectElement>('set-physics').value = DEFAULT_SETTINGS.physicsProfile;
+      el<HTMLSelectElement>('set-physics-feel').value = DEFAULT_SETTINGS.physicsFeel || 'standard';
       this.roomPhysics.value = DEFAULT_SETTINGS.physicsProfile;
       this.roomPhysicsFeel.value = DEFAULT_SETTINGS.physicsFeel || 'standard';
+      document.querySelectorAll<HTMLInputElement>('[data-pane="physics"] input[type="range"]').forEach((r) => {
+        r.dispatchEvent(new Event('input', { bubbles: true }));
+      });
       if (this.activeScreen === 'room' && this.peerMgr.getRole() === 'guest') {
         this.dispatchAdminAction('set_physics', undefined, DEFAULT_SETTINGS.physicsProfile);
         this.dispatchAdminAction('set_physics_feel', undefined, DEFAULT_SETTINGS.physicsFeel || 'standard');
