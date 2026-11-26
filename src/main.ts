@@ -1334,10 +1334,10 @@ class OpenHaxApp {
     this.chatInput.addEventListener('input', () => {
       if (!this.paused) return;
       const val = this.chatInput.value;
-      if (/(.)\1{4,}/.test(val) && Date.now() - macroWarnedAt > 4000) {
+      if (/^(.)\1+$/.test(val) && val.length >= 2 && Date.now() - macroWarnedAt > 2500) {
         macroWarnedAt = Date.now();
         const me = this.players.find((p) => p.id === this.myPlayerId)?.name || this.settings.nickname || 'Oyuncu';
-        const msg = `⚠️ ${me}: Seri tuş / makro şüphesi (${val.length} karakter)!`;
+        const msg = `⚠️ ${me}: ${val.length} kez '${val[0]}' bastı (Çift tuş / Makro şüphesi)!`;
         this.addChat('Sistem', msg, true);
         this.peerMgr.broadcastChat('Sistem', msg, undefined);
       }
