@@ -624,6 +624,21 @@ class OpenHaxApp {
       } else if (this.activeScreen === 'room') {
         if (e.code === 'KeyP' && this.isMeAdmin()) this.dispatchAdminAction('toggle_pause');
         else if (e.code === 'KeyR' && this.isMeAdmin()) this.dispatchAdminAction('reset_match');
+        else if (!this.paused && !e.repeat && (e.code === 'KeyX' || e.code === 'Space')) {
+          const now = Date.now();
+          const win = (this as unknown as { _kickSpamWin?: number[] })._kickSpamWin || [];
+          const recent = win.filter((t) => now - t < 2000);
+          recent.push(now);
+          (this as unknown as { _kickSpamWin?: number[] })._kickSpamWin = recent;
+          const lastWarn = (this as unknown as { _kickSpamWarn?: number })._kickSpamWarn || 0;
+          if (recent.length > 25 && now - lastWarn > 5000) {
+            (this as unknown as { _kickSpamWarn?: number })._kickSpamWarn = now;
+            const me = this.players.find((p) => p.id === this.myPlayerId)?.name || this.settings.nickname || 'Oyuncu';
+            const msg = `⚠️ ${me}: Şut tuşu spam / flood (${recent.length} basım / 2sn)!`;
+            this.addChat('Sistem', msg, true);
+            this.peerMgr.broadcastChat('Sistem', msg, undefined);
+          }
+        }
       }
     });
 
