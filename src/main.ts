@@ -25,7 +25,8 @@ import {
   LANG_TO_FLAG,
   loadSettings,
   PERFORMANCE_PRESETS,
-  saveSettings
+  saveSettings,
+  DEFAULT_SETTINGS
 } from './game/settings';
 import { censorText } from './game/profanity';
 import { getStadium, parseHbsToStadium, setCustomHbsStadium, STADIUMS, stadiumToHbsJson } from './game/stadiums';
@@ -1536,6 +1537,30 @@ class OpenHaxApp {
     bindRange('set-surfacefriction', 'lbl-surfacefriction', (v) => v.toFixed(3), (v) => {
       this.updateSettings({ physicsFeel: 'custom', surfaceFriction: v });
       el<HTMLSelectElement>('set-physics-feel').value = 'custom';
+    });
+    el<HTMLButtonElement>('btn-reset-physics-defaults').addEventListener('click', () => {
+      if (!this.isMeAdmin()) return;
+      this.customTuningActive = false;
+      this.updateSettings({
+        physicsProfile: DEFAULT_SETTINGS.physicsProfile,
+        physicsFeel: DEFAULT_SETTINGS.physicsFeel,
+        physicsHz: DEFAULT_SETTINGS.physicsHz,
+        roomMaxFps: DEFAULT_SETTINGS.roomMaxFps,
+        ballControl: DEFAULT_SETTINGS.ballControl,
+        ballDamping: DEFAULT_SETTINGS.ballDamping,
+        kickPower: DEFAULT_SETTINGS.kickPower,
+        playerSpeed: DEFAULT_SETTINGS.playerSpeed,
+        wallBounce: DEFAULT_SETTINGS.wallBounce,
+        startAccelMul: DEFAULT_SETTINGS.startAccelMul,
+        stopFriction: DEFAULT_SETTINGS.stopFriction,
+        surfaceFriction: DEFAULT_SETTINGS.surfaceFriction
+      });
+      this.syncSettingsToUI();
+      if (this.peerMgr.getRole() === 'guest') {
+        this.dispatchAdminAction('set_physics', undefined, DEFAULT_SETTINGS.physicsProfile);
+        this.dispatchAdminAction('set_physics_feel', undefined, DEFAULT_SETTINGS.physicsFeel || 'standard');
+        this.dispatchAdminAction('set_physicshz', undefined, DEFAULT_SETTINGS.physicsHz || 60);
+      }
     });
   }
 
