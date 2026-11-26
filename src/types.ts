@@ -6,7 +6,7 @@ export type BotDifficulty = 'very_easy' | 'easy' | 'medium' | 'hard' | 'pro';
 export type PhysicsProfile = 'openhax' | 'classic_hax' | 'classic_hax_v2' | 'pro_control' | 'pro_control_v2' | 'pro_control_v3' | 'futsal' | 'big_arena' | 'turbo' | 'turbo_v2' | 'low_gravity' | 'real_soccer' | 'real_soccer_v2' | 'ice_hockey' | 'pinball' | 'heavy_tank';
 export type PhysicsFeelMode = 'standard' | 'snappy' | 'instant_stop' | 'direct_arrow' | 'drift_ice' | 'smooth_glide' | 'custom';
 export type GrassDetail = 'standard' | 'hd_stadium' | 'night_neon' | 'arena_pro' | 'retro_arcade' | 'flat';
-export type BallStyle = 'classic' | 'soccer';
+export type BallStyle = 'classic' | 'soccer' | 'champions' | 'fire' | 'neon' | 'gold' | 'beach' | 'tennis';
 export type PowerupMode = 'none' | 'hawk' | 'fire' | 'speed' | 'magnet' | 'giant' | 'all';
 export type PowerupType = 'hawk' | 'fire' | 'speed' | 'magnet' | 'giant';
 
@@ -46,6 +46,7 @@ export interface GameSettings {
   youtubePrivacy?: 'public' | 'unlisted' | 'private';
   perfBoost?: boolean;
   showGoalNets?: boolean;
+  crowdEnabled?: boolean;
   stadium: StadiumId;
   physicsProfile: PhysicsProfile;
   physicsFeel?: PhysicsFeelMode;

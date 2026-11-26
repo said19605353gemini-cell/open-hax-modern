@@ -147,9 +147,9 @@ export class CanvasRenderer {
       ctx.stroke();
 
       if (settings.showGoalNets !== false) {
-        // Goal net crosshatch mesh
+        // Goal net crosshatch mesh (horizontal + vertical)
         ctx.save();
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.24)';
         ctx.lineWidth = 1;
         for (let y = cy - goalHalfHeight + 8; y < cy + goalHalfHeight; y += 10) {
           ctx.beginPath();
@@ -158,6 +158,41 @@ export class CanvasRenderer {
           ctx.moveTo(pitchX + pitchWidth, y);
           ctx.lineTo(pitchX + pitchWidth + goalDepth, y);
           ctx.stroke();
+        }
+        for (let x = 8; x < goalDepth; x += 10) {
+          ctx.beginPath();
+          ctx.moveTo(pitchX - x, cy - goalHalfHeight);
+          ctx.lineTo(pitchX - x, cy + goalHalfHeight);
+          ctx.moveTo(pitchX + pitchWidth + x, cy - goalHalfHeight);
+          ctx.lineTo(pitchX + pitchWidth + x, cy + goalHalfHeight);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      if (settings.crowdEnabled !== false) {
+        // Stadium stands & spectators along top and bottom sidelines
+        ctx.save();
+        const standTopY = Math.max(8, pitchY - 24);
+        const standBotY = Math.min(stadium.canvasHeight - 8, pitchY + pitchHeight + 24);
+        const fanPalette = ['#ef4444', '#3b82f6', '#f8fafc', '#facc15', '#22c55e', '#e11d48'];
+        const now = performance.now() * 0.004;
+        const step = 18;
+        for (let x = pitchX + 16, idx = 0; x <= pitchX + pitchWidth - 16; x += step, idx++) {
+          const colorTop = fanPalette[idx % fanPalette.length];
+          const colorBot = fanPalette[(idx + 3) % fanPalette.length];
+          const bobTop = Math.sin(now + idx * 0.9) * 1.4;
+          const bobBot = Math.cos(now + idx * 1.1) * 1.4;
+
+          ctx.fillStyle = colorTop;
+          ctx.beginPath();
+          ctx.arc(x, standTopY + bobTop, 4.2, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = colorBot;
+          ctx.beginPath();
+          ctx.arc(x, standBotY + bobBot, 4.2, 0, Math.PI * 2);
+          ctx.fill();
         }
         ctx.restore();
       }
@@ -433,10 +468,18 @@ export class CanvasRenderer {
       } else if (this.trailPoints.length > 0) {
         this.trailPoints.shift();
       }
+      const trailRgb =
+        settings.ballStyle === 'fire' ? '249, 115, 22' :
+        settings.ballStyle === 'neon' ? '34, 211, 238' :
+        settings.ballStyle === 'gold' ? '250, 204, 21' :
+        settings.ballStyle === 'champions' ? '96, 165, 250' :
+        settings.ballStyle === 'tennis' ? '163, 230, 53' :
+        settings.ballStyle === 'beach' ? '244, 114, 182' :
+        '255, 255, 255';
       for (let i = 0; i < this.trailPoints.length; i++) {
         const tp = this.trailPoints[i];
         const ratio = (i + 1) / (this.trailPoints.length + 1);
-        ctx.fillStyle = 'rgba(255, 255, 255, ' + (ratio * 0.28).toFixed(2) + ')';
+        ctx.fillStyle = `rgba(${trailRgb}, ${(ratio * 0.34).toFixed(2)})`;
         ctx.beginPath();
         ctx.arc(tp.x, tp.y, ball.radius * (0.45 + ratio * 0.45), 0, Math.PI * 2);
         ctx.fill();
@@ -461,7 +504,10 @@ export class CanvasRenderer {
       ctx.restore();
     }
 
-    if (settings.ballStyle === 'soccer') {
+    const spinAngle = (bx + by) * 0.08;
+    const style = settings.ballStyle;
+
+    if (style === 'soccer') {
       const bGrad = ctx.createRadialGradient(bx - 3, by - 3, 1, bx, by, ball.radius);
       bGrad.addColorStop(0, '#ffffff');
       bGrad.addColorStop(1, '#cbd5e1');
@@ -470,11 +516,81 @@ export class CanvasRenderer {
       ctx.arc(bx, by, ball.radius, 0, Math.PI * 2);
       ctx.fill();
 
-      // Classic soccer pentagon patches
+      // Rotating classic soccer patches
       ctx.fillStyle = '#1e293b';
       ctx.beginPath();
-      ctx.arc(bx, by, 3.2, 0, Math.PI * 2);
+      ctx.arc(bx, by, 2.8, 0, Math.PI * 2);
       ctx.fill();
+      for (let k = 0; k < 5; k++) {
+        const a = spinAngle + (k * Math.PI * 2) / 5;
+        ctx.beginPath();
+        ctx.arc(bx + Math.cos(a) * (ball.radius * 0.62), by + Math.sin(a) * (ball.radius * 0.62), 2.1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (style === 'champions') {
+      const bGrad = ctx.createRadialGradient(bx - 3, by - 3, 1, bx, by, ball.radius);
+      bGrad.addColorStop(0, '#ffffff');
+      bGrad.addColorStop(1, '#dbeafe');
+      ctx.fillStyle = bGrad;
+      ctx.beginPath();
+      ctx.arc(bx, by, ball.radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#1d4ed8';
+      for (let k = 0; k < 5; k++) {
+        const a = spinAngle + (k * Math.PI * 2) / 5;
+        ctx.beginPath();
+        ctx.arc(bx + Math.cos(a) * (ball.radius * 0.54), by + Math.sin(a) * (ball.radius * 0.54), 2.3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (style === 'fire') {
+      const fGrad = ctx.createRadialGradient(bx - 2, by - 2, 1, bx, by, ball.radius);
+      fGrad.addColorStop(0, '#fef08a');
+      fGrad.addColorStop(0.55, '#f97316');
+      fGrad.addColorStop(1, '#dc2626');
+      ctx.fillStyle = fGrad;
+      ctx.beginPath();
+      ctx.arc(bx, by, ball.radius, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (style === 'neon') {
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.arc(bx, by, ball.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#22d3ee';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(bx, by, ball.radius * 0.58, spinAngle, spinAngle + Math.PI * 1.3);
+      ctx.stroke();
+    } else if (style === 'gold') {
+      const gGrad = ctx.createRadialGradient(bx - 3, by - 3, 1, bx, by, ball.radius);
+      gGrad.addColorStop(0, '#fef9c3');
+      gGrad.addColorStop(0.5, '#facc15');
+      gGrad.addColorStop(1, '#b45309');
+      ctx.fillStyle = gGrad;
+      ctx.beginPath();
+      ctx.arc(bx, by, ball.radius, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (style === 'beach') {
+      const colors = ['#ef4444', '#facc15', '#3b82f6', '#ffffff', '#22c55e', '#f97316'];
+      for (let k = 0; k < 6; k++) {
+        ctx.fillStyle = colors[k];
+        ctx.beginPath();
+        ctx.moveTo(bx, by);
+        ctx.arc(bx, by, ball.radius, spinAngle + (k * Math.PI) / 3, spinAngle + ((k + 1) * Math.PI) / 3);
+        ctx.closePath();
+        ctx.fill();
+      }
+    } else if (style === 'tennis') {
+      ctx.fillStyle = '#bef264';
+      ctx.beginPath();
+      ctx.arc(bx, by, ball.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.arc(bx, by, ball.radius * 0.65, spinAngle, spinAngle + Math.PI * 0.9);
+      ctx.stroke();
     } else {
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();

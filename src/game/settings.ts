@@ -140,6 +140,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   youtubePrivacy: 'unlisted',
   perfBoost: false,
   showGoalNets: true,
+  crowdEnabled: true,
   stadium: 'classic',
   physicsProfile: 'openhax',
   physicsFeel: 'standard',
