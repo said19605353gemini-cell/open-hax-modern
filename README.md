@@ -11,7 +11,8 @@
 > 🔗 Temel Kaynak / Based on: **[erasmo-marin/open-hax](https://github.com/erasmo-marin/open-hax)** (üzerine modern özellikler geliştirilmiştir).
 
 ## 🎮 Play Online / Canlı Oyna
-👉 **https://said19605353gemini-cell.github.io/open-hax-modern/**
+- 🔥 **Firebase Hosting:** **https://haxturko53.web.app**
+- 🐙 **GitHub Pages:** **https://said19605353gemini-cell.github.io/open-hax-modern/**
 
 ---
 
@@ -35,8 +36,14 @@ Hem doğrudan **GitHub Pages** üzerinde Firebase desteğiyle, hem de **PHP web 
   - `Dinamik`, `Sabit`, `Tam Ekran (Geniş)` ve `Tam Ekran (F11 / Gerçek)` modları ile `%75–%300` görsel & çözünürlük ölçeği.
 - **Maç Videosu Kaydı & Otomatik YouTube Yayını:**
   - Oyun içi `⏺ Kaydet` / `⏸ Duraklat` / `⏹ Bitir & Yayınla` butonları ve `YT: Açık / Liste Dışı / Gizli` seçicisi ile kaydedilen `.webm` maç videosunu doğrudan oyuncunun kendi YouTube hesabına otomatik yükleme (Google OAuth + YouTube Data API v3).
-- **16 Fizik Profili, 17 Saha & Küresel Küfür Filtresi:**
-  - OpenHax, Klasik HaxBall `v1/v2`, Pro Kontrol `v1/v2/v3`, Futsal, Turbo `v1/v2`, Gerçekçi Futbol `v1/v2`, Buz Hokeyi, Pinball, Ağır Tank + 17 harita + 36+ dil/alfabede küfür & XSS koruması.
+- **16 Fizik Profili, 17+ Saha & Özel `.hbs` Haritalar:**
+  - Klasik (`open-hax`), Klasik HaxBall `v1/v2`, Pro Kontrol `v1/v2/v3`, Futsal, Turbo `v1/v2`, Gerçekçi Futbol `v1/v2`, Buz Hokeyi, Pinball, Ağır Tank + 17 hazır saha + `.hbs` / `.hbys` harita yükleme ve indirme.
+- **Gelişmiş Görsel Özelleştirme (Video Sekmesi):**
+  - 8 farklı dönen top görünümü (`Futbol`, `Klasik`, `Şampiyonlar Ligi`, `Alev`, `Neon`, `Altın`, `Plaj`, `Tenis`) ve topa göre renklenen iz efekti.
+  - Ayrı ayrı seçilebilen **Kale Ağı Stili** (`Klasik`, `Elmas`, `Takım Renkli`, `Neon`, `Altın`) ve **Kale Direği Stili** (`Pastel`, `Beyaz`, `Takım Renkli`, `Neon`, `Altın`, `Karbon`).
+  - Hareketli **Stadyum Tribünü & Taraftarlar** ve 6 farklı saha dokusu.
+- **🛡️ Güvenli Mod & Firebase Kuralları:**
+  - `e.isTrusted` sahte girdi/makro engeli, canlı ortamda `F12`/sağ tık koruması, Speedhack saat kontrolü, Host hız doğrulaması ve `database.rules.json` ile sunucu taraflı Firebase RTDB doğrulamaları.
 
 ### 🕹️ Kontroller
 | Tuş | İşlev |
