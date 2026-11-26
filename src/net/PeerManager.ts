@@ -244,7 +244,7 @@ export class PeerManager {
 
     peer.on('open', () => {
       if (this.peer !== peer) return;
-      const conn = peer.connect(PEER_PREFIX + code, { reliable: true });
+      const conn = peer.connect(PEER_PREFIX + code, { reliable: false });
       this.hostConn = conn;
       let migrationTriggered = false;
 
