@@ -3,7 +3,7 @@
     "rooms": {
       ".read": true,
       "$code": {
-        ".write": true,
+        ".write": "!data.exists() || !data.child('ownerHash').exists() || data.child('ownerHash').val() === newData.child('ownerHash').val()",
         ".validate": "newData.hasChildren(['code', 'name', 'hostName', 'players', 'maxPlayers', 'updatedAt']) && newData.child('name').isString() && newData.child('name').val().length <= 60 && newData.child('players').isNumber() && newData.child('players').val() >= 0 && newData.child('players').val() <= 30 && newData.child('maxPlayers').isNumber() && newData.child('maxPlayers').val() >= 2 && newData.child('maxPlayers').val() <= 30"
       }
     },
