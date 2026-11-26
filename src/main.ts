@@ -1078,8 +1078,9 @@ class OpenHaxApp {
         }
       }, true);
       document.addEventListener('contextmenu', (e) => {
-        const tag = (e.target as HTMLElement | null)?.tagName;
-        if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
+        const target = e.target as HTMLElement | null;
+        const tag = target?.tagName;
+        if (tag !== 'INPUT' && tag !== 'TEXTAREA' && !target?.closest('.team-player-row, #teams-modal, #ctx-menu')) {
           e.preventDefault();
         }
       });
