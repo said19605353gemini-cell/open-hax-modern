@@ -1,7 +1,7 @@
 import { getStadium } from '../game/stadiums';
 import { PhysicsProfile, StadiumId } from '../types';
 
-const FIREBASE_DB_URL = 'https://haxturko-default-rtdb.europe-west1.firebasedatabase.app';
+const FIREBASE_DB_URL = 'https://haxturko53-default-rtdb.firebaseio.com';
 const LOCAL_PROFILE_KEY = 'openhax_profile_v1';
 
 export interface PlayerProfile {

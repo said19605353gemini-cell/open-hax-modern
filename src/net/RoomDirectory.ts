@@ -24,7 +24,7 @@ function emitDebug(tag: 'SYS' | 'NET' | 'ERR' | 'DUP', msg: string): void {
   }
 }
 // GitHub Pages gibi statik sitelerde ortak oda listesi için Firebase, Supabase veya Upstash Redis kullanabilirsiniz
-const FIREBASE_DB_URL: string = 'https://haxturko-default-rtdb.europe-west1.firebasedatabase.app';
+const FIREBASE_DB_URL: string = 'https://haxturko53-default-rtdb.firebaseio.com';
 const SUPABASE_URL: string = '';
 const SUPABASE_ANON_KEY: string = '';
 const UPSTASH_REDIS_REST_URL: string = '';
