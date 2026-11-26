@@ -56,6 +56,8 @@ export class CanvasRenderer {
       settings.antialias ? 1 : 0,
       settings.perfBoost ? 1 : 0,
       settings.showGoalNets !== false ? 1 : 0,
+      settings.goalNetStyle || 'classic',
+      settings.crowdEnabled !== false ? 1 : 0,
       this.grassLoaded ? 1 : 0
     ].join('|');
 
