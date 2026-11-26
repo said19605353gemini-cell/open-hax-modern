@@ -645,7 +645,11 @@ export function stepPhysicsTick(
 
     const kickDown = (bits & INPUT_KICK) !== 0;
     if (kickDown && !p.prevKick) {
-      p.kickArmed = true;
+      // Rate-limit rapid kick toggling (blocks AutoHotkey / macro spam)
+      if (currentTick >= p.nextKickTick) {
+        p.kickArmed = true;
+        p.nextKickTick = currentTick + Math.round(hz * 0.13);
+      }
     } else if (!kickDown) {
       p.kickArmed = false;
     }

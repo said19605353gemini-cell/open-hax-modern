@@ -20,6 +20,18 @@ const ALLOWED_GAME_CODES = new Set([
   'KeyF',
   'Enter'
 ]);
+const KICK_CODES = new Set([
+  'KeyX',
+  'Space',
+  'ShiftLeft',
+  'ShiftRight',
+  'ControlLeft',
+  'ControlRight',
+  'KeyV',
+  'KeyF',
+  'Enter'
+]);
+const MIN_KICK_RETRIGGER_MS = 135;
 
 function isEditable(el: EventTarget | null): boolean {
   if (!el || !(el instanceof HTMLElement)) {
@@ -32,6 +44,7 @@ function isEditable(el: EventTarget | null): boolean {
 export class InputController {
   private keys = new Set<string>();
   private attached = false;
+  private lastKickDownAt = 0;
 
   attach(): void {
     if (this.attached) return;
@@ -55,8 +68,8 @@ export class InputController {
   }
 
   private onKeyDown = (e: KeyboardEvent): void => {
-    // Reject synthetic/injected keyboard events from scripts or browser extensions
-    if (!e.isTrusted) return;
+    // Reject synthetic/injected keyboard events and OS auto-repeat
+    if (!e.isTrusted || e.repeat) return;
     if (isEditable(document.activeElement) || isEditable(e.target)) {
       this.keys.clear();
       return;
@@ -64,6 +77,13 @@ export class InputController {
     if (!ALLOWED_GAME_CODES.has(e.code)) return;
     if (PREVENT_SCROLL_CODES.has(e.code)) {
       e.preventDefault();
+    }
+    if (KICK_CODES.has(e.code)) {
+      const now = performance.now();
+      if (now - this.lastKickDownAt < MIN_KICK_RETRIGGER_MS) {
+        return;
+      }
+      this.lastKickDownAt = now;
     }
     this.keys.add(e.code);
   };
