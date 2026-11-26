@@ -31,7 +31,7 @@ const KICK_CODES = new Set([
   'KeyF',
   'Enter'
 ]);
-const MIN_KICK_RETRIGGER_MS = 135;
+const MIN_KICK_RETRIGGER_MS = 45;
 
 function isEditable(el: EventTarget | null): boolean {
   if (!el || !(el instanceof HTMLElement)) {
