@@ -629,7 +629,7 @@ class OpenHaxApp {
           const dt = now - (this as unknown as { _lastKickAt?: number })._lastKickAt!;
           (this as unknown as { _lastKickAt?: number })._lastKickAt = now;
           const lastWarn = (this as unknown as { _lastKickWarn?: number })._lastKickWarn || 0;
-          if (dt > 0 && dt < 55 && now - lastWarn > 5000) {
+          if (dt > 0 && dt < 15 && now - lastWarn > 5000) {
             (this as unknown as { _lastKickWarn?: number })._lastKickWarn = now;
             const me = this.players.find((p) => p.id === this.myPlayerId)?.name || this.settings.nickname || 'Oyuncu';
             const msg = `⚠️ ${me}: Çift tuş / makro şüphesi (${Math.round(dt)} ms)!`;
