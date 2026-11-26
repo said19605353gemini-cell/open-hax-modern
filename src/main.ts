@@ -2543,6 +2543,7 @@ class OpenHaxApp {
       this.updateRoomUI();
     } else if (cmd === 'toggle_pause') {
       this.togglePause();
+      if (this.paused) this.chatInput.focus();
     } else if (cmd === 'reset_match') {
       this.resetMatch();
     } else if (cmd === 'add_bot' && (value === 'red' || value === 'blue')) {
