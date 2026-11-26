@@ -142,7 +142,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   showGoalNets: true,
   stadium: 'classic',
   physicsProfile: 'openhax',
-  physicsFeel: 'snappy',
+  physicsFeel: 'standard',
   startAccelMul: 1.4,
   stopFriction: 0.82,
   surfaceFriction: 0.974,

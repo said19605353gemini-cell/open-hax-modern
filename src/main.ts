@@ -2562,8 +2562,8 @@ class OpenHaxApp {
     el<HTMLSpanElement>('lbl-pspd').textContent = Number(s.playerSpeed).toFixed(1);
     el<HTMLInputElement>('set-wallb').value = String(s.wallBounce);
     el<HTMLSpanElement>('lbl-wallb').textContent = Number(s.wallBounce).toFixed(2);
-    el<HTMLSelectElement>('set-physics-feel').value = s.physicsFeel || 'snappy';
-    this.roomPhysicsFeel.value = s.physicsFeel || 'snappy';
+    el<HTMLSelectElement>('set-physics-feel').value = s.physicsFeel || 'standard';
+    this.roomPhysicsFeel.value = s.physicsFeel || 'standard';
     el<HTMLInputElement>('set-startaccel').value = String(s.startAccelMul ?? 1.4);
     el<HTMLSpanElement>('lbl-startaccel').textContent = Number(s.startAccelMul ?? 1.4).toFixed(1) + 'x';
     el<HTMLInputElement>('set-stopfriction').value = String(s.stopFriction ?? 0.82);
