@@ -1305,7 +1305,7 @@ class OpenHaxApp {
         return;
       }
       this.updateSettings({ physicsFeel: mode });
-      el<HTMLSelectElement>('set-physics-feel').value = mode;
+      (document.getElementById('set-physics-feel') as HTMLSelectElement | null || document.createElement('select')).value = mode;
     });
 
     el<HTMLSelectElement>('room-physicshz').addEventListener('change', () => {
@@ -1557,21 +1557,21 @@ class OpenHaxApp {
     bindRange('set-kickpwr', 'lbl-kickpwr', (v) => v.toFixed(1), (v) => this.updateSettings({ kickPower: v }));
     bindRange('set-pspd', 'lbl-pspd', (v) => v.toFixed(1), (v) => this.updateSettings({ playerSpeed: v }));
     bindRange('set-wallb', 'lbl-wallb', (v) => v.toFixed(2), (v) => this.updateSettings({ wallBounce: v }));
-    el<HTMLSelectElement>('set-physics-feel').addEventListener('change', (e) => {
+    (document.getElementById('set-physics-feel') as HTMLSelectElement | null || document.createElement('select')).addEventListener('change', (e) => {
       const mode = (e.target as HTMLSelectElement).value as PhysicsFeelMode;
       this.updateSettings({ physicsFeel: mode });
     });
     bindRange('set-startaccel', 'lbl-startaccel', (v) => v.toFixed(1) + 'x', (v) => {
       this.updateSettings({ physicsFeel: 'custom', startAccelMul: v });
-      el<HTMLSelectElement>('set-physics-feel').value = 'custom';
+      (document.getElementById('set-physics-feel') as HTMLSelectElement | null || document.createElement('select')).value = 'custom';
     });
     bindRange('set-stopfriction', 'lbl-stopfriction', (v) => v.toFixed(2), (v) => {
       this.updateSettings({ physicsFeel: 'custom', stopFriction: v });
-      el<HTMLSelectElement>('set-physics-feel').value = 'custom';
+      (document.getElementById('set-physics-feel') as HTMLSelectElement | null || document.createElement('select')).value = 'custom';
     });
     bindRange('set-surfacefriction', 'lbl-surfacefriction', (v) => v.toFixed(3), (v) => {
       this.updateSettings({ physicsFeel: 'custom', surfaceFriction: v });
-      el<HTMLSelectElement>('set-physics-feel').value = 'custom';
+      (document.getElementById('set-physics-feel') as HTMLSelectElement | null || document.createElement('select')).value = 'custom';
     });
     el<HTMLButtonElement>('btn-reset-physics-defaults').addEventListener('click', () => {
       if (this.activeScreen !== 'room' || !this.isMeAdmin()) return;
@@ -1592,7 +1592,7 @@ class OpenHaxApp {
       });
       this.syncSettingsToUI();
       el<HTMLSelectElement>('set-physics').value = DEFAULT_SETTINGS.physicsProfile;
-      el<HTMLSelectElement>('set-physics-feel').value = DEFAULT_SETTINGS.physicsFeel || 'standard';
+      (document.getElementById('set-physics-feel') as HTMLSelectElement | null || document.createElement('select')).value = DEFAULT_SETTINGS.physicsFeel || 'standard';
       this.roomPhysics.value = DEFAULT_SETTINGS.physicsProfile;
       this.roomPhysicsFeel.value = DEFAULT_SETTINGS.physicsFeel || 'standard';
       if (this.activeScreen === 'room' && this.peerMgr.getRole() === 'guest') {
@@ -2564,7 +2564,7 @@ class OpenHaxApp {
     } else if (cmd === 'set_physics_feel' && typeof value === 'string') {
       this.updateSettings({ physicsFeel: value as PhysicsFeelMode });
       this.roomPhysicsFeel.value = value;
-      el<HTMLSelectElement>('set-physics-feel').value = value;
+      (document.getElementById('set-physics-feel') as HTMLSelectElement | null || document.createElement('select')).value = value;
     } else if (cmd === 'set_physicshz' && typeof value === 'number') {
       const hz = Math.max(60, Math.min(500, value));
       this.updateSettings({ physicsHz: hz });
@@ -2696,7 +2696,7 @@ class OpenHaxApp {
     el<HTMLSpanElement>('lbl-pspd').textContent = Number(s.playerSpeed).toFixed(1);
     el<HTMLInputElement>('set-wallb').value = String(s.wallBounce);
     el<HTMLSpanElement>('lbl-wallb').textContent = Number(s.wallBounce).toFixed(2);
-    el<HTMLSelectElement>('set-physics-feel').value = s.physicsFeel || 'standard';
+    (document.getElementById('set-physics-feel') as HTMLSelectElement | null || document.createElement('select')).value = s.physicsFeel || 'standard';
     this.roomPhysicsFeel.value = s.physicsFeel || 'standard';
     el<HTMLInputElement>('set-startaccel').value = String(s.startAccelMul ?? 1.4);
     el<HTMLSpanElement>('lbl-startaccel').textContent = Number(s.startAccelMul ?? 1.4).toFixed(1) + 'x';
@@ -3324,7 +3324,7 @@ class OpenHaxApp {
     if (snap.pfeel && snap.pfeel !== this.settings.physicsFeel) {
       this.settings.physicsFeel = snap.pfeel;
       this.roomPhysicsFeel.value = snap.pfeel;
-      el<HTMLSelectElement>('set-physics-feel').value = snap.pfeel;
+      (document.getElementById('set-physics-feel') as HTMLSelectElement | null || document.createElement('select')).value = snap.pfeel;
     }
     if (snap.hz && snap.hz !== this.settings.physicsHz) {
       this.settings.physicsHz = snap.hz;
