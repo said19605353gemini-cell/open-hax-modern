@@ -8,6 +8,7 @@ export type PhysicsFeelMode = 'standard' | 'snappy' | 'instant_stop' | 'direct_a
 export type GrassDetail = 'standard' | 'hd_stadium' | 'night_neon' | 'arena_pro' | 'retro_arcade' | 'flat';
 export type BallStyle = 'classic' | 'soccer' | 'champions' | 'fire' | 'neon' | 'gold' | 'beach' | 'tennis';
 export type GoalNetStyle = 'classic' | 'diamond' | 'team' | 'neon' | 'gold';
+export type GoalPostStyle = 'classic' | 'white' | 'team' | 'neon' | 'gold' | 'carbon';
 export type PowerupMode = 'none' | 'hawk' | 'fire' | 'speed' | 'magnet' | 'giant' | 'all';
 export type PowerupType = 'hawk' | 'fire' | 'speed' | 'magnet' | 'giant';
 
@@ -48,6 +49,7 @@ export interface GameSettings {
   perfBoost?: boolean;
   showGoalNets?: boolean;
   goalNetStyle?: GoalNetStyle;
+  goalPostStyle?: GoalPostStyle;
   crowdEnabled?: boolean;
   stadium: StadiumId;
   physicsProfile: PhysicsProfile;

@@ -57,6 +57,7 @@ export class CanvasRenderer {
       settings.perfBoost ? 1 : 0,
       settings.showGoalNets !== false ? 1 : 0,
       settings.goalNetStyle || 'classic',
+      settings.goalPostStyle || 'classic',
       settings.crowdEnabled !== false ? 1 : 0,
       this.grassLoaded ? 1 : 0
     ].join('|');
@@ -306,20 +307,26 @@ export class CanvasRenderer {
     drawGoalNet(pitchX, false);
     drawGoalNet(pitchX + pitchWidth, true);
 
-    // Goalposts
+    // Goalposts (independent goalPostStyle)
+    const postStyle = settings.goalPostStyle || 'classic';
     for (let i = 0; i < stadium.posts.length; i++) {
       const post = stadium.posts[i];
       const isHome = post.x <= cx;
       ctx.beginPath();
       ctx.arc(post.x, post.y, post.radius, 0, Math.PI * 2);
       ctx.fillStyle =
-        netStyle === 'team' ? (isHome ? '#fca5a5' : '#93c5fd') :
-        netStyle === 'neon' ? (isHome ? '#67e8f9' : '#f0abfc') :
-        netStyle === 'gold' ? '#fef08a' :
+        postStyle === 'white' ? '#f8fafc' :
+        postStyle === 'team' ? (isHome ? '#fca5a5' : '#93c5fd') :
+        postStyle === 'neon' ? (isHome ? '#22d3ee' : '#e879f9') :
+        postStyle === 'gold' ? '#facc15' :
+        postStyle === 'carbon' ? '#1e293b' :
         (isHome ? '#ffcccc' : '#ccccff');
       ctx.fill();
       ctx.lineWidth = 2;
-      ctx.strokeStyle = netStyle === 'gold' ? '#b45309' : '#000000';
+      ctx.strokeStyle =
+        postStyle === 'gold' ? '#b45309' :
+        postStyle === 'carbon' ? '#94a3b8' :
+        '#000000';
       ctx.stroke();
     }
 

@@ -141,6 +141,7 @@ export const DEFAULT_SETTINGS: GameSettings = Object.freeze({
   perfBoost: false,
   showGoalNets: true,
   goalNetStyle: 'classic',
+  goalPostStyle: 'classic',
   crowdEnabled: true,
   stadium: 'classic',
   physicsProfile: 'openhax',
