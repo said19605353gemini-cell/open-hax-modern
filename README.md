@@ -44,6 +44,7 @@ Hem doğrudan **GitHub Pages** üzerinde Firebase desteğiyle, hem de **PHP web 
   - Hareketli **Stadyum Tribünü & Taraftarlar** ve 6 farklı saha dokusu.
 - **🛡️ Güvenli Mod & Firebase Kuralları:**
   - `e.isTrusted` sahte girdi/makro engeli, canlı ortamda `F12`/sağ tık koruması, Speedhack saat kontrolü, Host hız doğrulaması ve `database.rules.json` ile sunucu taraflı Firebase RTDB doğrulamaları.
+  - **AutoHotkey / Donanım Makrosu Notu:** Tarayıcı güvenlik modeli gereği işletim sistemi düzeyinde çalışan AutoHotkey gibi araçlar doğrudan engellenemez; ancak oyun içinde `P` (Duraklat) tuşuna basıldığında sohbet odaklı makro testi ile seri tuş basımları tespit edilebilir.
 
 ### 🕹️ Kontroller
 | Tuş | İşlev |
