@@ -279,13 +279,18 @@ export class CanvasRenderer {
 
     // Smooth HaxBall rounded goal nets
     const rNet = Math.min(12, goalDepth * 0.65);
+    const netStyle = settings.goalNetStyle || 'classic';
     const drawGoalNet = (gx: number, isRight: boolean) => {
       const dir = isRight ? 1 : -1;
       const backX = gx + dir * goalDepth;
       const yTop = cy - goalHalfHeight;
       const yBot = cy + goalHalfHeight;
       ctx.save();
-      ctx.strokeStyle = '#000000';
+      ctx.strokeStyle =
+        netStyle === 'team' ? (isRight ? '#3b82f6' : '#ef4444') :
+        netStyle === 'neon' ? (isRight ? '#e879f9' : '#22d3ee') :
+        netStyle === 'gold' ? '#facc15' :
+        '#000000';
       ctx.lineWidth = 3;
       ctx.lineJoin = 'round';
       ctx.beginPath();
@@ -301,16 +306,20 @@ export class CanvasRenderer {
     drawGoalNet(pitchX, false);
     drawGoalNet(pitchX + pitchWidth, true);
 
-    // Soft pastel HaxBall goalposts
+    // Goalposts
     for (let i = 0; i < stadium.posts.length; i++) {
       const post = stadium.posts[i];
       const isHome = post.x <= cx;
       ctx.beginPath();
       ctx.arc(post.x, post.y, post.radius, 0, Math.PI * 2);
-      ctx.fillStyle = isHome ? '#ffcccc' : '#ccccff';
+      ctx.fillStyle =
+        netStyle === 'team' ? (isHome ? '#fca5a5' : '#93c5fd') :
+        netStyle === 'neon' ? (isHome ? '#67e8f9' : '#f0abfc') :
+        netStyle === 'gold' ? '#fef08a' :
+        (isHome ? '#ffcccc' : '#ccccff');
       ctx.fill();
       ctx.lineWidth = 2;
-      ctx.strokeStyle = '#000000';
+      ctx.strokeStyle = netStyle === 'gold' ? '#b45309' : '#000000';
       ctx.stroke();
     }
 
