@@ -1221,6 +1221,10 @@ class OpenHaxApp {
     this.roomPhysicsFeel.addEventListener('change', () => {
       if (!this.isMeAdmin()) return;
       const mode = this.roomPhysicsFeel.value as PhysicsFeelMode;
+      if (this.peerMgr.getRole() === 'guest') {
+        this.dispatchAdminAction('set_physics_feel', undefined, mode);
+        return;
+      }
       this.updateSettings({ physicsFeel: mode });
       el<HTMLSelectElement>('set-physics-feel').value = mode;
     });
@@ -2433,6 +2437,10 @@ class OpenHaxApp {
       this.updateSettings({ physicsProfile: value as PhysicsProfile });
       this.roomPhysics.value = value;
       el<HTMLSelectElement>('set-physics').value = value;
+    } else if (cmd === 'set_physics_feel' && typeof value === 'string') {
+      this.updateSettings({ physicsFeel: value as PhysicsFeelMode });
+      this.roomPhysicsFeel.value = value;
+      el<HTMLSelectElement>('set-physics-feel').value = value;
     } else if (cmd === 'set_physicshz' && typeof value === 'number') {
       const hz = Math.max(60, Math.min(500, value));
       this.updateSettings({ physicsHz: hz });
@@ -3138,6 +3146,7 @@ class OpenHaxApp {
       rn: this.currentRoomName,
       st: this.stadium.id,
       pf: this.settings.physicsProfile,
+      pfeel: this.settings.physicsFeel || 'standard',
       hz: this.settings.physicsHz || 60,
       mf: this.settings.roomMaxFps || 0,
       sc: [this.scoreRed, this.scoreBlue],
@@ -3185,6 +3194,11 @@ class OpenHaxApp {
     }
     if (snap.pf && snap.pf !== this.settings.physicsProfile) {
       this.settings.physicsProfile = snap.pf;
+    }
+    if (snap.pfeel && snap.pfeel !== this.settings.physicsFeel) {
+      this.settings.physicsFeel = snap.pfeel;
+      this.roomPhysicsFeel.value = snap.pfeel;
+      el<HTMLSelectElement>('set-physics-feel').value = snap.pfeel;
     }
     if (snap.hz && snap.hz !== this.settings.physicsHz) {
       this.settings.physicsHz = snap.hz;

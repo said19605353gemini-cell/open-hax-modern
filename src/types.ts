@@ -177,6 +177,7 @@ export interface MatchSnapshot {
   rn: string; // roomName
   st: StadiumId;
   pf: PhysicsProfile;
+  pfeel?: PhysicsFeelMode;
   hz?: number;
   mf?: number;
   sc: [number, number];
