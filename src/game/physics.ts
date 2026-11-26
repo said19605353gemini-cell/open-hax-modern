@@ -645,11 +645,7 @@ export function stepPhysicsTick(
 
     const kickDown = (bits & INPUT_KICK) !== 0;
     if (kickDown && !p.prevKick) {
-      // Rate-limit inhuman <45ms macro bursts while allowing fast human wall-shots
-      if (currentTick >= p.nextKickTick) {
-        p.kickArmed = true;
-        p.nextKickTick = currentTick + Math.max(2, Math.round(hz * 0.045));
-      }
+      p.kickArmed = true;
     } else if (!kickDown) {
       p.kickArmed = false;
     }
