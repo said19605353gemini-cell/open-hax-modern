@@ -373,7 +373,12 @@ class OpenHaxApp {
       }
     }, 15000);
     window.setInterval(() => {
-      if (this.activeScreen === 'room') this.saveMatchSnapshot();
+      if (this.activeScreen === 'room') {
+        this.saveMatchSnapshot();
+        if (this.peerMgr.getRole() === 'host' && Math.hypot(this.ball.vx, this.ball.vy) > 65) {
+          resetPositionsForKickoff(this.players, this.ball, this.stadium);
+        }
+      }
     }, 1000);
 
     // Anti-Cheat: Speedhack / clock-tamper detector (compares performance.now vs Date.now)
