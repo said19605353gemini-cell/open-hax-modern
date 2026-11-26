@@ -3504,9 +3504,24 @@ class OpenHaxApp {
     }
   }
 
+  private chatSpamTimestamps: number[] = [];
+  private chatSpamBlockedUntil = 0;
+
   private sendChat(): void {
     const raw = this.chatInput.value.trim();
     if (!raw) return;
+    const now = Date.now();
+    if (now < this.chatSpamBlockedUntil) {
+      this.addChat('Sistem', '⏳ Çok hızlı mesaj gönderiyorsunuz, lütfen birkaç saniye bekleyin.', true);
+      return;
+    }
+    this.chatSpamTimestamps = this.chatSpamTimestamps.filter((t) => now - t < 3000);
+    this.chatSpamTimestamps.push(now);
+    if (this.chatSpamTimestamps.length > 3) {
+      this.chatSpamBlockedUntil = now + 4000;
+      this.addChat('Sistem', '⏳ Spam / flood koruması: 4 saniye bekleyin.', true);
+      return;
+    }
     if (raw.startsWith('/')) {
       const [cmdRaw, ...rest] = raw.slice(1).split(/\s+/);
       const arg = rest.join(' ').trim();
