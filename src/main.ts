@@ -1638,20 +1638,24 @@ class OpenHaxApp {
         this.dispatchAdminAction('set_physicshz', undefined, hz);
         return;
       }
-      this.updateSettings({ physicsHz: hz });
+      this.updateSettings({ physicsHz: hz, roomMaxFps: hz, fpsLimit: hz });
     });
     const applyRoomMaxFps = (rawVal: number) => {
       if (!this.isMeAdmin()) return;
       const mf = !Number.isFinite(rawVal) || rawVal <= 0 ? 0 : Math.max(15, Math.min(1000, Math.round(rawVal)));
+      const syncedHz = mf > 0 ? mf : 60;
       el<HTMLSelectElement>('set-roommaxfps').value = String(mf);
       el<HTMLSelectElement>('room-fps-select').value = String(mf);
       el<HTMLInputElement>('set-roommaxfps-custom').value = String(mf);
       el<HTMLInputElement>('room-fps-custom').value = String(mf);
+      const roomHzEl = document.getElementById('room-physicshz') as HTMLSelectElement | null;
+      if (roomHzEl) roomHzEl.value = String(syncedHz);
       if (this.peerMgr.getRole() === 'guest') {
         this.dispatchAdminAction('set_roommaxfps', undefined, mf);
+        this.dispatchAdminAction('set_physicshz', undefined, syncedHz);
         return;
       }
-      this.updateSettings({ roomMaxFps: mf });
+      this.updateSettings({ roomMaxFps: mf, physicsHz: syncedHz, fpsLimit: mf });
     };
     bindSelect('set-roommaxfps', (v) => applyRoomMaxFps(Number(v)));
     el<HTMLSelectElement>('room-fps-select').addEventListener('change', (e) => {
