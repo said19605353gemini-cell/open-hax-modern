@@ -608,7 +608,7 @@
         </select>
         <input type="number" id="room-fps-custom" min="0" max="1000" step="1" placeholder="FPS"
           style="width:58px;padding:3px 6px;" title="Elle Oda FPS Sınırı (0 = Sınırsız)" />
-        <button type="button" id="btn-room-voice" class="btn" title="Sesli Sohbet / Mikrofon">🎙️ Sesli Sohbet: Kapalı</button>
+        <button type="button" id="btn-room-voice" class="btn" title="Sesli Sohbet / Mikrofon">🎙️ Ses Menüsü</button>
       </div>
       <div id="roster-strip" class="roster-strip"></div>
     </section>
@@ -623,12 +623,8 @@
       </div>
       <div id="fps-hud" class="fps-hud">60 FPS | 16.7 ms | CPU 0.0 ms</div>
       <div class="stage-quick-toggles">
-        <button type="button" id="btn-toggle-mic" class="stage-toggle-btn" title="Mikrofon (Sesli Sohbet)">🎙️ Mic: Kapalı</button>
-        <select id="select-mic-target" class="stage-toggle-btn" style="padding:3px 6px;" title="Ses Kime Gitsin?">
-          <option value="all" selected>🗣️ Herkes</option>
-          <option value="team">🛡️ Sadece Takım</option>
-          <option value="off">🔇 Kapalı</option>
-        </select>
+        <button type="button" id="btn-open-voice-modal" class="stage-toggle-btn" title="Ses ve Mikrofon Ayarları Menüsü">🎙️ Ses Menüsü</button>
+        <button type="button" id="btn-toggle-mic" class="stage-toggle-btn" title="Mikrofon Aç/Kapat">🎙️ Mic: Kapalı</button>
         <button type="button" id="btn-toggle-sound" class="stage-toggle-btn" title="Sesi Aç/Kapat">🔊 Ses</button>
         <button type="button" id="btn-toggle-fullscreen" class="stage-toggle-btn" title="Tarayıcıyı Tam Ekran Yap (F11)">⛶ Tam Ekran</button>
         <button type="button" id="btn-toggle-focus" class="stage-toggle-btn" title="Tam Ekran / Odak Modu">👁️ Odak</button>
@@ -987,6 +983,39 @@
             <button type="button" id="btn-reset-physics-defaults" class="btn" style="width:100%;">🔄 Varsayılan Fizik
               Ayarlarına Dön</button>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Voice Chat / Mikrofon Menüsü Modal -->
+  <div id="voice-modal" class="modal-backdrop hidden">
+    <div class="modal-card" style="max-width:420px;width:92vw;">
+      <div class="modal-head">
+        <h2>🎙️ Sesli Sohbet &amp; Mikrofon Menüsü</h2>
+        <button type="button" id="btn-voice-close" class="btn">Kapat</button>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;padding:16px;">
+        <label class="field" style="display:flex;flex-direction:column;gap:6px;">
+          <span>Mikrofon Durumu:</span>
+          <button type="button" id="btn-modal-mic-toggle" class="btn" style="padding:10px;font-size:14px;font-weight:700;">
+            🎙️ Mikrofonu Aç
+          </button>
+        </label>
+        <label class="field" style="display:flex;flex-direction:column;gap:6px;">
+          <span>Ses İletim Hedefi:</span>
+          <select id="modal-mic-scope" style="padding:8px;font-size:13px;background:#1e293b;color:#fff;border:1px solid #475569;border-radius:6px;">
+            <option value="all" selected>🗣️ Herkes Duysun (Tüm Oda)</option>
+            <option value="team">🛡️ Sadece Takım Arkadaşlarım Duysun</option>
+            <option value="off">🔇 Mikrofon Kapalı (Sessiz)</option>
+          </select>
+        </label>
+        <label class="field" style="display:flex;flex-direction:column;gap:6px;">
+          <span>Mikrofon Giriş Ses Seviyesi:</span>
+          <input type="range" id="modal-mic-vol" min="0" max="100" value="100" />
+        </label>
+        <div style="font-size:12px;color:#94a3b8;line-height:1.4;background:rgba(0,0,0,0.2);padding:10px;border-radius:6px;">
+          ℹ️ <b>Takım Modu:</b> Sesiniz sadece sizinle aynı renkteki (Kırmızı/Mavi) takım arkadaşlarınıza iletilir; rakip takım veya izleyiciler konuşmanızı duyamaz.
         </div>
       </div>
     </div>

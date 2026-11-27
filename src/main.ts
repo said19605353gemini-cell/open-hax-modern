@@ -618,9 +618,14 @@ class OpenHaxApp {
     const joy = document.getElementById('mobile-joystick');
     const knob = document.getElementById('mobile-joystick-knob');
     const kickBtn = document.getElementById('mobile-kick-btn');
+    const openVoiceModalBtn = document.getElementById('btn-open-voice-modal');
     const toggleMicBtn = document.getElementById('btn-toggle-mic');
-    const selectMicTarget = document.getElementById('select-mic-target') as HTMLSelectElement | null;
     const roomVoiceBtn = document.getElementById('btn-room-voice');
+    const voiceModal = document.getElementById('voice-modal');
+    const btnVoiceClose = document.getElementById('btn-voice-close');
+    const btnModalMicToggle = document.getElementById('btn-modal-mic-toggle');
+    const modalMicScope = document.getElementById('modal-mic-scope') as HTMLSelectElement | null;
+    const modalMicVol = document.getElementById('modal-mic-vol') as HTMLInputElement | null;
     const toggleSoundBtn = document.getElementById('btn-toggle-sound');
 
     // Voice Chat State
@@ -638,8 +643,15 @@ class OpenHaxApp {
         toggleMicBtn.textContent = label;
         toggleMicBtn.classList.toggle('off', !micEnabled || micScope === 'off');
       }
+      if (btnModalMicToggle) {
+        btnModalMicToggle.textContent = micEnabled ? '🔇 Mikrofonu Kapat' : '🎙️ Mikrofonu Aç';
+        btnModalMicToggle.className = micEnabled ? 'btn danger' : 'btn primary';
+      }
+      if (modalMicScope) {
+        modalMicScope.value = micScope;
+      }
       if (roomVoiceBtn) {
-        roomVoiceBtn.textContent = !micEnabled ? '🎙️ Sesli Sohbet: Kapalı' : '🎙️ Sesli Sohbet: Açık (' + (micScope === 'team' ? 'Takım' : 'Herkes') + ')';
+        roomVoiceBtn.textContent = '🎙️ Ses Menüsü' + (micEnabled ? ' (Açık)' : '');
         roomVoiceBtn.classList.toggle('primary', micEnabled && micScope !== 'off');
       }
     };
@@ -667,10 +679,21 @@ class OpenHaxApp {
       updateVoiceUI();
     };
 
+    const openVoiceModal = () => voiceModal?.classList.remove('hidden');
+    const closeVoiceModal = () => voiceModal?.classList.add('hidden');
+
+    openVoiceModalBtn?.addEventListener('click', openVoiceModal);
+    roomVoiceBtn?.addEventListener('click', openVoiceModal);
+    btnVoiceClose?.addEventListener('click', closeVoiceModal);
+    voiceModal?.addEventListener('click', (e) => {
+      if (e.target === voiceModal) closeVoiceModal();
+    });
+
     toggleMicBtn?.addEventListener('click', toggleMicAction);
-    roomVoiceBtn?.addEventListener('click', toggleMicAction);
-    selectMicTarget?.addEventListener('change', () => {
-      micScope = selectMicTarget.value as 'all' | 'team' | 'off';
+    btnModalMicToggle?.addEventListener('click', toggleMicAction);
+
+    modalMicScope?.addEventListener('change', () => {
+      micScope = (modalMicScope?.value as 'all' | 'team' | 'off') || 'all';
       if (micScope === 'off') {
         micEnabled = false;
         if (micStream) micStream.getAudioTracks().forEach((tr) => (tr.enabled = false));
@@ -678,6 +701,16 @@ class OpenHaxApp {
         toggleMicAction();
       }
       updateVoiceUI();
+    });
+
+    modalMicVol?.addEventListener('input', () => {
+      const vol = Number(modalMicVol?.value || 100) / 100;
+      if (micStream) {
+        micStream.getAudioTracks().forEach((tr) => {
+          // Keep audio track enabled level
+          tr.enabled = vol > 0 && micEnabled;
+        });
+      }
     });
     const toggleFsBtn = document.getElementById('btn-toggle-fullscreen');
     const toggleFocusBtn = document.getElementById('btn-toggle-focus');
