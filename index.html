@@ -622,7 +622,8 @@
           <option value="240">240 Hz</option>
           <option value="500">500 Hz</option>
         </select>
-        <button type="button" id="btn-room-reset-physics" class="btn hidden" title="Varsayılan Fizik Ayarlarına Dön">🔄 Varsayılan</button>
+        <button type="button" id="btn-room-reset-physics" class="btn hidden" title="Varsayılan Fizik Ayarlarına Dön">🔄
+          Varsayılan</button>
         <select id="room-fps-select" title="Oda FPS Limiti (Admin)">
           <option value="0">Oda FPS: Sınırsız</option>
           <option value="240">Oda FPS: 240</option>
@@ -681,7 +682,7 @@
         <button type="button" class="hax-tab active" data-tab="video">Video</button>
         <button type="button" class="hax-tab" data-tab="input">Girdi</button>
         <button type="button" class="hax-tab" data-tab="misc">Çeşitli</button>
-        <button type="button" class="hax-tab hidden" data-tab="physics">Fizik (Admin)</button>
+        <button type="button" class="hax-tab" data-tab="physics">Fizik (Admin)</button>
       </div>
       <div class="modal-body">
         <!-- VIDEO TAB -->
@@ -812,7 +813,8 @@
               <option value="carbon">Siyah Karbon</option>
             </select>
           </div>
-          <label class="hax-check-row"><input type="checkbox" id="set-crowd" /><span>Stadyum Tribünü &amp; Taraftarlar</span></label>
+          <label class="hax-check-row"><input type="checkbox" id="set-crowd" /><span>Stadyum Tribünü &amp;
+              Taraftarlar</span></label>
           <label class="hax-check-row"><input type="checkbox" id="set-perfboost" /><span>Performans Modu (Hafif Çizim /
               Yüksek FPS)</span></label>
           <label class="hax-check-row"><input type="checkbox" id="set-aa" /><span>Kenar Yumuşatma</span></label>
@@ -976,42 +978,44 @@
             </div>
           </label>
           <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.12);">
-            <div style="font-size:12px;font-weight:700;color:#9fd3ff;margin-bottom:6px;">🎛️ İnce Ayarlar (Özel Fizik)</div>
-          <label class="row">
-            <span>Top Tutuşu (<span id="lbl-ballctrl">90%</span>)</span>
-            <input type="range" id="set-ballctrl" min="20" max="100" step="2" />
-          </label>
-          <label class="row">
-            <span>Top Kayganlığı (<span id="lbl-balldamp">0.992</span>)</span>
-            <input type="range" id="set-balldamp" min="0.975" max="0.996" step="0.001" />
-          </label>
-          <label class="row">
-            <span>Şut Gücü (<span id="lbl-kickpwr">5.4</span>)</span>
-            <input type="range" id="set-kickpwr" min="3.5" max="8.5" step="0.1" />
-          </label>
-          <label class="row">
-            <span>Oyuncu Hızı (<span id="lbl-pspd">3.3</span>)</span>
-            <input type="range" id="set-pspd" min="2.8" max="5.5" step="0.1" />
-          </label>
-          <label class="row">
-            <span>Duvar Sekmesi (<span id="lbl-wallb">0.78</span>)</span>
-            <input type="range" id="set-wallb" min="0.40" max="0.95" step="0.02" />
-          </label>
-          <label class="row">
-            <span>Kalkış İvmesi (<span id="lbl-startaccel">1.4x</span>)</span>
-            <input type="range" id="set-startaccel" min="0.6" max="3.0" step="0.1" />
-          </label>
-          <label class="row">
-            <span>Durdurma Yavaşlaması (<span id="lbl-stopfriction">0.82</span>)</span>
-            <input type="range" id="set-stopfriction" min="0.55" max="0.99" step="0.01" />
-          </label>
-          <label class="row">
-            <span>Zemin Sürtünmesi (<span id="lbl-surfacefriction">0.974</span>)</span>
-            <input type="range" id="set-surfacefriction" min="0.88" max="0.995" step="0.002" />
-          </label>
+            <div style="font-size:12px;font-weight:700;color:#9fd3ff;margin-bottom:6px;">🎛️ İnce Ayarlar (Özel Fizik)
+            </div>
+            <label class="row">
+              <span>Top Tutuşu (<span id="lbl-ballctrl">90%</span>)</span>
+              <input type="range" id="set-ballctrl" min="20" max="100" step="2" />
+            </label>
+            <label class="row">
+              <span>Top Kayganlığı (<span id="lbl-balldamp">0.992</span>)</span>
+              <input type="range" id="set-balldamp" min="0.975" max="0.996" step="0.001" />
+            </label>
+            <label class="row">
+              <span>Şut Gücü (<span id="lbl-kickpwr">5.4</span>)</span>
+              <input type="range" id="set-kickpwr" min="3.5" max="8.5" step="0.1" />
+            </label>
+            <label class="row">
+              <span>Oyuncu Hızı (<span id="lbl-pspd">3.3</span>)</span>
+              <input type="range" id="set-pspd" min="2.8" max="5.5" step="0.1" />
+            </label>
+            <label class="row">
+              <span>Duvar Sekmesi (<span id="lbl-wallb">0.78</span>)</span>
+              <input type="range" id="set-wallb" min="0.40" max="0.95" step="0.02" />
+            </label>
+            <label class="row">
+              <span>Kalkış İvmesi (<span id="lbl-startaccel">1.4x</span>)</span>
+              <input type="range" id="set-startaccel" min="0.6" max="3.0" step="0.1" />
+            </label>
+            <label class="row">
+              <span>Durdurma Yavaşlaması (<span id="lbl-stopfriction">0.82</span>)</span>
+              <input type="range" id="set-stopfriction" min="0.55" max="0.99" step="0.01" />
+            </label>
+            <label class="row">
+              <span>Zemin Sürtünmesi (<span id="lbl-surfacefriction">0.974</span>)</span>
+              <input type="range" id="set-surfacefriction" min="0.88" max="0.995" step="0.002" />
+            </label>
           </div>
           <div class="hax-opt-row" style="margin-top:12px;">
-            <button type="button" id="btn-reset-physics-defaults" class="btn" style="width:100%;">🔄 Varsayılan Fizik Ayarlarına Dön</button>
+            <button type="button" id="btn-reset-physics-defaults" class="btn" style="width:100%;">🔄 Varsayılan Fizik
+              Ayarlarına Dön</button>
           </div>
         </div>
       </div>
