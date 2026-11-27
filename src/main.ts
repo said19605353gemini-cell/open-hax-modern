@@ -1606,14 +1606,6 @@ class OpenHaxApp {
       this.updateSettings({ physicsFeel: 'custom', startAccelMul: v });
       (document.getElementById('set-physics-feel') as HTMLSelectElement | null || document.createElement('select')).value = 'custom';
     });
-    bindRange('set-stopfriction', 'lbl-stopfriction', (v) => v.toFixed(2), (v) => {
-      this.updateSettings({ physicsFeel: 'custom', stopFriction: v });
-      (document.getElementById('set-physics-feel') as HTMLSelectElement | null || document.createElement('select')).value = 'custom';
-    });
-    bindRange('set-surfacefriction', 'lbl-surfacefriction', (v) => v.toFixed(3), (v) => {
-      this.updateSettings({ physicsFeel: 'custom', surfaceFriction: v });
-      (document.getElementById('set-physics-feel') as HTMLSelectElement | null || document.createElement('select')).value = 'custom';
-    });
     el<HTMLButtonElement>('btn-reset-physics-defaults').addEventListener('click', () => {
       if (this.activeScreen !== 'room' || !this.isMeAdmin()) return;
       this.customTuningActive = false;
@@ -2746,10 +2738,6 @@ class OpenHaxApp {
     this.roomPhysicsFeel.value = s.physicsFeel || 'standard';
     el<HTMLInputElement>('set-startaccel').value = String(s.startAccelMul ?? 1.4);
     el<HTMLSpanElement>('lbl-startaccel').textContent = Number(s.startAccelMul ?? 1.4).toFixed(1) + 'x';
-    el<HTMLInputElement>('set-stopfriction').value = String(s.stopFriction ?? 0.82);
-    el<HTMLSpanElement>('lbl-stopfriction').textContent = Number(s.stopFriction ?? 0.82).toFixed(2);
-    el<HTMLInputElement>('set-surfacefriction').value = String(s.surfaceFriction ?? 0.974);
-    el<HTMLSpanElement>('lbl-surfacefriction').textContent = Number(s.surfaceFriction ?? 0.974).toFixed(3);
     this.roomBotDiff.value = s.botDifficulty;
     this.roomStadium.value = s.stadium;
     el<HTMLSelectElement>('select-lang').value = s.lang || 'tr';
