@@ -1417,7 +1417,6 @@ body:not(.in-room) {
   border-radius: 50%;
   background: rgba(15, 23, 42, 0.25);
   border: 2px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(2px);
   pointer-events: auto;
   touch-action: none;
   display: flex;
@@ -1515,7 +1514,6 @@ body.is-mobile .mobile-controls,
   line-height: 1.2;
   white-space: nowrap;
   cursor: pointer;
-  backdrop-filter: blur(4px);
 }
 
 .stage-toggle-btn.off {
