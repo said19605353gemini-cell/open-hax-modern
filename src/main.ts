@@ -717,6 +717,22 @@ class OpenHaxApp {
         });
       }
     });
+    const stageMenuBtn = document.getElementById('btn-stage-menu-dropdown');
+    const stageMenuList = document.getElementById('stage-menu-list');
+    if (stageMenuBtn && stageMenuList) {
+      stageMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = stageMenuList.classList.toggle('hidden');
+        stageMenuBtn.textContent = isHidden ? '☰ Menü ▾' : '☰ Menü ▴';
+      });
+      document.addEventListener('click', (e) => {
+        if (!stageMenuList.classList.contains('hidden') && !stageMenuList.contains(e.target as Node) && e.target !== stageMenuBtn) {
+          stageMenuList.classList.add('hidden');
+          stageMenuBtn.textContent = '☰ Menü ▾';
+        }
+      });
+    }
+
     const toggleFsBtn = document.getElementById('btn-toggle-fullscreen');
     const toggleFocusBtn = document.getElementById('btn-toggle-focus');
     const toggleTopBtn = document.getElementById('btn-toggle-topmenu');

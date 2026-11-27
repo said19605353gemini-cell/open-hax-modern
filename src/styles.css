@@ -1496,12 +1496,32 @@ body.is-mobile .mobile-controls,
   top: 8px;
   right: 8px;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-end;
   gap: 4px;
-  max-width: calc(100% - 16px);
   z-index: 30;
+}
+
+.stage-menu-list {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  padding: 5px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  min-width: 118px;
+}
+
+.stage-menu-list.hidden {
+  display: none !important;
+}
+
+.stage-menu-list .stage-toggle-btn {
+  text-align: left;
+  width: 100%;
 }
 
 .stage-toggle-btn {

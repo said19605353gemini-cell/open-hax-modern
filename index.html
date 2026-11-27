@@ -628,13 +628,16 @@
       </div>
       <div id="fps-hud" class="fps-hud">60 FPS | 16.7 ms | CPU 0.0 ms</div>
       <div class="stage-quick-toggles">
-        <button type="button" id="btn-open-voice-modal" class="stage-toggle-btn" title="Ses ve Mikrofon Ayarları Menüsü">🎙️ Ses Menüsü</button>
-        <button type="button" id="btn-toggle-mic" class="stage-toggle-btn" title="Mikrofon Aç/Kapat">🎙️ Mic: Kapalı</button>
-        <button type="button" id="btn-toggle-sound" class="stage-toggle-btn" title="Sesi Aç/Kapat">🔊 Ses</button>
-        <button type="button" id="btn-toggle-fullscreen" class="stage-toggle-btn" title="Tarayıcıyı Tam Ekran Yap (F11)">⛶ Tam Ekran</button>
-        <button type="button" id="btn-toggle-focus" class="stage-toggle-btn" title="Tam Ekran / Odak Modu">👁️ Odak</button>
-        <button type="button" id="btn-toggle-topmenu" class="stage-toggle-btn" title="Üst Menüyü Aç/Kapat">☰ Menü</button>
-        <button type="button" id="btn-toggle-chat" class="stage-toggle-btn" title="Chat Ekranını Aç/Kapat">💬 Chat</button>
+        <button type="button" id="btn-stage-menu-dropdown" class="stage-toggle-btn" title="Hızlı Kontroller">☰ Menü ▾</button>
+        <div id="stage-menu-list" class="stage-menu-list hidden">
+          <button type="button" id="btn-open-voice-modal" class="stage-toggle-btn" title="Ses ve Mikrofon Ayarları Menüsü">🎙️ Ses Menüsü</button>
+          <button type="button" id="btn-toggle-mic" class="stage-toggle-btn" title="Mikrofon Aç/Kapat">🎙️ Mic: Kapalı</button>
+          <button type="button" id="btn-toggle-sound" class="stage-toggle-btn" title="Sesi Aç/Kapat">🔊 Ses</button>
+          <button type="button" id="btn-toggle-fullscreen" class="stage-toggle-btn" title="Tarayıcıyı Tam Ekran Yap (F11)">⛶ Tam Ekran</button>
+          <button type="button" id="btn-toggle-focus" class="stage-toggle-btn" title="Tam Ekran / Odak Modu">👁️ Odak</button>
+          <button type="button" id="btn-toggle-topmenu" class="stage-toggle-btn" title="Üst Barı Aç/Kapat">⬆️ Üst Bar</button>
+          <button type="button" id="btn-toggle-chat" class="stage-toggle-btn" title="Chat Ekranını Aç/Kapat">💬 Chat</button>
+        </div>
       </div>
       <div id="goal-banner" class="overlay-banner hidden"></div>
       <div id="pause-banner" class="overlay-banner pause hidden">
