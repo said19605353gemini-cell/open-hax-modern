@@ -908,22 +908,30 @@
           <label class="row">
             <span>Fizik Profili</span>
             <select id="set-physics">
-              <option value="openhax" selected>Klasik (open-hax)</option>
-              <option value="classic_hax">HaxBall Klasik (Çevik)</option>
-              <option value="classic_hax_v2">Klasik Haxball v2 (Turnuva)</option>
-              <option value="pro_control">Pro Kontrol / Pas</option>
-              <option value="pro_control_v2">Pro Kontrol v2 (Dribbling)</option>
-              <option value="pro_control_v3">Pro Kontrol v3 (Ultra Hassas)</option>
-              <option value="futsal">Futsal / Salon</option>
-              <option value="big_arena">Büyük Saha (4v4)</option>
-              <option value="turbo">Hızlı Arcade</option>
-              <option value="turbo_v2">Hızlı Arcade v2 (Ekstrem)</option>
-              <option value="low_gravity">Düşük Sürtünme (Kayan)</option>
-              <option value="real_soccer">Gerçekçi Futbol</option>
-              <option value="real_soccer_v2">Gerçekçi Futbol v2 (Pro)</option>
-              <option value="ice_hockey">Buz Hokeyi (Çok Kayan)</option>
-              <option value="pinball">Pinball (Süper Sekme)</option>
-              <option value="heavy_tank">Ağır Tank (Sert Çarpışma)</option>
+              <optgroup label="🏆 Klasik & Turnuva">
+                <option value="openhax" selected>Klasik (open-hax)</option>
+                <option value="classic_hax">HaxBall Klasik (Çevik)</option>
+                <option value="classic_hax_v2">Klasik Haxball v2 (Turnuva)</option>
+              </optgroup>
+              <optgroup label="🎯 Pro Kontrol & Pas">
+                <option value="pro_control">Pro Kontrol / Pas</option>
+                <option value="pro_control_v2">Pro Kontrol v2 (Dribbling)</option>
+                <option value="pro_control_v3">Pro Kontrol v3 (Ultra Hassas)</option>
+              </optgroup>
+              <optgroup label="⚽ Saha & Gerçekçi">
+                <option value="futsal">Futsal / Salon</option>
+                <option value="big_arena">Büyük Saha (4v4)</option>
+                <option value="real_soccer">Gerçekçi Futbol</option>
+                <option value="real_soccer_v2">Gerçekçi Futbol v2 (Pro)</option>
+              </optgroup>
+              <optgroup label="⚡ Eğlence & Arcade">
+                <option value="turbo">Hızlı Arcade</option>
+                <option value="turbo_v2">Hızlı Arcade v2 (Ekstrem)</option>
+                <option value="low_gravity">Düşük Sürtünme (Kayan)</option>
+                <option value="ice_hockey">Buz Hokeyi (Çok Kayan)</option>
+                <option value="pinball">Pinball (Süper Sekme)</option>
+                <option value="heavy_tank">Ağır Tank (Sert Çarpışma)</option>
+              </optgroup>
             </select>
           </label>
 
@@ -967,7 +975,8 @@
                 class="hax-txt-in" style="width:68px;" title="Elle Oda FPS gir (0 = Sınırsız)" />
             </div>
           </label>
-          <div class="hidden">
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.12);">
+            <div style="font-size:12px;font-weight:700;color:#9fd3ff;margin-bottom:6px;">🎛️ İnce Ayarlar (Özel Fizik)</div>
           <label class="row">
             <span>Top Tutuşu (<span id="lbl-ballctrl">90%</span>)</span>
             <input type="range" id="set-ballctrl" min="20" max="100" step="2" />
