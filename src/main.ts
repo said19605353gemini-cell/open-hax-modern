@@ -887,6 +887,7 @@ class OpenHaxApp {
       el<HTMLSelectElement>('teams-botdiff').value = this.settings.botDifficulty;
       el<HTMLButtonElement>('btn-teams-lock').textContent = this.teamsLocked ? '🔒 Takım Kilitli' : '🔓 Takım Kilitle';
       el<HTMLButtonElement>('btn-teams-roomlock').textContent = this.roomEntryLocked ? '🔒 Oda Giriş: Kilitli' : '🚪 Oda Giriş: Açık';
+      el<HTMLButtonElement>('btn-teams-password').textContent = this.currentRoomPassword ? '🔑 Şifre: Var' : '🔑 Şifre: Yok';
       for (const p of this.players) {
         const row = document.createElement('div');
         row.className = 'team-player-row';
