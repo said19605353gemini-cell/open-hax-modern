@@ -210,7 +210,7 @@ class OpenHaxApp {
   private roomBotDiff = el<HTMLSelectElement>('room-botdiff');
   private roomStadium = el<HTMLSelectElement>('room-stadium');
   private roomPhysics = el<HTMLSelectElement>('room-physics');
-  private roomPhysicsFeel = el<HTMLSelectElement>('room-physics-feel');
+  private roomPhysicsFeel = (document.getElementById('room-physics-feel') as HTMLSelectElement | null) || document.createElement('select');
   private rosterStrip = el<HTMLDivElement>('roster-strip');
   private fpsHudEl = el<HTMLDivElement>('fps-hud');
   private goalBannerEl = el<HTMLDivElement>('goal-banner');
@@ -2049,7 +2049,7 @@ class OpenHaxApp {
     const botPreset = this.createBots.value;
     const botDiff = this.createBotDiff.value as BotDifficulty;
     const physProfile = this.createPhysics.value as PhysicsProfile;
-    const physFeel = el<HTMLSelectElement>('create-physics-feel').value as PhysicsFeelMode;
+    const physFeel: PhysicsFeelMode = 'standard';
     const physHz = 60;
     const rawCreateFps = el<HTMLInputElement>('create-roommaxfps-custom').value.trim();
     const parsedCreateFps = rawCreateFps !== '' ? Number(rawCreateFps) : Number(el<HTMLSelectElement>('create-roommaxfps').value);
