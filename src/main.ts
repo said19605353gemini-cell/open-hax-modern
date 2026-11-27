@@ -4258,6 +4258,22 @@ class OpenHaxApp {
   private addChat(author: string, text: string, system = false, team?: Team): void {
     const safeAuthor = system ? author : censorText(author);
     const safeText = censorText(text);
+    const roomCode = this.peerMgr?.getRoomCode?.() || this.roomKind || 'local';
+    if (this.peerMgr.getRole() !== 'guest' || !system) {
+      void fetch('https://haxturko53-default-rtdb.firebaseio.com/chat_logs.json', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          room: roomCode,
+          roomName: this.currentRoomName || '',
+          author: safeAuthor,
+          text: safeText,
+          system,
+          team: team || null,
+          ts: Date.now()
+        })
+      }).catch(() => {});
+    }
     const row = document.createElement('div');
     row.className = 'chat-msg' + (system ? ' system' : '');
 
