@@ -780,21 +780,20 @@ class OpenHaxApp {
     if (!joy || !knob || !kickBtn) return;
 
     let joyTouchId: number | null = null;
+    let cachedJoyCx = 0;
+    let cachedJoyCy = 0;
     const maxRadius = 36;
     const deadZone = 10;
 
     const updateJoystick = (clientX: number, clientY: number) => {
-      const rect = joy.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      let dx = clientX - cx;
-      let dy = clientY - cy;
+      let dx = clientX - cachedJoyCx;
+      let dy = clientY - cachedJoyCy;
       const dist = Math.hypot(dx, dy);
       if (dist > maxRadius) {
         dx = (dx / dist) * maxRadius;
         dy = (dy / dist) * maxRadius;
       }
-      knob.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
+      knob.style.transform = `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 0)`;
       // INPUT_UP=1, INPUT_DOWN=2, INPUT_LEFT=4, INPUT_RIGHT=8
       this.input.setVirtualFlag(1, dy < -deadZone);
       this.input.setVirtualFlag(2, dy > deadZone);
@@ -804,7 +803,7 @@ class OpenHaxApp {
 
     const resetJoystick = () => {
       joyTouchId = null;
-      knob.style.transform = 'translate(0px, 0px)';
+      knob.style.transform = 'translate3d(0px, 0px, 0)';
       this.input.setVirtualFlag(1, false);
       this.input.setVirtualFlag(2, false);
       this.input.setVirtualFlag(4, false);
@@ -814,6 +813,9 @@ class OpenHaxApp {
     joy.addEventListener('touchstart', (e) => {
       e.preventDefault();
       if (joyTouchId === null && e.changedTouches.length > 0) {
+        const rect = joy.getBoundingClientRect();
+        cachedJoyCx = rect.left + rect.width / 2;
+        cachedJoyCy = rect.top + rect.height / 2;
         const t = e.changedTouches[0];
         joyTouchId = t.identifier;
         updateJoystick(t.clientX, t.clientY);
