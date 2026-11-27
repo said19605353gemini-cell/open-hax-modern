@@ -1538,6 +1538,46 @@ body.is-mobile .mobile-controls,
   flex-shrink: 0;
 }
 
+body.in-room #btn-topbar-actions-toggle {
+  pointer-events: auto;
+  background: #243746;
+  border-color: rgba(255, 255, 255, 0.22);
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+body.in-room .topbar-actions {
+  display: none !important;
+}
+
+body.in-room.topbar-actions-open .topbar-actions {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  position: fixed !important;
+  top: 44px !important;
+  right: 10px !important;
+  background: rgba(15, 23, 42, 0.96) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  border-radius: 10px !important;
+  padding: 8px !important;
+  gap: 5px !important;
+  min-width: 200px !important;
+  max-height: 80dvh !important;
+  overflow-y: auto !important;
+  z-index: 80 !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55) !important;
+  pointer-events: auto !important;
+}
+
+body.in-room.topbar-actions-open .topbar-actions .btn,
+body.in-room.topbar-actions-open .topbar-actions select {
+  width: 100% !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+}
+
 .lobby-tab-bar {
   display: flex;
   flex-wrap: wrap;

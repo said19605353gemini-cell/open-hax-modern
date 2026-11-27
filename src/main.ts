@@ -613,7 +613,11 @@ class OpenHaxApp {
 
     const inRoom = screen === 'room';
     document.body.classList.toggle('in-room', inRoom);
-    if (!inRoom) document.body.classList.remove('show-roombars');
+    if (!inRoom) {
+      document.body.classList.remove('show-roombars');
+      document.body.classList.remove('topbar-actions-open');
+    }
+    document.getElementById('btn-topbar-actions-toggle')?.classList.toggle('hidden', !inRoom);
     this.topbarBrand.classList.toggle('hidden', inRoom);
     this.topbarScore.classList.toggle('hidden', !inRoom);
     this.btnPause.classList.toggle('hidden', !inRoom);
@@ -780,6 +784,26 @@ class OpenHaxApp {
         });
       }
     });
+    const topbarActionsToggle = document.getElementById('btn-topbar-actions-toggle');
+    const topbarActionsEl = document.querySelector<HTMLElement>('.topbar-actions');
+    if (topbarActionsToggle && topbarActionsEl) {
+      topbarActionsToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = document.body.classList.toggle('topbar-actions-open');
+        topbarActionsToggle.textContent = isOpen ? '⚙️ Araçlar ▴' : '⚙️ Araçlar ▾';
+      });
+      document.addEventListener('click', (e) => {
+        if (
+          document.body.classList.contains('topbar-actions-open') &&
+          !topbarActionsEl.contains(e.target as Node) &&
+          e.target !== topbarActionsToggle
+        ) {
+          document.body.classList.remove('topbar-actions-open');
+          topbarActionsToggle.textContent = '⚙️ Araçlar ▾';
+        }
+      });
+    }
+
     const stageMenuBtn = document.getElementById('btn-stage-menu-dropdown');
     const stageMenuList = document.getElementById('stage-menu-list');
     if (stageMenuBtn && stageMenuList) {
