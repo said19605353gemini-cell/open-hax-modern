@@ -22,6 +22,13 @@ Modern, tarayıcı tabanlı çok oyunculu 2D futbol (**HaxBall** tarzı) oyunu. 
 Hem doğrudan **GitHub Pages** üzerinde Firebase desteğiyle, hem de **PHP web hosting** üzerinde sunucu oda listesiyle çalışır.
 
 ### ✨ Öne Çıkan Özellikler
+- **📱 Tam Mobil Desteği & Dokunmatik Kontroller (YENİ):**
+  - Akıllı telefon ve tabletlerde otomatik açılan yarı saydam **Sanal Joystick** ve **ŞUT** butonu (aynı anda hareket + şut için çoklu dokunma / multi-touch).
+  - Mobil ekranlar ve yönler (dikey/yatay) için tam responsive arayüz (üst menü, lobi, sohbet ve ayarlar otomatik ölçeklenir).
+  - Tek dokunuşla çalışan **⛶ Tam Ekran** (F11 modu), **👁️ Odak Modu** (üst menü ve sohbeti gizleyip sahayı ekrana yayma), **☰ Menü** ve **💬 Chat** açıp-kapama butonları.
+- **⚡ VSync Kilitsiz Yüksek Hızlı Oyun Motoru & Ortak FPS:**
+  - Tarayıcının 60Hz VSync sınırlamasına bağlı kalmadan `MessageChannel` ve yüksek hassasiyetli zamanlayıcı ile çalışan oyun döngüsü.
+  - Odaya giren herkes için ortak **Oda FPS Sınırı** (`60`, `75`, `100`, `120`, `144`, `240 FPS` veya `Sınırsız`) — fizik motoru tick hızı ile ekran tazelemesi kusursuz senkronize olur, dalgalanma yapmaz.
 - **36 Dil & 195+ Ülke SVG Bayrak Desteği:** Tarayıcı dilini/ülkesini otomatik algılar; tüm arayüzde `flag-icons` ile yüksek çözünürlüklü vektörel SVG bayraklar ve arama özellikli dil/ülke seçicileri sunar.
 - **Canlı Genel Sohbet & Liderlik Tablosu:** Giriş ekranında ve lobi (odalar/sunucular) ekranının sol tarafında anlık **Genel Sohbet**, **⚽ Gol Kralları**, **⏱️ En Çok Süre Geçirenler** ve süre rozetleri yer alır.
 - **Özel Güç Modları (Power-Ups):** Oda kurarken veya maç içinde seçilebilir/kapatılabilir modlar: 🦅 Şahin Vuruşu, 🔥 Alevli Şut, ⚡ Hızlı Koşu (Turbo), 🧲 Mıknatıs, 🛡️ Dev Oyuncu, 🌟 Hepsi.
