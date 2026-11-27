@@ -618,8 +618,15 @@ class OpenHaxApp {
     const joy = document.getElementById('mobile-joystick');
     const knob = document.getElementById('mobile-joystick-knob');
     const kickBtn = document.getElementById('mobile-kick-btn');
+    const toggleFocusBtn = document.getElementById('btn-toggle-focus');
     const toggleTopBtn = document.getElementById('btn-toggle-topmenu');
     const toggleChatBtn = document.getElementById('btn-toggle-chat');
+    if (toggleFocusBtn) {
+      toggleFocusBtn.addEventListener('click', () => {
+        const active = document.body.classList.toggle('focus-mode');
+        toggleFocusBtn.classList.toggle('off', active);
+      });
+    }
     if (toggleTopBtn) {
       toggleTopBtn.addEventListener('click', () => {
         const hidden = document.body.classList.toggle('hide-room-top');
