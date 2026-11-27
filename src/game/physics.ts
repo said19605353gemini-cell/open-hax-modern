@@ -293,14 +293,14 @@ function getProfileParams(profile: PhysicsProfile): PhysicsParams {
       playerDamping: 0.96,
       ballDamping: 0.99,
       playerPlayerRestitution: 0.5,
-      playerBallRestitution: 0.35,
+      playerBallRestitution: 0.5,
       playerWorldRestitution: 0.0,
       ballWorldRestitution: 0.8,
-      accel: 0.175,
-      kickAccel: 0.12,
-      kickImpulse: 5.8,
-      maxPlayerSpeed: 4.1,
-      maxBallSpeed: 11.2
+      accel: 0.1,
+      kickAccel: 0.07,
+      kickImpulse: 5.0,
+      maxPlayerSpeed: 2.5,
+      maxBallSpeed: 10.5
     };
   }
   // 'openhax' (default): faithfully matches open-hax-master (1) mass, damping, restitution & max speed
