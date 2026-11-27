@@ -1090,7 +1090,7 @@ class OpenHaxApp {
     const globalChatIn = el<HTMLInputElement>('global-chat-input');
     const lobbyGlobalChatBox = el<HTMLDivElement>('lobby-global-chat-box');
     const lobbyGlobalChatIn = el<HTMLInputElement>('lobby-global-chat-input');
-    const GLOBAL_CHAT_URL = 'https://haxturko-default-rtdb.europe-west1.firebasedatabase.app/global_chat.json';
+    const GLOBAL_CHAT_URL = 'https://haxturko53-default-rtdb.firebaseio.com/global_chat.json';
     let lastGlobalSend = 0;
 
     const renderChatRows = (box: HTMLDivElement, rows: Array<{ author: string; text: string; country?: string; badge?: string; ts?: number }>) => {
@@ -2099,11 +2099,17 @@ class OpenHaxApp {
 
     this.myProfile = res.profile;
     this.authError.classList.add('hidden');
-    this.updateSettings({
-      nickname: res.profile.username,
-      avatar,
-      country
-    });
+    const remoteSettings = (res.profile as unknown as { settings?: Partial<GameSettings> }).settings;
+    if (remoteSettings && typeof remoteSettings === 'object') {
+      this.updateSettings({ ...remoteSettings, nickname: res.profile.username, avatar, country });
+      this.syncSettingsToUI();
+    } else {
+      this.updateSettings({
+        nickname: res.profile.username,
+        avatar,
+        country
+      });
+    }
 
     if (this.pendingInviteCode) {
       const code = this.pendingInviteCode;
