@@ -1221,6 +1221,8 @@ class OpenHaxApp {
       el<HTMLSelectElement>('teams-botdiff').value = this.settings.botDifficulty;
       el<HTMLButtonElement>('btn-teams-lock').textContent = this.teamsLocked ? '🔒 Takım Kilitli' : '🔓 Takım Kilitle';
       el<HTMLButtonElement>('btn-teams-roomlock').textContent = this.roomEntryLocked ? '🔒 Oda Giriş: Kilitli' : '🚪 Oda Giriş: Açık';
+      const mobLockBtn = document.getElementById('btn-teams-mobilelock') as HTMLButtonElement | null;
+      if (mobLockBtn) mobLockBtn.textContent = this.roomMobileOnly ? '📱 Sadece Mobil: Açık' : '📱 Sadece Mobil: Kapalı';
       el<HTMLButtonElement>('btn-teams-password').textContent = this.currentRoomPassword ? '🔑 Şifre: Var' : '🔑 Şifre: Yok';
       for (const p of this.players) {
         const row = document.createElement('div');
@@ -1325,6 +1327,11 @@ class OpenHaxApp {
     el<HTMLButtonElement>('btn-teams-roomlock').addEventListener('click', () => {
       if (!this.isMeAdmin()) return;
       this.dispatchAdminAction('toggle_roomlock');
+      setTimeout(renderTeamsModal, 60);
+    });
+    document.getElementById('btn-teams-mobilelock')?.addEventListener('click', () => {
+      if (!this.isMeAdmin()) return;
+      this.dispatchAdminAction('toggle_mobileonly');
       setTimeout(renderTeamsModal, 60);
     });
     el<HTMLButtonElement>('btn-teams-password').addEventListener('click', () => {
@@ -2238,6 +2245,7 @@ class OpenHaxApp {
     const filtered = this.roomsCache.filter((r) => {
       if (accessFilter === 'open' && r.hasPassword) return false;
       if (accessFilter === 'locked' && !r.hasPassword) return false;
+      if (accessFilter === 'mobile_only' && !r.mobileOnly) return false;
       if (accessFilter === 'has_players' && r.players <= 0) return false;
       if (accessFilter === 'not_full' && r.players >= r.maxPlayers) return false;
       if (stadiumFilter !== 'all' && r.stadium !== stadiumFilter) return false;
@@ -2819,7 +2827,7 @@ class OpenHaxApp {
       const chip = document.createElement('span');
       chip.className = 'roster-chip ' + p.team + (p.isAdmin ? ' admin' : '');
       const pingSuffix = !p.isBot && typeof p.ping === 'number' ? ' (' + p.ping + 'ms)' : '';
-      const mobIcon = p.isMobile ? ' 📱' : '';
+      const mobIcon = p.isBot ? '' : (p.isMobile ? ' 📱' : ' 💻');
       const restText = (p.isAdmin ? '★ ' : '') + (p.isBot ? '[BOT] ' : '') + p.name + mobIcon + pingSuffix;
       if (p.isBot) {
         chip.textContent = '🤖 ' + restText;
@@ -2925,6 +2933,15 @@ class OpenHaxApp {
     } else if (cmd === 'toggle_roomlock') {
       this.roomEntryLocked = !this.roomEntryLocked;
       const msg = this.roomEntryLocked ? '🔒 Oda yeni oyunculara kilitlendi.' : '🔓 Oda yeni oyunculara açıldı.';
+      this.addChat('Sistem', msg, true);
+      this.peerMgr.broadcastChat('Sistem', msg, undefined);
+      this.updateRoomUI();
+    } else if (cmd === 'toggle_mobileonly') {
+      this.roomMobileOnly = !this.roomMobileOnly;
+      if (this.roomMobileBadge) {
+        this.roomMobileBadge.classList.toggle('hidden', !this.roomMobileOnly);
+      }
+      const msg = this.roomMobileOnly ? '📱 Oda artık sadece mobil cihazlara açık!' : '💻 Oda artık tüm cihazlara (PC + Mobil) açık.';
       this.addChat('Sistem', msg, true);
       this.peerMgr.broadcastChat('Sistem', msg, undefined);
       this.updateRoomUI();
