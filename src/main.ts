@@ -608,6 +608,13 @@ class OpenHaxApp {
   }
 
   private bindMobileControls(): void {
+    const syncMobileClass = () => {
+      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth <= 1024;
+      document.body.classList.toggle('is-mobile', isTouch);
+    };
+    syncMobileClass();
+    window.addEventListener('resize', syncMobileClass);
+
     const joy = document.getElementById('mobile-joystick');
     const knob = document.getElementById('mobile-joystick-knob');
     const kickBtn = document.getElementById('mobile-kick-btn');

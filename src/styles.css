@@ -1462,7 +1462,12 @@ body:not(.in-room) {
   background: radial-gradient(circle at 35% 35%, rgba(248, 113, 113, 0.95), rgba(220, 38, 38, 0.95));
 }
 
-@media (pointer: coarse), (max-width: 900px) {
+body.is-mobile .mobile-controls,
+.mobile-controls.visible {
+  display: block;
+}
+
+@media (pointer: coarse), (max-width: 1024px) {
   .mobile-controls {
     display: block;
   }
