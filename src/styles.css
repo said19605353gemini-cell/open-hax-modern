@@ -1539,6 +1539,43 @@ body.is-mobile .mobile-controls,
 }
 
 @media (max-width: 768px), (pointer: coarse) {
+  body:not(.in-room) .topbar {
+    position: relative !important;
+    height: auto !important;
+  }
+
+  body:not(.in-room) .screen {
+    padding-top: 8px !important;
+  }
+
+  .card,
+  .auth-card,
+  .auth-leaders-card,
+  .lobby-create-card,
+  .lobby-list-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .field-row,
+  .leaders-split {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .field,
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
   body.in-room .topbar {
     height: auto !important;
     min-height: 40px;

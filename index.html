@@ -3,7 +3,8 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>OpenHax Modern - Haxball</title>
   <link rel="icon" type="image/png" href="./favicon.png" />
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -120,7 +121,8 @@
                 <tbody id="auth-top-goals"></tbody>
               </table>
             </div>
-            <div id="auth-goals-pager" class="pager-bar" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;"></div>
+            <div id="auth-goals-pager" class="pager-bar" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">
+            </div>
           </div>
           <div>
             <h3>⏱️ En Çok Süre Geçirenler</h3>
@@ -137,7 +139,8 @@
                 <tbody id="auth-top-time"></tbody>
               </table>
             </div>
-            <div id="auth-time-pager" class="pager-bar" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;"></div>
+            <div id="auth-time-pager" class="pager-bar" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">
+            </div>
           </div>
         </div>
       </div>
@@ -524,7 +527,8 @@
       <div class="room-meta">
         <strong id="room-title-label">OpenHax Oda</strong>
         <span id="room-code-badge" class="net-badge hidden"></span>
-        <span id="room-mobile-badge" class="net-badge hidden" style="background:#0284c7;color:#fff;">📱 Sadece Mobil</span>
+        <span id="room-mobile-badge" class="net-badge hidden" style="background:#0284c7;color:#fff;">📱 Sadece
+          Mobil</span>
         <span id="net-status" class="net-badge">Yerel</span>
         <span class="net-badge" title="Speedhack, F12 ve sahte girdi koruması aktif">🛡️ Güvenli Mod</span>
         <button type="button" id="btn-copy-link" class="btn hidden">Davet Linki Kopyala</button>
@@ -631,15 +635,22 @@
       </div>
       <div id="fps-hud" class="fps-hud">60 FPS | 16.7 ms | CPU 0.0 ms</div>
       <div class="stage-quick-toggles">
-        <button type="button" id="btn-stage-menu-dropdown" class="stage-toggle-btn" title="Hızlı Kontroller">☰ Menü ▾</button>
+        <button type="button" id="btn-stage-menu-dropdown" class="stage-toggle-btn" title="Hızlı Kontroller">☰ Menü
+          ▾</button>
         <div id="stage-menu-list" class="stage-menu-list hidden">
-          <button type="button" id="btn-open-voice-modal" class="stage-toggle-btn" title="Ses ve Mikrofon Ayarları Menüsü">🎙️ Ses Menüsü</button>
-          <button type="button" id="btn-toggle-mic" class="stage-toggle-btn" title="Mikrofon Aç/Kapat">🎙️ Mic: Kapalı</button>
+          <button type="button" id="btn-open-voice-modal" class="stage-toggle-btn"
+            title="Ses ve Mikrofon Ayarları Menüsü">🎙️ Ses Menüsü</button>
+          <button type="button" id="btn-toggle-mic" class="stage-toggle-btn" title="Mikrofon Aç/Kapat">🎙️ Mic:
+            Kapalı</button>
           <button type="button" id="btn-toggle-sound" class="stage-toggle-btn" title="Sesi Aç/Kapat">🔊 Ses</button>
-          <button type="button" id="btn-toggle-fullscreen" class="stage-toggle-btn" title="Tarayıcıyı Tam Ekran Yap (F11)">⛶ Tam Ekran</button>
-          <button type="button" id="btn-toggle-focus" class="stage-toggle-btn" title="Tam Ekran / Odak Modu">👁️ Odak</button>
-          <button type="button" id="btn-toggle-topmenu" class="stage-toggle-btn" title="Üst Barı Aç/Kapat">⬆️ Üst Bar</button>
-          <button type="button" id="btn-toggle-chat" class="stage-toggle-btn" title="Chat Ekranını Aç/Kapat">💬 Chat</button>
+          <button type="button" id="btn-toggle-fullscreen" class="stage-toggle-btn"
+            title="Tarayıcıyı Tam Ekran Yap (F11)">⛶ Tam Ekran</button>
+          <button type="button" id="btn-toggle-focus" class="stage-toggle-btn" title="Tam Ekran / Odak Modu">👁️
+            Odak</button>
+          <button type="button" id="btn-toggle-topmenu" class="stage-toggle-btn" title="Üst Barı Aç/Kapat">⬆️ Üst
+            Bar</button>
+          <button type="button" id="btn-toggle-chat" class="stage-toggle-btn" title="Chat Ekranını Aç/Kapat">💬
+            Chat</button>
         </div>
       </div>
       <div id="goal-banner" class="overlay-banner hidden"></div>
@@ -1009,13 +1020,15 @@
       <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;padding:16px;">
         <label class="field" style="display:flex;flex-direction:column;gap:6px;">
           <span>Mikrofon Durumu:</span>
-          <button type="button" id="btn-modal-mic-toggle" class="btn" style="padding:10px;font-size:14px;font-weight:700;">
+          <button type="button" id="btn-modal-mic-toggle" class="btn"
+            style="padding:10px;font-size:14px;font-weight:700;">
             🎙️ Mikrofonu Aç
           </button>
         </label>
         <label class="field" style="display:flex;flex-direction:column;gap:6px;">
           <span>Ses İletim Hedefi:</span>
-          <select id="modal-mic-scope" style="padding:8px;font-size:13px;background:#1e293b;color:#fff;border:1px solid #475569;border-radius:6px;">
+          <select id="modal-mic-scope"
+            style="padding:8px;font-size:13px;background:#1e293b;color:#fff;border:1px solid #475569;border-radius:6px;">
             <option value="all" selected>🗣️ Herkes Duysun (Tüm Oda)</option>
             <option value="team">🛡️ Sadece Takım Arkadaşlarım Duysun</option>
             <option value="off">🔇 Mikrofon Kapalı (Sessiz)</option>
@@ -1025,8 +1038,10 @@
           <span>Mikrofon Giriş Ses Seviyesi:</span>
           <input type="range" id="modal-mic-vol" min="0" max="100" value="100" />
         </label>
-        <div style="font-size:12px;color:#94a3b8;line-height:1.4;background:rgba(0,0,0,0.2);padding:10px;border-radius:6px;">
-          ℹ️ <b>Takım Modu:</b> Sesiniz sadece sizinle aynı renkteki (Kırmızı/Mavi) takım arkadaşlarınıza iletilir; rakip takım veya izleyiciler konuşmanızı duyamaz.
+        <div
+          style="font-size:12px;color:#94a3b8;line-height:1.4;background:rgba(0,0,0,0.2);padding:10px;border-radius:6px;">
+          ℹ️ <b>Takım Modu:</b> Sesiniz sadece sizinle aynı renkteki (Kırmızı/Mavi) takım arkadaşlarınıza iletilir;
+          rakip takım veya izleyiciler konuşmanızı duyamaz.
         </div>
       </div>
     </div>
