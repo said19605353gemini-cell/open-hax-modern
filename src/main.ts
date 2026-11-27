@@ -607,10 +607,95 @@ class OpenHaxApp {
     }
   }
 
+  private bindMobileControls(): void {
+    const joy = document.getElementById('mobile-joystick');
+    const knob = document.getElementById('mobile-joystick-knob');
+    const kickBtn = document.getElementById('mobile-kick-btn');
+    if (!joy || !knob || !kickBtn) return;
+
+    let joyTouchId: number | null = null;
+    const maxRadius = 36;
+    const deadZone = 10;
+
+    const updateJoystick = (clientX: number, clientY: number) => {
+      const rect = joy.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      let dx = clientX - cx;
+      let dy = clientY - cy;
+      const dist = Math.hypot(dx, dy);
+      if (dist > maxRadius) {
+        dx = (dx / dist) * maxRadius;
+        dy = (dy / dist) * maxRadius;
+      }
+      knob.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
+      // INPUT_UP=1, INPUT_DOWN=2, INPUT_LEFT=4, INPUT_RIGHT=8
+      this.input.setVirtualFlag(1, dy < -deadZone);
+      this.input.setVirtualFlag(2, dy > deadZone);
+      this.input.setVirtualFlag(4, dx < -deadZone);
+      this.input.setVirtualFlag(8, dx > deadZone);
+    };
+
+    const resetJoystick = () => {
+      joyTouchId = null;
+      knob.style.transform = 'translate(0px, 0px)';
+      this.input.setVirtualFlag(1, false);
+      this.input.setVirtualFlag(2, false);
+      this.input.setVirtualFlag(4, false);
+      this.input.setVirtualFlag(8, false);
+    };
+
+    joy.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      if (joyTouchId === null && e.changedTouches.length > 0) {
+        const t = e.changedTouches[0];
+        joyTouchId = t.identifier;
+        updateJoystick(t.clientX, t.clientY);
+      }
+    }, { passive: false });
+
+    joy.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const t = e.changedTouches[i];
+        if (t.identifier === joyTouchId) {
+          updateJoystick(t.clientX, t.clientY);
+          break;
+        }
+      }
+    }, { passive: false });
+
+    const onJoyEnd = (e: TouchEvent) => {
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === joyTouchId) {
+          resetJoystick();
+          break;
+        }
+      }
+    };
+    joy.addEventListener('touchend', onJoyEnd, { passive: false });
+    joy.addEventListener('touchcancel', onJoyEnd, { passive: false });
+
+    kickBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      kickBtn.classList.add('active');
+      this.input.setVirtualFlag(16, true); // INPUT_KICK=16
+    }, { passive: false });
+
+    const onKickEnd = (e: TouchEvent) => {
+      e.preventDefault();
+      kickBtn.classList.remove('active');
+      this.input.setVirtualFlag(16, false);
+    };
+    kickBtn.addEventListener('touchend', onKickEnd, { passive: false });
+    kickBtn.addEventListener('touchcancel', onKickEnd, { passive: false });
+  }
+
   private bindUI(): void {
     const unlockAudio = () => this.audio.unlockAndPreload();
     window.addEventListener('pointerdown', unlockAudio, { once: true });
     window.addEventListener('keydown', unlockAudio, { once: true });
+    this.bindMobileControls();
 
     window.addEventListener('keydown', (e) => {
       const active = document.activeElement;

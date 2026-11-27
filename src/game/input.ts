@@ -31,6 +31,7 @@ function isEditable(el: EventTarget | null): boolean {
 
 export class InputController {
   private keys = new Set<string>();
+  private virtualBits = 0;
   private attached = false;
 
   attach(): void {
@@ -52,6 +53,16 @@ export class InputController {
 
   clear(): void {
     this.keys.clear();
+    this.virtualBits = 0;
+  }
+
+  setVirtualBits(bits: number): void {
+    this.virtualBits = bits;
+  }
+
+  setVirtualFlag(flag: number, active: boolean): void {
+    if (active) this.virtualBits |= flag;
+    else this.virtualBits &= ~flag;
   }
 
   private onKeyDown = (e: KeyboardEvent): void => {
@@ -94,7 +105,7 @@ export class InputController {
     ) {
       bits |= INPUT_KICK;
     }
-    return bits;
+    return bits | this.virtualBits;
   }
 
   getLocalP1WasdBits(): number {
@@ -106,7 +117,7 @@ export class InputController {
     if (this.keys.has('Space') || this.keys.has('KeyV') || this.keys.has('KeyF')) {
       bits |= INPUT_KICK;
     }
-    return bits;
+    return bits | this.virtualBits;
   }
 
   getLocalP2ArrowBits(): number {
@@ -118,6 +129,6 @@ export class InputController {
     if (this.keys.has('KeyX') || this.keys.has('Enter') || this.keys.has('ShiftRight')) {
       bits |= INPUT_KICK;
     }
-    return bits;
+    return bits | this.virtualBits;
   }
 }

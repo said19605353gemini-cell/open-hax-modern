@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>OpenHax Modern - Haxball</title>
   <link rel="icon" type="image/png" href="./favicon.png" />
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -621,6 +621,12 @@
 
     <section class="stage-wrap">
       <canvas id="game-canvas" width="860" height="460"></canvas>
+      <div id="mobile-controls" class="mobile-controls" aria-hidden="true">
+        <div id="mobile-joystick" class="mobile-joystick">
+          <div id="mobile-joystick-knob" class="mobile-joystick-knob"></div>
+        </div>
+        <button type="button" id="mobile-kick-btn" class="mobile-kick-btn">ŞUT</button>
+      </div>
       <div id="fps-hud" class="fps-hud">60 FPS | 16.7 ms | CPU 0.0 ms</div>
       <div id="goal-banner" class="overlay-banner hidden"></div>
       <div id="pause-banner" class="overlay-banner pause hidden">
