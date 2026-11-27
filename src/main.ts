@@ -1409,6 +1409,21 @@ class OpenHaxApp {
       el<HTMLSelectElement>('set-yt-privacy').value = pv || 'unlisted';
       this.updateSettings({ youtubePrivacy: pv });
     });
+    const lobbyTabBar = document.getElementById('lobby-tab-bar');
+    const lobbyGridEl = document.querySelector<HTMLElement>('.lobby-grid');
+    if (lobbyTabBar && lobbyGridEl) {
+      lobbyTabBar.querySelectorAll<HTMLButtonElement>('[data-lobby-tab]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const tab = btn.dataset.lobbyTab || 'all';
+          lobbyGridEl.classList.remove('tab-rooms', 'tab-create', 'tab-chat');
+          if (tab !== 'all') lobbyGridEl.classList.add('tab-' + tab);
+          lobbyTabBar.querySelectorAll<HTMLButtonElement>('[data-lobby-tab]').forEach((b) => {
+            b.classList.toggle('primary', b === btn);
+          });
+        });
+      });
+    }
+
     el<HTMLSelectElement>('lobby-refresh-rate').addEventListener('change', () => {
       if (this.activeScreen === 'lobby') this.startLobbyPolling();
     });
