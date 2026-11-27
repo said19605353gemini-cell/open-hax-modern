@@ -618,6 +618,20 @@ class OpenHaxApp {
     const joy = document.getElementById('mobile-joystick');
     const knob = document.getElementById('mobile-joystick-knob');
     const kickBtn = document.getElementById('mobile-kick-btn');
+    const toggleTopBtn = document.getElementById('btn-toggle-topmenu');
+    const toggleChatBtn = document.getElementById('btn-toggle-chat');
+    if (toggleTopBtn) {
+      toggleTopBtn.addEventListener('click', () => {
+        const hidden = document.body.classList.toggle('hide-room-top');
+        toggleTopBtn.classList.toggle('off', hidden);
+      });
+    }
+    if (toggleChatBtn) {
+      toggleChatBtn.addEventListener('click', () => {
+        const hidden = document.body.classList.toggle('hide-room-chat');
+        toggleChatBtn.classList.toggle('off', hidden);
+      });
+    }
     if (!joy || !knob || !kickBtn) return;
 
     let joyTouchId: number | null = null;

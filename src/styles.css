@@ -1489,3 +1489,43 @@ body.is-mobile .mobile-controls,
     overflow-y: auto;
   }
 }
+
+
+/* Stage Quick Toggles (Top Menu & Chat) */
+.stage-quick-toggles {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
+  z-index: 30;
+}
+
+.stage-toggle-btn {
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(15, 23, 42, 0.72);
+  color: #f8fafc;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+
+.stage-toggle-btn.off {
+  opacity: 0.55;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+body.hide-room-top .room-top,
+body.hide-room-top .room-header,
+body.hide-room-top .room-controls,
+body.hide-room-top #roster-strip {
+  display: none !important;
+}
+
+body.hide-room-chat .chat-panel,
+body.hide-room-chat .controls-strip {
+  display: none !important;
+}
