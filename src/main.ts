@@ -1093,7 +1093,7 @@ class OpenHaxApp {
     const globalChatIn = el<HTMLInputElement>('global-chat-input');
     const lobbyGlobalChatBox = el<HTMLDivElement>('lobby-global-chat-box');
     const lobbyGlobalChatIn = el<HTMLInputElement>('lobby-global-chat-input');
-    const GLOBAL_CHAT_URL = 'https://haxturko53-default-rtdb.firebaseio.com/global_chat.json';
+    const GLOBAL_CHAT_URL = 'https://haxturko-default-rtdb.europe-west1.firebasedatabase.app/global_chat.json';
     let lastGlobalSend = 0;
 
     const renderChatRows = (box: HTMLDivElement, rows: Array<{ author: string; text: string; country?: string; badge?: string; ts?: number }>) => {
@@ -1148,7 +1148,7 @@ class OpenHaxApp {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ author, text, country, badge: bdg, ts: Date.now() })
         });
-        void fetch('https://haxturko53-default-rtdb.firebaseio.com/chat_logs.json', {
+        void fetch('https://haxturko-default-rtdb.europe-west1.firebasedatabase.app/chat_logs.json', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -4280,7 +4280,7 @@ class OpenHaxApp {
     const safeText = censorText(text);
     const roomCode = this.peerMgr?.getRoomCode?.() || this.roomKind || 'local';
     if (this.peerMgr.getRole() !== 'guest' || !system) {
-      void fetch('https://haxturko53-default-rtdb.firebaseio.com/chat_logs.json', {
+      void fetch('https://haxturko-default-rtdb.europe-west1.firebasedatabase.app/chat_logs.json', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
