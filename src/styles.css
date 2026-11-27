@@ -1539,12 +1539,35 @@ body.is-mobile .mobile-controls,
 }
 
 body.in-room #btn-topbar-actions-toggle {
+  display: inline-flex !important;
+  align-items: center;
   pointer-events: auto;
   background: #243746;
   border-color: rgba(255, 255, 255, 0.22);
   padding: 5px 10px;
   font-size: 12px;
   font-weight: 700;
+  flex-shrink: 0;
+}
+
+body.focus-mode header.topbar,
+body.hide-room-top header.topbar {
+  display: flex !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  pointer-events: none !important;
+  z-index: 65 !important;
+}
+
+body.focus-mode #topbar-score,
+body.hide-room-top #topbar-score,
+body.focus-mode #btn-topbar-actions-toggle,
+body.hide-room-top #btn-topbar-actions-toggle {
+  pointer-events: auto !important;
 }
 
 body.in-room .topbar-actions {
