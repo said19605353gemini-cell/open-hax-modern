@@ -517,6 +517,42 @@ function getFeelParams(
         movingDampingOverride: 0.992,
         stopDampingOverride: 0.993
       };
+    case 'pro_dribble':
+      return {
+        startBoostMul: 1.5,
+        moveAccelMul: 1.25,
+        brakeMul: 1.65,
+        noKickSlowdown: true,
+        movingDampingOverride: 0.968,
+        stopDampingOverride: 0.78
+      };
+    case 'heavy_control':
+      return {
+        startBoostMul: 0.85,
+        moveAccelMul: 0.85,
+        brakeMul: 1.0,
+        noKickSlowdown: false,
+        movingDampingOverride: 0.955,
+        stopDampingOverride: 0.88
+      };
+    case 'turbo_sprint':
+      return {
+        startBoostMul: 2.1,
+        moveAccelMul: 1.65,
+        brakeMul: 1.4,
+        noKickSlowdown: true,
+        movingDampingOverride: 0.985,
+        stopDampingOverride: 0.85
+      };
+    case 'arcade_bounce':
+      return {
+        startBoostMul: 1.8,
+        moveAccelMul: 1.4,
+        brakeMul: 1.1,
+        noKickSlowdown: true,
+        movingDampingOverride: 0.992,
+        stopDampingOverride: 0.92
+      };
     case 'smooth_glide':
       return {
         startBoostMul: 1.35,
