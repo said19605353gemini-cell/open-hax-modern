@@ -79,6 +79,7 @@ export class PeerManager {
   private roomName = '';
   private roomPassword = '';
   private cb: PeerCallbacks;
+  private hostPassAttempts = new Map<string, { count: number; lockedUntil: number }>();
 
   constructor(callbacks: PeerCallbacks) {
     this.cb = callbacks;
@@ -132,12 +133,34 @@ export class PeerManager {
         if (pkt.type === 'join') {
           if (this.clientConns.has(conn.peer)) return;
           if (this.roomPassword && (pkt.password || '').trim() !== this.roomPassword) {
-            conn.send({ type: 'auth_error', reason: 'Oda sifresi yanlis!' } satisfies NetPacket);
+            const now = Date.now();
+            const rec = this.hostPassAttempts.get(conn.peer) || { count: 0, lockedUntil: 0 };
+            if (rec.lockedUntil > now) {
+              const remSec = Math.ceil((rec.lockedUntil - now) / 1000);
+              const m = Math.floor(remSec / 60);
+              const s = remSec % 60;
+              conn.send({ type: 'auth_error', reason: `Çok fazla yanlış şifre denemesi! ${m} dk ${s} sn bekleyin.` } satisfies NetPacket);
+            } else {
+              if (rec.lockedUntil > 0 && rec.lockedUntil <= now) {
+                rec.count = 0;
+                rec.lockedUntil = 0;
+              }
+              rec.count += 1;
+              if (rec.count >= 10) {
+                rec.lockedUntil = now + 4 * 60 * 1000;
+                this.hostPassAttempts.set(conn.peer, rec);
+                conn.send({ type: 'auth_error', reason: '10 kez yanlış şifre girdiniz! 4 dakika beklemelisiniz.' } satisfies NetPacket);
+              } else {
+                this.hostPassAttempts.set(conn.peer, rec);
+                conn.send({ type: 'auth_error', reason: `Oda şifresi yanlış! (Kalan hak: ${10 - rec.count}/10)` } satisfies NetPacket);
+              }
+            }
             setTimeout(() => {
               try { conn.close(); } catch {}
             }, 150);
             return;
           }
+          this.hostPassAttempts.delete(conn.peer);
           const rawName = String(pkt.name || 'Misafir').trim().slice(0, 20) || 'Misafir';
           const cleanName = censorText(rawName);
           const cleanAvatar = String(pkt.avatar || ':)').trim().slice(0, 8) || ':)';
@@ -232,6 +255,22 @@ export class PeerManager {
       this.cb.onAuthError('Gecersiz oda kodu.');
       return;
     }
+
+    const lockKey = 'openhax_pass_lock_' + code;
+    try {
+      const rawLock = window.localStorage.getItem(lockKey);
+      if (rawLock) {
+        const parsed = JSON.parse(rawLock) as { count?: number; lockedUntil?: number };
+        const now = Date.now();
+        if (parsed.lockedUntil && parsed.lockedUntil > now) {
+          const remSec = Math.ceil((parsed.lockedUntil - now) / 1000);
+          const m = Math.floor(remSec / 60);
+          const s = remSec % 60;
+          this.cb.onAuthError(`Çok fazla yanlış şifre denemesi! ${m} dk ${s} sn bekleyin.`);
+          return;
+        }
+      }
+    } catch { /* ignore */ }
 
     this.disconnect();
     this.roomCode = code;
