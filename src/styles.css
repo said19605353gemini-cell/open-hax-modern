@@ -1617,6 +1617,31 @@ body.in-room.topbar-actions-open .topbar-actions select {
 }
 
 @media (max-width: 768px), (pointer: coarse) {
+  body.in-room.show-roombars .room-controls,
+  body.in-room.show-roombars .host-bot-bar {
+    position: fixed !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 92vw !important;
+    max-width: 420px !important;
+    background: rgba(15, 23, 42, 0.96) !important;
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    border-radius: 12px !important;
+    padding: 10px !important;
+    z-index: 85 !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.65) !important;
+  }
+
+  body.in-room.show-roombars .room-controls {
+    top: 14dvh !important;
+  }
+
+  body.in-room.show-roombars .host-bot-bar {
+    top: 30dvh !important;
+    max-height: 56dvh !important;
+    overflow-y: auto !important;
+  }
+
   body:not(.in-room) .topbar {
     position: relative !important;
     height: auto !important;
