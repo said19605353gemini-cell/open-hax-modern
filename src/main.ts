@@ -452,6 +452,9 @@ class OpenHaxApp {
                 this.updateSettings(safeCfg);
                 this.syncSettingsToUI();
                 this.log('WARN', 'AntiCheat', 'Fizik değerleri Firebase sunucu kurallarıyla senkronlandı.');
+                if (this.isMeAdmin()) {
+                  this.addChat('Sistem', '🛡️ Anti-Cheat: Fizik değerleri sunucu kurallarıyla doğrulandı.', true);
+                }
               }
             }
           })
