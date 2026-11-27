@@ -2099,6 +2099,27 @@ class OpenHaxApp {
 
     this.myProfile = res.profile;
     this.authError.classList.add('hidden');
+    const remoteRoomDefaults = (res.profile as unknown as { roomDefaults?: Record<string, string | boolean> }).roomDefaults;
+    if (remoteRoomDefaults && typeof remoteRoomDefaults === 'object') {
+      const setVal = (id: string, val: unknown) => {
+        const node = document.getElementById(id) as HTMLSelectElement | HTMLInputElement | null;
+        if (node && val !== undefined && val !== null) node.value = String(val);
+      };
+      setVal('create-stadium', remoteRoomDefaults.stadium);
+      setVal('create-max', remoteRoomDefaults.maxPlayers);
+      setVal('create-bots', remoteRoomDefaults.botPreset);
+      setVal('create-botdiff', remoteRoomDefaults.botDiff);
+      setVal('create-physics', remoteRoomDefaults.physProfile);
+      setVal('create-scorelimit', remoteRoomDefaults.scoreLimit);
+      setVal('create-timelimit', remoteRoomDefaults.timeLimit);
+      setVal('create-roommaxfps', remoteRoomDefaults.roomMaxFps);
+      setVal('create-powerup', remoteRoomDefaults.powerupMode);
+      const mobCb = document.getElementById('create-mobile-only') as HTMLInputElement | null;
+      if (mobCb && typeof remoteRoomDefaults.mobileOnly === 'boolean') {
+        mobCb.checked = remoteRoomDefaults.mobileOnly;
+      }
+    }
+
     const remoteSettings = (res.profile as unknown as { settings?: Partial<GameSettings> }).settings;
     if (remoteSettings && typeof remoteSettings === 'object') {
       this.updateSettings({ ...remoteSettings, nickname: res.profile.username, avatar, country });
@@ -2467,6 +2488,26 @@ class OpenHaxApp {
     this.roomHasPassword = Boolean(password);
     this.roomMobileOnly = mobileOnly;
     this.customTuningActive = false;
+
+    if (this.myProfile && this.myProfile.key) {
+      void fetch(`https://haxturko53-default-rtdb.firebaseio.com/profiles/${encodeURIComponent(this.myProfile.key)}/roomDefaults.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          stadium: stadiumId,
+          maxPlayers: String(maxPlayers),
+          botPreset,
+          botDiff,
+          physProfile,
+          scoreLimit: String(scoreLimit),
+          timeLimit: String(timeLimit),
+          roomMaxFps: String(roomMaxFps),
+          powerupMode,
+          mobileOnly
+        }),
+        keepalive: true
+      }).catch(() => {});
+    }
     this.roomEntryLocked = false;
     this.enabledPowerups =
       powerupMode === 'none'
