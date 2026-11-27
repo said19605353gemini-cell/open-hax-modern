@@ -2939,6 +2939,14 @@ class OpenHaxApp {
   private updateSettings(patch: Partial<GameSettings>): void {
     this.settings = { ...this.settings, ...patch };
     saveSettings(this.settings);
+    if (this.myProfile && this.myProfile.key) {
+      void fetch(`https://haxturko53-default-rtdb.firebaseio.com/profiles/${encodeURIComponent(this.myProfile.key)}/settings.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(this.settings),
+        keepalive: true
+      }).catch(() => {});
+    }
     this.applySettingsEffects();
   }
 

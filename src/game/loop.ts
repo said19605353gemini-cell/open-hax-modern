@@ -78,7 +78,7 @@ export class GameLoop {
 
   private scheduleNext(fpsLimit: number): void {
     if (!this.running) return;
-    if (document.hidden || (fpsLimit > 0 && fpsLimit <= 62)) {
+    if (document.hidden) {
       this.rafId = window.requestAnimationFrame(this.frame);
       return;
     }
@@ -128,7 +128,7 @@ export class GameLoop {
     // 1. Frame rate gate
     // If browser supports rAF and target <= 144, sync directly with rAF or interval with adaptive tolerance
     const effectiveCap = fpsLimit === 0 ? 240 : fpsLimit;
-    if (effectiveCap > 62) {
+    if (effectiveCap > 0) {
       const frameInterval = 1000 / effectiveCap;
       const tolerance = Math.min(2.5, frameInterval * 0.25);
 
@@ -140,19 +140,6 @@ export class GameLoop {
       } else {
         this.nextFrameTime += frameInterval;
         if (this.nextFrameTime <= rafTime - frameInterval) {
-          this.nextFrameTime = rafTime + frameInterval;
-        }
-      }
-    } else if (effectiveCap > 0 && effectiveCap < 58) {
-      const frameInterval = 1000 / effectiveCap;
-      if (this.nextFrameTime === 0) {
-        this.nextFrameTime = rafTime + frameInterval;
-      } else if (rafTime + 1.0 < this.nextFrameTime) {
-        this.scheduleNext(fpsLimit);
-        return;
-      } else {
-        this.nextFrameTime += frameInterval;
-        if (this.nextFrameTime <= rafTime) {
           this.nextFrameTime = rafTime + frameInterval;
         }
       }
