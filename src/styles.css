@@ -1415,9 +1415,9 @@ body:not(.in-room) {
   width: 118px;
   height: 118px;
   border-radius: 50%;
-  background: rgba(15, 23, 42, 0.45);
-  border: 2px solid rgba(255, 255, 255, 0.28);
-  backdrop-filter: blur(4px);
+  background: rgba(15, 23, 42, 0.25);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(2px);
   pointer-events: auto;
   touch-action: none;
   display: flex;
@@ -1429,8 +1429,8 @@ body:not(.in-room) {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   transform: translate(0px, 0px);
   transition: transform 0.04s linear;
   pointer-events: none;
@@ -1443,13 +1443,13 @@ body:not(.in-room) {
   width: 88px;
   height: 88px;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.35);
-  background: radial-gradient(circle at 35% 35%, rgba(239, 68, 68, 0.9), rgba(185, 28, 28, 0.85));
-  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  background: radial-gradient(circle at 35% 35%, rgba(239, 68, 68, 0.48), rgba(185, 28, 28, 0.42));
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 800;
   font-size: 16px;
   letter-spacing: 0.5px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
   pointer-events: auto;
   touch-action: none;
   user-select: none;
@@ -1459,7 +1459,7 @@ body:not(.in-room) {
 .mobile-kick-btn:active,
 .mobile-kick-btn.active {
   transform: scale(0.93);
-  background: radial-gradient(circle at 35% 35%, rgba(248, 113, 113, 0.95), rgba(220, 38, 38, 0.95));
+  background: radial-gradient(circle at 35% 35%, rgba(248, 113, 113, 0.72), rgba(220, 38, 38, 0.68));
 }
 
 body.is-mobile .mobile-controls,
