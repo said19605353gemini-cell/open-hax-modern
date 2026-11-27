@@ -125,15 +125,30 @@ export class GameLoop {
       this.telemetryStart = rafTime;
     }
 
-    // 1. Frame rate gate (VSync <=65 via rAF, >65 or Unlimited via high-res scheduler)
+    // 1. Frame rate gate
+    // If fpsLimit is 60 or around display refresh (<= 62), let browser requestAnimationFrame naturally handle VSync
+    // to avoid jitter and artificial frame skips on 60Hz mobile displays.
     const effectiveCap = fpsLimit === 0 ? 240 : fpsLimit;
-    if (effectiveCap > 0) {
+    if (effectiveCap > 62) {
       const frameInterval = 1000 / effectiveCap;
       const tolerance = Math.min(1.2, frameInterval * 0.12);
 
       if (this.nextFrameTime === 0) {
         this.nextFrameTime = rafTime + frameInterval;
       } else if (rafTime + tolerance < this.nextFrameTime) {
+        this.scheduleNext(fpsLimit);
+        return;
+      } else {
+        this.nextFrameTime += frameInterval;
+        if (this.nextFrameTime <= rafTime) {
+          this.nextFrameTime = rafTime + frameInterval;
+        }
+      }
+    } else if (effectiveCap > 0 && effectiveCap < 58) {
+      const frameInterval = 1000 / effectiveCap;
+      if (this.nextFrameTime === 0) {
+        this.nextFrameTime = rafTime + frameInterval;
+      } else if (rafTime + 1.0 < this.nextFrameTime) {
         this.scheduleNext(fpsLimit);
         return;
       } else {
