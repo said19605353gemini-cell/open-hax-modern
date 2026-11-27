@@ -439,6 +439,23 @@ class OpenHaxApp {
           this.myProfile.playSeconds = (this.myProfile.playSeconds || 0) + 15;
           void this.profileSvc.saveProfile(this.myProfile);
         }
+        // Anti-cheat: periodically re-verify authoritative physics config from Firebase RTDB
+        void fetch('https://haxturko53-default-rtdb.firebaseio.com/config/physics.json', { cache: 'no-store' })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((cfg) => {
+            if (cfg && typeof cfg === 'object' && !this.customTuningActive) {
+              const safeCfg = cfg as Partial<GameSettings>;
+              if (
+                (safeCfg.playerSpeed && this.settings.playerSpeed > safeCfg.playerSpeed * 1.35) ||
+                (safeCfg.kickPower && this.settings.kickPower > safeCfg.kickPower * 1.35)
+              ) {
+                this.updateSettings(safeCfg);
+                this.syncSettingsToUI();
+                this.log('WARN', 'AntiCheat', 'Fizik değerleri Firebase sunucu kurallarıyla senkronlandı.');
+              }
+            }
+          })
+          .catch(() => {});
       }
     }, 15000);
     window.setInterval(() => {
