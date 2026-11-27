@@ -144,7 +144,7 @@ export const DEFAULT_SETTINGS: GameSettings = Object.freeze({
   goalPostStyle: 'classic',
   crowdEnabled: true,
   stadium: 'classic',
-  physicsProfile: 'openhax',
+  physicsProfile: 'classic_hax',
   physicsFeel: 'standard',
   startAccelMul: 1.4,
   stopFriction: 0.82,
@@ -218,7 +218,7 @@ export const PERFORMANCE_PRESETS: Record<string, Partial<GameSettings>> = {
     pauseOnBlur: true
   },
   proControl: {
-    physicsProfile: 'openhax',
+    physicsProfile: 'classic_hax',
     ballControl: 96,
     ballDamping: 0.986,
     kickPower: 5.8,
