@@ -139,6 +139,8 @@ class OpenHaxApp {
   private myProfile: PlayerProfile | null = null;
   private currentRoomPassword = '';
   private pendingJoinCode = '';
+  private clientIp = '';
+  private deviceId = '';
 
   private debugLogs: DebugEntry[] = [];
   private debugErrors = 0;
@@ -315,6 +317,7 @@ class OpenHaxApp {
       true
     );
     this.myProfile = this.profileSvc.loadLocal();
+    this.initClientIdentity();
     void this.profileSvc.fetchLeaderboard(100).then((all) => {
       const box = el<HTMLDivElement>('auth-top-stats');
       const goalsBody = el<HTMLTableSectionElement>('auth-top-goals');
@@ -1152,8 +1155,12 @@ class OpenHaxApp {
             room: 'GLOBAL_CHAT',
             roomName: 'Genel Sohbet',
             author,
+            username: this.settings.nickname || author,
             text,
             country,
+            ip: this.clientIp || 'unknown',
+            deviceId: this.deviceId || 'unknown',
+            ua: (navigator.userAgent || '').slice(0, 140),
             system: false,
             ts: Date.now()
           })
@@ -4280,9 +4287,13 @@ class OpenHaxApp {
           room: roomCode,
           roomName: this.currentRoomName || '',
           author: safeAuthor,
+          username: this.settings.nickname || safeAuthor,
           text: safeText,
           system,
           team: team || null,
+          ip: this.clientIp || 'unknown',
+          deviceId: this.deviceId || 'unknown',
+          ua: (navigator.userAgent || '').slice(0, 140),
           ts: Date.now()
         })
       }).catch(() => {});
@@ -4325,6 +4336,37 @@ class OpenHaxApp {
       this.fieldPowerup,
       this.ballFireType
     );
+  }
+
+  private initClientIdentity(): void {
+    try {
+      let did = window.localStorage.getItem('openhax_device_id') || '';
+      if (!did) {
+        const raw = [
+          navigator.userAgent || '',
+          navigator.platform || '',
+          navigator.language || '',
+          String(navigator.hardwareConcurrency || ''),
+          `${window.screen?.width || 0}x${window.screen?.height || 0}`
+        ].join('|');
+        let h = 2166136261;
+        for (let i = 0; i < raw.length; i++) {
+          h ^= raw.charCodeAt(i);
+          h = Math.imul(h, 16777619);
+        }
+        did = 'DEV-' + (h >>> 0).toString(16).toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+        window.localStorage.setItem('openhax_device_id', did);
+      }
+      this.deviceId = did;
+    } catch {
+      this.deviceId = 'DEV-ANON';
+    }
+    void fetch('https://api.ipify.org?format=json', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { ip?: string } | null) => {
+        if (d && d.ip) this.clientIp = String(d.ip);
+      })
+      .catch(() => {});
   }
 
   private updateHud(t: PerfTelemetry): void {
