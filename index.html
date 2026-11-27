@@ -479,14 +479,14 @@
             <span>Oda FPS Limiti (Hazır / Elle)</span>
             <div style="display:flex;gap:6px;">
               <select id="create-roommaxfps" style="flex:1;">
-                <option value="0">Sınırsız</option>
-                <option value="30">30 FPS</option>
-                <option value="60" selected>60 FPS</option>
+                <option value="60" selected>60 FPS (Varsayılan)</option>
                 <option value="75">75 FPS</option>
+                <option value="100">100 FPS</option>
                 <option value="120">120 FPS</option>
                 <option value="144">144 FPS</option>
                 <option value="240">240 FPS</option>
-                <option value="500">500 FPS</option>
+                <option value="30">30 FPS</option>
+                <option value="0">Sınırsız</option>
               </select>
               <input type="number" id="create-roommaxfps-custom" min="0" max="1000" step="1" placeholder="Elle (0=∞)"
                 style="width:92px;" title="Elle FPS gir (0 = Sınırsız)" />
@@ -596,25 +596,18 @@
             <option value="heavy_tank">Fizik: Ağır Tank</option>
           </optgroup>
         </select>
-        <select id="room-physicshz" title="Fizik FPS Limiti (Hz)">
-          <option value="60" selected>60 Hz</option>
-          <option value="120">120 Hz</option>
-          <option value="240">240 Hz</option>
-          <option value="500">500 Hz</option>
-        </select>
-        <button type="button" id="btn-room-reset-physics" class="btn hidden" title="Varsayılan Fizik Ayarlarına Dön">🔄
-          Varsayılan</button>
-        <select id="room-fps-select" title="Oda FPS Limiti (Admin)">
-          <option value="0">Oda FPS: Sınırsız</option>
-          <option value="240">Oda FPS: 240</option>
-          <option value="144">Oda FPS: 144</option>
-          <option value="120">Oda FPS: 120</option>
-          <option value="75">Oda FPS: 75</option>
-          <option value="60" selected>Oda FPS: 60</option>
-          <option value="30">Oda FPS: 30</option>
+        <select id="room-fps-select" title="Oda FPS Sınırı (Tüm Oyuncular ve Fizik)">
+          <option value="60" selected>FPS: 60</option>
+          <option value="75">FPS: 75</option>
+          <option value="100">FPS: 100</option>
+          <option value="120">FPS: 120</option>
+          <option value="144">FPS: 144</option>
+          <option value="240">FPS: 240</option>
+          <option value="30">FPS: 30</option>
+          <option value="0">FPS: Sınırsız</option>
         </select>
         <input type="number" id="room-fps-custom" min="0" max="1000" step="1" placeholder="FPS"
-          style="width:60px;padding:3px 6px;" title="Elle Oda FPS Limiti (0 = Sınırsız)" />
+          style="width:58px;padding:3px 6px;" title="Elle Oda FPS Sınırı (0 = Sınırsız)" />
       </div>
       <div id="roster-strip" class="roster-strip"></div>
     </section>
@@ -940,17 +933,17 @@
             </select>
           </label>
           <label class="row">
-            <span>Oda Maks. FPS Limiti (Hazır / Elle)</span>
+            <span>Oda FPS Sınırı (Fizik ve Hız Ortak)</span>
             <div style="display:flex;gap:6px;align-items:center;">
               <select id="set-roommaxfps">
-                <option value="0" selected>Sınırsız (Oyuncuya Bağlı)</option>
-                <option value="30">30 FPS</option>
-                <option value="60">60 FPS</option>
+                <option value="60" selected>60 FPS (Varsayılan)</option>
                 <option value="75">75 FPS</option>
+                <option value="100">100 FPS</option>
                 <option value="120">120 FPS</option>
                 <option value="144">144 FPS</option>
                 <option value="240">240 FPS</option>
-                <option value="500">500 FPS</option>
+                <option value="30">30 FPS</option>
+                <option value="0">Sınırsız</option>
               </select>
               <input type="number" id="set-roommaxfps-custom" min="0" max="1000" step="1" placeholder="Elle"
                 class="hax-txt-in" style="width:68px;" title="Elle Oda FPS gir (0 = Sınırsız)" />
