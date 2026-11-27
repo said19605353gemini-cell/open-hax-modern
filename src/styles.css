@@ -1518,6 +1518,7 @@ body.is-mobile .mobile-controls,
   border-color: rgba(255, 255, 255, 0.12);
 }
 
+body.hide-room-top header.topbar,
 body.hide-room-top .room-top,
 body.hide-room-top .room-header,
 body.hide-room-top .room-controls,
@@ -1531,6 +1532,7 @@ body.hide-room-chat .controls-strip {
 }
 
 
+body.focus-mode header.topbar,
 body.focus-mode .room-top,
 body.focus-mode .room-header,
 body.focus-mode .room-controls,
