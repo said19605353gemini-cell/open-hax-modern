@@ -2246,6 +2246,7 @@ class OpenHaxApp {
       if (accessFilter === 'open' && r.hasPassword) return false;
       if (accessFilter === 'locked' && !r.hasPassword) return false;
       if (accessFilter === 'mobile_only' && !r.mobileOnly) return false;
+      if (accessFilter === 'pc_only' && r.mobileOnly) return false;
       if (accessFilter === 'has_players' && r.players <= 0) return false;
       if (accessFilter === 'not_full' && r.players >= r.maxPlayers) return false;
       if (stadiumFilter !== 'all' && r.stadium !== stadiumFilter) return false;

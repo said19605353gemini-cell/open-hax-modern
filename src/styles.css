@@ -1598,6 +1598,7 @@ body.is-mobile .mobile-controls,
   }
 
   body.in-room .topbar {
+    position: relative !important;
     height: auto !important;
     min-height: 40px;
   }
@@ -1609,27 +1610,33 @@ body.is-mobile .mobile-controls,
   }
 
   .stage-quick-toggles {
-    top: 4px;
-    right: 4px;
+    top: 6px;
+    right: 6px;
     gap: 3px;
-    max-width: calc(100% - 8px);
+    max-width: calc(100% - 12px);
   }
 
   .stage-toggle-btn {
-    padding: 3px 5px;
-    font-size: 10px;
-    border-radius: 5px;
+    padding: 4px 7px;
+    font-size: 11px;
+    border-radius: 6px;
   }
 
   body.in-room .topbar-actions {
     flex-wrap: wrap;
     gap: 3px;
+    justify-content: flex-start;
   }
 
   body.in-room .topbar-actions .btn,
   body.in-room .topbar-actions select {
-    padding: 4px 6px;
+    height: 26px;
+    padding: 0 7px;
     font-size: 10.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
   }
 
   .room-header,
