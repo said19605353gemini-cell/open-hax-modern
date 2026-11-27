@@ -315,46 +315,109 @@ class OpenHaxApp {
       true
     );
     this.myProfile = this.profileSvc.loadLocal();
-    void this.profileSvc.fetchLeaderboard(30).then((all) => {
+    void this.profileSvc.fetchLeaderboard(100).then((all) => {
       const box = el<HTMLDivElement>('auth-top-stats');
       const goalsBody = el<HTMLTableSectionElement>('auth-top-goals');
       const timeBody = el<HTMLTableSectionElement>('auth-top-time');
+      const goalsPager = document.getElementById('auth-goals-pager');
+      const timePager = document.getElementById('auth-time-pager');
       goalsBody.textContent = '';
       timeBody.textContent = '';
+      if (goalsPager) goalsPager.textContent = '';
+      if (timePager) timePager.textContent = '';
       if (!all.length) {
         box.textContent = '';
         return;
       }
-      const byGoals = [...all].sort((a, b) => (b.goals || 0) - (a.goals || 0)).slice(0, 8);
-      const byTime = [...all].sort((a, b) => (b.playSeconds || 0) - (a.playSeconds || 0)).slice(0, 8);
-      byGoals.forEach((p, idx) => {
-        const tr = document.createElement('tr');
-        const bdg = getTimeBadge(p.playSeconds || 0);
-        const tdRank = document.createElement('td');
-        tdRank.textContent = String(idx + 1);
-        const tdPlayer = document.createElement('td');
-        tdPlayer.append(bdg.icon + ' ', createFlagEl(p.country), ' ' + p.username);
-        const tdGoals = document.createElement('td');
-        tdGoals.textContent = String(p.goals || 0);
-        const tdSaves = document.createElement('td');
-        tdSaves.textContent = String(p.saves || 0);
-        tr.append(tdRank, tdPlayer, tdGoals, tdSaves);
-        goalsBody.appendChild(tr);
-      });
-      byTime.forEach((p, idx) => {
-        const tr = document.createElement('tr');
-        const bdg = getTimeBadge(p.playSeconds || 0);
-        const tdRank = document.createElement('td');
-        tdRank.textContent = String(idx + 1);
-        const tdPlayer = document.createElement('td');
-        tdPlayer.append(createFlagEl(p.country), ' ' + p.username);
-        const tdBdg = document.createElement('td');
-        tdBdg.textContent = bdg.icon;
-        const tdTime = document.createElement('td');
-        tdTime.textContent = formatPlayTime(p.playSeconds || 0);
-        tr.append(tdRank, tdPlayer, tdBdg, tdTime);
-        timeBody.appendChild(tr);
-      });
+      const PAGE_SIZE = 10;
+      const byGoals = [...all].sort((a, b) => (b.goals || 0) - (a.goals || 0));
+      const byTime = [...all].sort((a, b) => (b.playSeconds || 0) - (a.playSeconds || 0));
+
+      const openPlayerProfile = (p: PlayerProfile) => {
+        this.profileModal.classList.remove('hidden');
+        void this.openProfileModal(p);
+      };
+
+      const renderGoalsPage = (page: number) => {
+        goalsBody.textContent = '';
+        const totalPages = Math.max(1, Math.ceil(byGoals.length / PAGE_SIZE));
+        const curPage = Math.max(1, Math.min(page, totalPages));
+        const start = (curPage - 1) * PAGE_SIZE;
+        const slice = byGoals.slice(start, start + PAGE_SIZE);
+        slice.forEach((p, idx) => {
+          const tr = document.createElement('tr');
+          tr.style.cursor = 'pointer';
+          tr.title = 'Profili görüntülemek için tıklayın';
+          tr.addEventListener('click', () => openPlayerProfile(p));
+          const bdg = getTimeBadge(p.playSeconds || 0);
+          const tdRank = document.createElement('td');
+          tdRank.textContent = String(start + idx + 1);
+          const tdPlayer = document.createElement('td');
+          tdPlayer.append(bdg.icon + ' ', createFlagEl(p.country), ' ' + p.username);
+          const tdGoals = document.createElement('td');
+          tdGoals.textContent = String(p.goals || 0);
+          const tdSaves = document.createElement('td');
+          tdSaves.textContent = String(p.saves || 0);
+          tr.append(tdRank, tdPlayer, tdGoals, tdSaves);
+          goalsBody.appendChild(tr);
+        });
+        if (goalsPager) {
+          goalsPager.textContent = '';
+          if (totalPages > 1) {
+            for (let i = 1; i <= totalPages; i++) {
+              const btn = document.createElement('button');
+              btn.type = 'button';
+              btn.className = 'btn' + (i === curPage ? ' primary' : '');
+              btn.style.cssText = 'padding:2px 8px;font-size:11px;';
+              btn.textContent = String(i);
+              btn.addEventListener('click', () => renderGoalsPage(i));
+              goalsPager.appendChild(btn);
+            }
+          }
+        }
+      };
+
+      const renderTimePage = (page: number) => {
+        timeBody.textContent = '';
+        const totalPages = Math.max(1, Math.ceil(byTime.length / PAGE_SIZE));
+        const curPage = Math.max(1, Math.min(page, totalPages));
+        const start = (curPage - 1) * PAGE_SIZE;
+        const slice = byTime.slice(start, start + PAGE_SIZE);
+        slice.forEach((p, idx) => {
+          const tr = document.createElement('tr');
+          tr.style.cursor = 'pointer';
+          tr.title = 'Profili görüntülemek için tıklayın';
+          tr.addEventListener('click', () => openPlayerProfile(p));
+          const bdg = getTimeBadge(p.playSeconds || 0);
+          const tdRank = document.createElement('td');
+          tdRank.textContent = String(start + idx + 1);
+          const tdPlayer = document.createElement('td');
+          tdPlayer.append(createFlagEl(p.country), ' ' + p.username);
+          const tdBdg = document.createElement('td');
+          tdBdg.textContent = bdg.icon;
+          const tdTime = document.createElement('td');
+          tdTime.textContent = formatPlayTime(p.playSeconds || 0);
+          tr.append(tdRank, tdPlayer, tdBdg, tdTime);
+          timeBody.appendChild(tr);
+        });
+        if (timePager) {
+          timePager.textContent = '';
+          if (totalPages > 1) {
+            for (let i = 1; i <= totalPages; i++) {
+              const btn = document.createElement('button');
+              btn.type = 'button';
+              btn.className = 'btn' + (i === curPage ? ' primary' : '');
+              btn.style.cssText = 'padding:2px 8px;font-size:11px;';
+              btn.textContent = String(i);
+              btn.addEventListener('click', () => renderTimePage(i));
+              timePager.appendChild(btn);
+            }
+          }
+        }
+      };
+
+      renderGoalsPage(1);
+      renderTimePage(1);
       const bestGoal = byGoals[0];
       const bestTime = byTime[0];
       box.textContent = '';
