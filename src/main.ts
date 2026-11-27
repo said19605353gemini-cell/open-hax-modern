@@ -618,7 +618,67 @@ class OpenHaxApp {
     const joy = document.getElementById('mobile-joystick');
     const knob = document.getElementById('mobile-joystick-knob');
     const kickBtn = document.getElementById('mobile-kick-btn');
+    const toggleMicBtn = document.getElementById('btn-toggle-mic');
+    const selectMicTarget = document.getElementById('select-mic-target') as HTMLSelectElement | null;
+    const roomVoiceBtn = document.getElementById('btn-room-voice');
     const toggleSoundBtn = document.getElementById('btn-toggle-sound');
+
+    // Voice Chat State
+    let micStream: MediaStream | null = null;
+    let micEnabled = false;
+    let micScope: 'all' | 'team' | 'off' = 'all';
+
+    const updateVoiceUI = () => {
+      const label = !micEnabled
+        ? '🎙️ Mic: Kapalı'
+        : micScope === 'team'
+          ? '🛡️ Mic: Takım'
+          : '🗣️ Mic: Açık';
+      if (toggleMicBtn) {
+        toggleMicBtn.textContent = label;
+        toggleMicBtn.classList.toggle('off', !micEnabled || micScope === 'off');
+      }
+      if (roomVoiceBtn) {
+        roomVoiceBtn.textContent = !micEnabled ? '🎙️ Sesli Sohbet: Kapalı' : '🎙️ Sesli Sohbet: Açık (' + (micScope === 'team' ? 'Takım' : 'Herkes') + ')';
+        roomVoiceBtn.classList.toggle('primary', micEnabled && micScope !== 'off');
+      }
+    };
+
+    const toggleMicAction = async () => {
+      if (!micEnabled) {
+        try {
+          if (!micStream) {
+            micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+          }
+          micEnabled = true;
+          micStream.getAudioTracks().forEach((tr) => (tr.enabled = true));
+          this.addChat('Sistem', '🎙️ Mikrofon aktif (' + (micScope === 'team' ? 'Sadece Takım' : 'Herkes') + ').', true);
+        } catch (err) {
+          micEnabled = false;
+          alert('Mikrofon erişim izni verilmedi veya cihaz bulunamadı.');
+        }
+      } else {
+        micEnabled = false;
+        if (micStream) {
+          micStream.getAudioTracks().forEach((tr) => (tr.enabled = false));
+        }
+        this.addChat('Sistem', '🔇 Mikrofon kapatıldı.', true);
+      }
+      updateVoiceUI();
+    };
+
+    toggleMicBtn?.addEventListener('click', toggleMicAction);
+    roomVoiceBtn?.addEventListener('click', toggleMicAction);
+    selectMicTarget?.addEventListener('change', () => {
+      micScope = selectMicTarget.value as 'all' | 'team' | 'off';
+      if (micScope === 'off') {
+        micEnabled = false;
+        if (micStream) micStream.getAudioTracks().forEach((tr) => (tr.enabled = false));
+      } else if (!micEnabled) {
+        toggleMicAction();
+      }
+      updateVoiceUI();
+    });
     const toggleFsBtn = document.getElementById('btn-toggle-fullscreen');
     const toggleFocusBtn = document.getElementById('btn-toggle-focus');
     const toggleTopBtn = document.getElementById('btn-toggle-topmenu');

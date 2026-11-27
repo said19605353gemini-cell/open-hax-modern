@@ -608,6 +608,7 @@
         </select>
         <input type="number" id="room-fps-custom" min="0" max="1000" step="1" placeholder="FPS"
           style="width:58px;padding:3px 6px;" title="Elle Oda FPS Sınırı (0 = Sınırsız)" />
+        <button type="button" id="btn-room-voice" class="btn" title="Sesli Sohbet / Mikrofon">🎙️ Sesli Sohbet: Kapalı</button>
       </div>
       <div id="roster-strip" class="roster-strip"></div>
     </section>
@@ -622,6 +623,12 @@
       </div>
       <div id="fps-hud" class="fps-hud">60 FPS | 16.7 ms | CPU 0.0 ms</div>
       <div class="stage-quick-toggles">
+        <button type="button" id="btn-toggle-mic" class="stage-toggle-btn" title="Mikrofon (Sesli Sohbet)">🎙️ Mic: Kapalı</button>
+        <select id="select-mic-target" class="stage-toggle-btn" style="padding:3px 6px;" title="Ses Kime Gitsin?">
+          <option value="all" selected>🗣️ Herkes</option>
+          <option value="team">🛡️ Sadece Takım</option>
+          <option value="off">🔇 Kapalı</option>
+        </select>
         <button type="button" id="btn-toggle-sound" class="stage-toggle-btn" title="Sesi Aç/Kapat">🔊 Ses</button>
         <button type="button" id="btn-toggle-fullscreen" class="stage-toggle-btn" title="Tarayıcıyı Tam Ekran Yap (F11)">⛶ Tam Ekran</button>
         <button type="button" id="btn-toggle-focus" class="stage-toggle-btn" title="Tam Ekran / Odak Modu">👁️ Odak</button>
