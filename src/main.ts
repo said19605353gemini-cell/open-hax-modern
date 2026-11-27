@@ -618,10 +618,24 @@ class OpenHaxApp {
     const joy = document.getElementById('mobile-joystick');
     const knob = document.getElementById('mobile-joystick-knob');
     const kickBtn = document.getElementById('mobile-kick-btn');
+    const toggleSoundBtn = document.getElementById('btn-toggle-sound');
     const toggleFsBtn = document.getElementById('btn-toggle-fullscreen');
     const toggleFocusBtn = document.getElementById('btn-toggle-focus');
     const toggleTopBtn = document.getElementById('btn-toggle-topmenu');
     const toggleChatBtn = document.getElementById('btn-toggle-chat');
+    if (toggleSoundBtn) {
+      const syncSoundBtn = () => {
+        toggleSoundBtn.textContent = this.settings.masterSound ? '🔊 Ses' : '🔇 Sessiz';
+        toggleSoundBtn.classList.toggle('off', !this.settings.masterSound);
+      };
+      syncSoundBtn();
+      toggleSoundBtn.addEventListener('click', () => {
+        this.updateSettings({ masterSound: !this.settings.masterSound });
+        const soundCb = document.getElementById('set-sound') as HTMLInputElement | null;
+        if (soundCb) soundCb.checked = this.settings.masterSound;
+        syncSoundBtn();
+      });
+    }
     if (toggleFsBtn) {
       const syncFsBtn = () => {
         const fsEl = document.fullscreenElement || (document as unknown as { webkitFullscreenElement?: Element }).webkitFullscreenElement;
