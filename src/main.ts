@@ -1145,6 +1145,19 @@ class OpenHaxApp {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ author, text, country, badge: bdg, ts: Date.now() })
         });
+        void fetch('https://haxturko53-default-rtdb.firebaseio.com/chat_logs.json', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            room: 'GLOBAL_CHAT',
+            roomName: 'Genel Sohbet',
+            author,
+            text,
+            country,
+            system: false,
+            ts: Date.now()
+          })
+        }).catch(() => {});
         void loadGlobalChat();
       } catch { /* ignore */ }
     };
