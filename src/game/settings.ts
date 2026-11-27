@@ -150,7 +150,7 @@ export const DEFAULT_SETTINGS: GameSettings = Object.freeze({
   stopFriction: 0.82,
   surfaceFriction: 0.974,
   physicsHz: 60,
-  roomMaxFps: 0,
+  roomMaxFps: 60,
   ballControl: 90,
   ballDamping: 0.9915,
   kickPower: 5.4,

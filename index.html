@@ -479,9 +479,9 @@
             <span>Oda FPS Limiti (Hazır / Elle)</span>
             <div style="display:flex;gap:6px;">
               <select id="create-roommaxfps" style="flex:1;">
-                <option value="0" selected>Sınırsız</option>
+                <option value="0">Sınırsız</option>
                 <option value="30">30 FPS</option>
-                <option value="60">60 FPS</option>
+                <option value="60" selected>60 FPS</option>
                 <option value="75">75 FPS</option>
                 <option value="120">120 FPS</option>
                 <option value="144">144 FPS</option>
@@ -610,7 +610,7 @@
           <option value="144">Oda FPS: 144</option>
           <option value="120">Oda FPS: 120</option>
           <option value="75">Oda FPS: 75</option>
-          <option value="60">Oda FPS: 60</option>
+          <option value="60" selected>Oda FPS: 60</option>
           <option value="30">Oda FPS: 30</option>
         </select>
         <input type="number" id="room-fps-custom" min="0" max="1000" step="1" placeholder="FPS"
