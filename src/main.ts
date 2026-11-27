@@ -618,9 +618,35 @@ class OpenHaxApp {
     const joy = document.getElementById('mobile-joystick');
     const knob = document.getElementById('mobile-joystick-knob');
     const kickBtn = document.getElementById('mobile-kick-btn');
+    const toggleFsBtn = document.getElementById('btn-toggle-fullscreen');
     const toggleFocusBtn = document.getElementById('btn-toggle-focus');
     const toggleTopBtn = document.getElementById('btn-toggle-topmenu');
     const toggleChatBtn = document.getElementById('btn-toggle-chat');
+    if (toggleFsBtn) {
+      const syncFsBtn = () => {
+        const fsEl = document.fullscreenElement || (document as unknown as { webkitFullscreenElement?: Element }).webkitFullscreenElement;
+        toggleFsBtn.classList.toggle('off', Boolean(fsEl));
+      };
+      document.addEventListener('fullscreenchange', syncFsBtn);
+      document.addEventListener('webkitfullscreenchange', syncFsBtn);
+      toggleFsBtn.addEventListener('click', () => {
+        const doc = document as unknown as {
+          fullscreenElement?: Element;
+          webkitFullscreenElement?: Element;
+          exitFullscreen?: () => Promise<void>;
+          webkitExitFullscreen?: () => Promise<void>;
+        };
+        const el = document.documentElement as unknown as {
+          requestFullscreen?: () => Promise<void>;
+          webkitRequestFullscreen?: () => Promise<void>;
+        };
+        if (doc.fullscreenElement || doc.webkitFullscreenElement) {
+          (doc.exitFullscreen || doc.webkitExitFullscreen)?.call(document)?.catch(() => {});
+        } else {
+          (el.requestFullscreen || el.webkitRequestFullscreen)?.call(document.documentElement)?.catch(() => {});
+        }
+      });
+    }
     if (toggleFocusBtn) {
       toggleFocusBtn.addEventListener('click', () => {
         const active = document.body.classList.toggle('focus-mode');
