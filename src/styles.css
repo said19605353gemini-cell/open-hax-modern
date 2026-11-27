@@ -1877,6 +1877,7 @@ body.in-room.topbar-actions-open .topbar-actions select {
   }
 
   .teams-grid,
+  .teams-board,
   #teams-modal .teams-body,
   #teams-modal .teams-cols {
     display: flex !important;
