@@ -5,7 +5,7 @@ import { censorText } from '../game/profanity';
 export type PeerRole = 'offline' | 'host' | 'guest';
 
 export type NetPacket =
-  | { type: 'join'; name: string; avatar: string; password?: string; country?: string }
+  | { type: 'join'; name: string; avatar: string; password?: string; country?: string; isMobile?: boolean }
   | { type: 'welcome'; playerId: string; roomName: string }
   | { type: 'auth_error'; reason: string }
   | { type: 'input'; bits: number }
@@ -21,7 +21,7 @@ export type NetPacket =
 export interface PeerCallbacks {
   onStatus: (role: PeerRole, stateText: string, roomCode: string) => void;
   onLog: (level: 'INFO' | 'WARN' | 'ERROR', source: string, msg: string, detail?: string) => void;
-  onPeerJoin: (peerId: string, name: string, avatar: string, country?: string) => boolean | string; // true = ok, string = reject reason
+  onPeerJoin: (peerId: string, name: string, avatar: string, country?: string, isMobile?: boolean) => boolean | string; // true = ok, string = reject reason
   onPeerLeave: (peerId: string) => void;
   onPeerInput: (peerId: string, bits: number) => void;
   onPeerTeam: (peerId: string, team: Team) => void;
@@ -142,7 +142,7 @@ export class PeerManager {
           const cleanName = censorText(rawName);
           const cleanAvatar = String(pkt.avatar || ':)').trim().slice(0, 8) || ':)';
           const cleanCountry = String(pkt.country || 'TR').trim().toUpperCase().replace(/[^A-Z]/g, '').slice(0, 2) || 'TR';
-          const result = this.cb.onPeerJoin(conn.peer, cleanName, cleanAvatar, cleanCountry);
+          const result = this.cb.onPeerJoin(conn.peer, cleanName, cleanAvatar, cleanCountry, Boolean(pkt.isMobile));
           if (result !== true) {
             conn.send({ type: 'auth_error', reason: typeof result === 'string' ? result : 'Oda dolu!' } satisfies NetPacket);
             setTimeout(() => {
@@ -226,7 +226,7 @@ export class PeerManager {
     return code;
   }
 
-  joinRoom(codeRaw: string, name: string, avatar: string, password?: string, country?: string): void {
+  joinRoom(codeRaw: string, name: string, avatar: string, password?: string, country?: string, isMobile?: boolean): void {
     const code = extractRoomCode(codeRaw);
     if (!code) {
       this.cb.onAuthError('Gecersiz oda kodu.');
@@ -250,7 +250,7 @@ export class PeerManager {
 
       conn.on('open', () => {
         this.cb.onStatus('guest', 'Yetkilendiriliyor...', code);
-        conn.send({ type: 'join', name, avatar, password, country } satisfies NetPacket);
+        conn.send({ type: 'join', name, avatar, password, country, isMobile: Boolean(isMobile) } satisfies NetPacket);
 
         this.pingTimer = window.setInterval(() => {
           if (conn.open) {

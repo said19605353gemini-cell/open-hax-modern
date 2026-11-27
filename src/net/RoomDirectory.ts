@@ -10,6 +10,7 @@ export interface PublicRoomInfo {
   maxPlayers: number;
   hasPassword: boolean;
   country?: string;
+  mobileOnly?: boolean;
   ownerHash?: string;
   updatedAt: number;
   source?: 'server' | 'local';

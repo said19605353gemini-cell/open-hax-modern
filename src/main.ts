@@ -104,6 +104,7 @@ class OpenHaxApp {
   private paused = false;
   private teamsLocked = false;
   private roomEntryLocked = false;
+  private roomMobileOnly = false;
   private goalPending = false;
   private goalBannerTeam: Team | null = null;
   private goalResetTicks = 0;
@@ -204,6 +205,7 @@ class OpenHaxApp {
   // Room refs
   private roomTitleLabel = el<HTMLElement>('room-title-label');
   private roomCodeBadge = el<HTMLSpanElement>('room-code-badge');
+  private roomMobileBadge = el<HTMLSpanElement>('room-mobile-badge');
   private netStatusEl = el<HTMLSpanElement>('net-status');
   private btnCopyLink = el<HTMLButtonElement>('btn-copy-link');
   private hostBotBar = el<HTMLElement>('host-bot-bar');
@@ -238,7 +240,7 @@ class OpenHaxApp {
     this.peerMgr = new PeerManager({
       onStatus: (role, stateText, roomCode) => this.onPeerStatus(role, stateText, roomCode),
       onLog: (level, source, msg, detail) => this.log(level, source, msg, detail),
-      onPeerJoin: (peerId, name, avatar, country) => this.handlePeerJoin(peerId, name, avatar, country),
+      onPeerJoin: (peerId, name, avatar, country, isMobile) => this.handlePeerJoin(peerId, name, avatar, country, isMobile),
       onPeerLeave: (peerId) => this.handlePeerLeave(peerId),
       onPeerInput: (peerId, bits) => this.handlePeerInput(peerId, bits),
       onPeerTeam: (peerId, team) => this.handlePeerTeam(peerId, team),
@@ -580,6 +582,9 @@ class OpenHaxApp {
       this.stopLobbyPolling();
       this.input.attach();
       this.loop.start();
+      if (this.roomMobileBadge) {
+        this.roomMobileBadge.classList.toggle('hidden', !this.roomMobileOnly);
+      }
     } else {
       this.stopLobbyPolling();
       this.stopMatchLoop();
@@ -2189,6 +2194,14 @@ class OpenHaxApp {
 
       const tdName = document.createElement('td');
       tdName.textContent = censorText(r.name);
+      if (r.mobileOnly) {
+        const mobBadge = document.createElement('span');
+        mobBadge.className = 'net-badge';
+        mobBadge.style.cssText = 'background:#0284c7;color:#fff;font-size:11px;padding:1px 6px;margin-left:6px;border-radius:4px;';
+        mobBadge.textContent = '📱 Mobil';
+        mobBadge.title = 'Sadece mobil cihazlar girebilir';
+        tdName.appendChild(mobBadge);
+      }
 
       const tdHost = document.createElement('td');
       tdHost.textContent = censorText(r.hostName);
@@ -2300,6 +2313,7 @@ class OpenHaxApp {
     const scoreLimit = Number(this.createScoreLimit.value) || 0;
     const timeLimit = Number(this.createTimeLimit.value) || 0;
     const password = this.createPass.value.trim();
+    const mobileOnly = Boolean((document.getElementById('create-mobile-only') as HTMLInputElement | null)?.checked);
 
     this.roomKind = kind;
     this.currentRoomName = roomName;
@@ -2308,6 +2322,7 @@ class OpenHaxApp {
     this.roomTimeLimit = timeLimit;
     this.currentRoomPassword = password;
     this.roomHasPassword = Boolean(password);
+    this.roomMobileOnly = mobileOnly;
     this.customTuningActive = false;
     this.roomEntryLocked = false;
     this.enabledPowerups =
@@ -2338,9 +2353,10 @@ class OpenHaxApp {
     el<HTMLSelectElement>('room-fps-select').value = String(roomMaxFps);
     el<HTMLInputElement>('room-fps-custom').value = String(roomMaxFps);
 
+    const isMyMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth <= 1024;
     this.myPlayerId = 'host';
     this.players = [
-      this.createPlayer('host', this.settings.nickname, this.settings.avatar, 'red', false, true, this.settings.country || 'TR', 0)
+      this.createPlayer('host', this.settings.nickname, this.settings.avatar, 'red', false, true, this.settings.country || 'TR', 0, isMyMobile)
     ];
 
     if (kind === 'local2p') {
@@ -2495,7 +2511,8 @@ class OpenHaxApp {
       window.sessionStorage.setItem('openhax_active_room', JSON.stringify({ role: 'guest', code, password }));
     } catch { /* ignore */ }
     this.netStatusEl.textContent = 'Bağlanıyor...';
-    this.peerMgr.joinRoom(code, this.settings.nickname, this.settings.avatar, password, this.settings.country || 'TR');
+    const isMob = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth <= 1024;
+    this.peerMgr.joinRoom(code, this.settings.nickname, this.settings.avatar, password, this.settings.country || 'TR', isMob);
   }
 
   private pickNextHostPlayer(): PlayerEntity | undefined {
@@ -2596,6 +2613,7 @@ class OpenHaxApp {
         bots,
         maxPlayers: this.roomMaxPlayers,
         hasPassword: this.roomHasPassword,
+        mobileOnly: this.roomMobileOnly,
         country: this.settings.country || 'TR'
       });
     };
@@ -2712,7 +2730,8 @@ class OpenHaxApp {
       const chip = document.createElement('span');
       chip.className = 'roster-chip ' + p.team + (p.isAdmin ? ' admin' : '');
       const pingSuffix = !p.isBot && typeof p.ping === 'number' ? ' (' + p.ping + 'ms)' : '';
-      const restText = (p.isAdmin ? '★ ' : '') + (p.isBot ? '[BOT] ' : '') + p.name + pingSuffix;
+      const mobIcon = p.isMobile ? ' 📱' : '';
+      const restText = (p.isAdmin ? '★ ' : '') + (p.isBot ? '[BOT] ' : '') + p.name + mobIcon + pingSuffix;
       if (p.isBot) {
         chip.textContent = '🤖 ' + restText;
       } else {
@@ -3176,7 +3195,8 @@ class OpenHaxApp {
     isBot: boolean,
     isAdmin = false,
     country?: string,
-    ping?: number
+    ping?: number,
+    isMobile?: boolean
   ): PlayerEntity {
     return {
       id,
@@ -3185,6 +3205,7 @@ class OpenHaxApp {
       team,
       isBot,
       isAdmin,
+      isMobile,
       country,
       ping,
       x: 0,
@@ -3211,7 +3232,10 @@ class OpenHaxApp {
     }
   }
 
-  private handlePeerJoin(peerId: string, name: string, avatar: string, country = 'TR'): boolean | string {
+  private handlePeerJoin(peerId: string, name: string, avatar: string, country = 'TR', isMobile = false): boolean | string {
+    if (this.roomMobileOnly && !isMobile) {
+      return 'Bu odaya sadece mobil cihazlardan girilebilir!';
+    }
     if (this.roomEntryLocked) {
       return 'Oda girişe kilitli! Yeni oyuncu kabul edilmiyor.';
     }
@@ -3224,7 +3248,7 @@ class OpenHaxApp {
     const redCount = this.players.filter((p) => p.team === 'red').length;
     const blueCount = this.players.filter((p) => p.team === 'blue').length;
     const team: Team = redCount <= blueCount ? 'red' : 'blue';
-    const player = this.createPlayer(peerId, name, avatar, team, false, false, country);
+    const player = this.createPlayer(peerId, name, avatar, team, false, false, country, undefined, isMobile);
 
     const cx = this.stadium.pitchX + this.stadium.pitchWidth / 2;
     const cy = this.stadium.pitchY + this.stadium.pitchHeight / 2;
@@ -3570,6 +3594,7 @@ class OpenHaxApp {
       p: this.paused,
       lk: this.teamsLocked,
       rl: this.roomEntryLocked,
+      mo: this.roomMobileOnly,
       gt: this.goalBannerTeam,
       pu: this.fieldPowerup,
       bf: this.ballFireType,
@@ -3586,6 +3611,7 @@ class OpenHaxApp {
         team: p.team,
         isBot: p.isBot,
         adm: Boolean(p.isAdmin),
+        mb: Boolean(p.isMobile),
         ct: p.country,
         pg: p.ping,
         cc: p.customColor,
@@ -3647,6 +3673,10 @@ class OpenHaxApp {
     this.paused = snap.p;
     this.teamsLocked = Boolean(snap.lk);
     this.roomEntryLocked = Boolean(snap.rl);
+    this.roomMobileOnly = Boolean(snap.mo);
+    if (this.roomMobileBadge) {
+      this.roomMobileBadge.classList.toggle('hidden', !this.roomMobileOnly);
+    }
     this.goalBannerTeam = snap.gt;
     this.fieldPowerup = snap.pu || null;
     this.ballFireType = snap.bf || null;
@@ -3678,6 +3708,7 @@ class OpenHaxApp {
         cur.team = sp.team;
         cur.isBot = sp.isBot;
         cur.isAdmin = Boolean(sp.adm);
+        cur.isMobile = Boolean(sp.mb);
         cur.country = sp.ct;
         cur.ping = sp.pg;
         cur.customColor = sp.cc && /^#[0-9a-f]{6}$/i.test(sp.cc) ? sp.cc : undefined;
@@ -3686,7 +3717,7 @@ class OpenHaxApp {
         updated.push(cur);
       } else {
         rosterChanged = true;
-        const fresh = this.createPlayer(sp.id, sp.name, sp.avatar, sp.team, sp.isBot, Boolean(sp.adm), sp.ct, sp.pg);
+        const fresh = this.createPlayer(sp.id, sp.name, sp.avatar, sp.team, sp.isBot, Boolean(sp.adm), sp.ct, sp.pg, Boolean(sp.mb));
         fresh.x = sp.x;
         fresh.y = sp.y;
         fresh.prevX = sp.x;

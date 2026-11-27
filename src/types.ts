@@ -83,6 +83,7 @@ export interface PlayerEntity {
   team: Team;
   isBot: boolean;
   isAdmin?: boolean;
+  isMobile?: boolean;
   country?: string;
   ping?: number;
   customColor?: string;
@@ -166,6 +167,7 @@ export interface SnapshotPlayer {
   team: Team;
   isBot: boolean;
   adm?: boolean;
+  mb?: boolean;
   ct?: string;
   pg?: number;
   cc?: string;
@@ -192,6 +194,7 @@ export interface MatchSnapshot {
   p: boolean;
   lk?: boolean;
   rl?: boolean;
+  mo?: boolean;
   gt: Team | null;
   pu?: FieldPowerup | null;
   bf?: PowerupType | null;

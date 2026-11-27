@@ -504,6 +504,10 @@
               <option value="all">🌟 Tüm Özel Güçler</option>
             </select>
           </label>
+          <label class="field" style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:4px;">
+            <input type="checkbox" id="create-mobile-only" style="width:18px;height:18px;accent-color:#38bdf8;" />
+            <span style="font-weight:700;color:#38bdf8;">📱 Sadece Mobil Oyuncular Girebilsin</span>
+          </label>
         </div>
 
         <button type="button" id="btn-create-room" class="btn primary lg full">Oda Oluştur ve Oyuna Gir</button>
@@ -517,6 +521,7 @@
       <div class="room-meta">
         <strong id="room-title-label">OpenHax Oda</strong>
         <span id="room-code-badge" class="net-badge hidden"></span>
+        <span id="room-mobile-badge" class="net-badge hidden" style="background:#0284c7;color:#fff;">📱 Sadece Mobil</span>
         <span id="net-status" class="net-badge">Yerel</span>
         <span class="net-badge" title="Speedhack, F12 ve sahte girdi koruması aktif">🛡️ Güvenli Mod</span>
         <button type="button" id="btn-copy-link" class="btn hidden">Davet Linki Kopyala</button>
