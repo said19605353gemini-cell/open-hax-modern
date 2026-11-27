@@ -993,6 +993,15 @@ class OpenHaxApp {
       this.dispatchAdminAction('toggle_roomlock');
       setTimeout(renderTeamsModal, 60);
     });
+    el<HTMLButtonElement>('btn-teams-password').addEventListener('click', () => {
+      if (!this.isMeAdmin() || this.peerMgr.getRole() === 'guest') return;
+      const next = window.prompt('Oda şifresi girin (şifreyi kaldırmak için boş bırakın):', this.currentRoomPassword);
+      if (next === null) return;
+      this.currentRoomPassword = next.trim();
+      this.roomHasPassword = Boolean(this.currentRoomPassword);
+      el<HTMLButtonElement>('btn-teams-password').textContent = this.currentRoomPassword ? '🔑 Şifre: Var' : '🔑 Şifre: Yok';
+      this.addChat('Sistem', this.currentRoomPassword ? '🔑 Oda şifresi güncellendi.' : '🔓 Oda şifresi kaldırıldı.', true);
+    });
     el<HTMLButtonElement>('btn-teams-reset').addEventListener('click', () => {
       if (!this.isMeAdmin()) return;
       for (const p of this.players) this.dispatchAdminAction('set_team', p.id, 'spec');
