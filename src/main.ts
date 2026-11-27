@@ -1125,8 +1125,10 @@ class OpenHaxApp {
       this.roomStadium.disabled = !isAdm;
       this.roomPhysics.disabled = !isAdm;
       this.roomPhysicsFeel.disabled = !isAdm;
-      el<HTMLSelectElement>('room-physicshz').disabled = !isAdm;
-      el<HTMLButtonElement>('btn-room-reset-physics').disabled = !isAdm;
+      const roomHzNode = document.getElementById('room-physicshz') as HTMLSelectElement | null;
+      if (roomHzNode) roomHzNode.disabled = !isAdm;
+      const roomResetNode = document.getElementById('btn-room-reset-physics') as HTMLButtonElement | null;
+      if (roomResetNode) roomResetNode.disabled = !isAdm;
       el<HTMLButtonElement>('btn-room-upload-hbs').classList.toggle('hidden', !isAdm);
       const canEditPhysics = this.activeScreen === 'room' && isAdm;
       const physicsPane = document.querySelector<HTMLElement>('[data-pane="physics"]');
@@ -1584,20 +1586,26 @@ class OpenHaxApp {
       (document.getElementById('set-physics-feel') as HTMLSelectElement | null || document.createElement('select')).value = mode;
     });
 
-    el<HTMLSelectElement>('room-physicshz').addEventListener('change', () => {
-      if (!this.isMeAdmin()) return;
-      const hz = Number(el<HTMLSelectElement>('room-physicshz').value) || 60;
-      if (this.peerMgr.getRole() === 'guest') {
-        this.dispatchAdminAction('set_physicshz', undefined, hz);
-        return;
-      }
-      this.updateSettings({ physicsHz: hz });
-      el<HTMLSelectElement>('set-physicshz').value = String(hz);
-    });
+    const roomHzEl = document.getElementById('room-physicshz') as HTMLSelectElement | null;
+    if (roomHzEl) {
+      roomHzEl.addEventListener('change', () => {
+        if (!this.isMeAdmin()) return;
+        const hz = Number(roomHzEl.value) || 60;
+        if (this.peerMgr.getRole() === 'guest') {
+          this.dispatchAdminAction('set_physicshz', undefined, hz);
+          return;
+        }
+        this.updateSettings({ physicsHz: hz });
+        el<HTMLSelectElement>('set-physicshz').value = String(hz);
+      });
+    }
 
-    el<HTMLButtonElement>('btn-room-reset-physics').addEventListener('click', () => {
-      el<HTMLButtonElement>('btn-reset-physics-defaults').click();
-    });
+    const roomResetPhysBtn = document.getElementById('btn-room-reset-physics') as HTMLButtonElement | null;
+    if (roomResetPhysBtn) {
+      roomResetPhysBtn.addEventListener('click', () => {
+        document.getElementById('btn-reset-physics-defaults')?.click();
+      });
+    }
 
     el<HTMLButtonElement>('btn-chat-send').addEventListener('click', () => this.sendChat());
     this.chatInput.addEventListener('keydown', (e) => {
@@ -3404,7 +3412,7 @@ class OpenHaxApp {
           this.audio.play('end');
           this.pendingNetEvents |= 8;
           if (el<HTMLDivElement>('teams-modal').classList.contains('hidden')) {
-            el<HTMLButtonElement>('btn-room-teams').click();
+            document.getElementById('btn-teams-modal')?.click();
           }
           const msg =
             this.scoreRed === this.scoreBlue
