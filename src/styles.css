@@ -1538,6 +1538,12 @@ body.is-mobile .mobile-controls,
   flex-shrink: 0;
 }
 
+.lobby-create-card .two-col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
 @media (max-width: 768px), (pointer: coarse) {
   body:not(.in-room) .topbar {
     position: relative !important;
