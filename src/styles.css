@@ -1869,6 +1869,13 @@ body.in-room.topbar-actions-open .topbar-actions select {
     font-size: 11px;
   }
 
+  #teams-modal .modal-card {
+    touch-action: pan-x pan-y !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
   .teams-grid,
   #teams-modal .teams-body,
   #teams-modal .teams-cols {
@@ -1876,6 +1883,7 @@ body.in-room.topbar-actions-open .topbar-actions select {
     flex-direction: column !important;
     grid-template-columns: 1fr !important;
     gap: 8px !important;
+    touch-action: pan-y !important;
   }
 
   #teams-admin-actions {
