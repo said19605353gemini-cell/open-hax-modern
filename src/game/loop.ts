@@ -85,11 +85,11 @@ export class GameLoop {
     const target = fpsLimit === 0 ? 240 : Math.min(500, fpsLimit);
     const interval = 1000 / target;
     const remaining = this.nextFrameTime > 0 ? this.nextFrameTime - performance.now() : 0;
-    if (remaining > 3) {
+    if (remaining > 2) {
       this.highResTimer = window.setTimeout(() => {
         this.highResTimer = null;
         if (this.running) this.frame(performance.now());
-      }, Math.max(1, Math.floor(remaining - 2)));
+      }, Math.max(1, Math.floor(remaining - 1.5)));
       return;
     }
     if (!this.msgChannel) {

@@ -386,7 +386,7 @@ export class CanvasRenderer {
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
 
     // 2. Render particles (if enabled)
-    if (settings.particles && particles.length > 0) {
+    if (settings.particles && !settings.perfBoost && particles.length > 0) {
       for (let i = 0; i < particles.length; i++) {
         const pt = particles[i];
         ctx.globalAlpha = Math.max(0, pt.life / pt.maxLife);
@@ -501,7 +501,7 @@ export class CanvasRenderer {
     const bx = ball.prevX + (ball.x - ball.prevX) * alpha;
     const by = ball.prevY + (ball.y - ball.prevY) * alpha;
 
-    if (settings.ballTrail) {
+    if (settings.ballTrail && !settings.perfBoost) {
       const spd = Math.hypot(ball.vx, ball.vy);
       if (spd > 2.4) {
         this.trailPoints.push({ x: bx, y: by });
